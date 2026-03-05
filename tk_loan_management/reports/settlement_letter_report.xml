@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <template id="settlement_letter_report">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="i">
+                    <t t-call="web.external_layout">
+                        <div class="page">
+                            <h2 class="text-center mb-5 display-6">
+                                Settlement Letter
+                            </h2>
+
+                            <div class="text-muted small">Printed on
+                                <span t-out="context_timestamp(datetime.datetime.now()).strftime('%d-%m-%Y - %H:%M:%S')"/>
+                            </div>
+
+                            <br/>
+                            <br/>
+                            <strong t-field="i.customer_id.name"/>
+                            <br t-if="i.customer_id.name"/>
+                            <strong t-field="i.email"/>
+                            <br t-if="i.email"/>
+                            <strong t-field="i.phone"/>
+                            <br t-if="i.phone"/>
+
+                            <br/>
+                            <p>
+                                <strong>Subject: </strong>Confirmation of Loan Settlement -
+                                <span t-field="i.name"/>
+                            </p>
+                            <p>
+                                We are writing to confirm that your loan with <span t-field="i.company_id.name"/>, loan
+                                reference <strong t-field="i.name"/>, has been fully settled as of <strong t-field="i.settlement_date"/>.
+                            </p>
+
+                            <p>
+                                As per our agreement, the settlement amount of
+                                <strong t-field="i.settlement_amount"/>
+                                has been received in
+                                full, and your loan is now considered paid in full. There are no remaining obligations
+                                or outstanding balances under this loan.
+                            </p>
+
+                            <p>
+                                We would like to take this opportunity to thank you for your cooperation in resolving
+                                this matter, and we wish you the best in your future financial endeavors. If you require
+                                any further documentation or assistance, please feel free to contact us.
+                            </p>
+                            <br/>
+                            <p>Best regards,
+                                <br/>
+                                <span t-field="i.company_id.name"/>
+                                <br/>
+                                <t t-if="i.company_id.phone">
+                                    <span>
+                                        Phone :
+                                        <span t-field="i.company_id.phone"/>
+                                    </span>
+                                    <br/>
+                                </t>
+                                <t t-if="i.company_id.email">
+                                    <span>
+                                        Email :
+                                        <span t-field="i.company_id.email"/>
+                                    </span>
+                                    <br/>
+                                </t>
+                                <t t-if="i.company_id.website">
+                                    <span>
+                                        Website :
+                                        <span t-field="i.company_id.website"/>
+                                    </span>
+                                </t>
+                            </p>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    </data>
+    <record id="customer_settlement_letter_report_action" model="ir.actions.report">
+        <field name="name">Settlement Letter</field>
+        <field name="model">customer.loan</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">tk_loan_management.settlement_letter_report</field>
+        <field name="report_file">tk_loan_management.settlement_letter_report</field>
+        <field name="print_report_name">'Settlement Letter'</field>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Copyright (C) 2024-TODAY TechKhedut (<https://www.techkhedut.com>)
+    Part of TechKhedut. See LICENSE file for full copyright and licensing details.
+-->
+<odoo>
+    <record id="customer_document_reject_reason_form_view" model="ir.ui.view">
+        <field name="name">customer.document.reject.reason.wizard.form.view</field>
+        <field name="model">customer.document.reject.reason.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="customer_loan_doc_id" invisible="1"/>
+                <group col="12" class="oe_invoice_lines_tab">
+                    <field name="reason" placeholder="Reason for document rejection." nolabel="1" colspan="12"/>
+                </group>
+                <footer>
+                    <button name="action_reject_reason" string="Reject" type="object" class="oe_highlight"/>
+                    <button special="cancel" string="Cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="customer_document_reject_reason_action" model="ir.actions.act_window">
+        <field name="name">Reject Reason</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">customer.document.reject.reason.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
+

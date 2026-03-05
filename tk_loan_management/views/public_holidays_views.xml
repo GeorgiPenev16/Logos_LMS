@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="public_holidays_view_list" model="ir.ui.view">
+            <field name="name">public.holidays.view.list</field>
+            <field name="model">public.holidays</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                    <field name="start_date"/>
+                    <field name="start_date"/>
+                    <field name="status" widget="badge"
+                           decoration-info="status == 'draft'"
+                           decoration-success="status == 'confirmed'"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="public_holidays_view_form" model="ir.ui.view">
+            <field name="name">public.holidays.view.form</field>
+            <field name="model">public.holidays</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_confirm" class="btn btn-success" icon="fa-check"
+                                string="Confirm"
+                                type="object" invisible="status == 'confirmed'"/>
+                        <field name="status" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" string="Title"/>
+                            <h1>
+                                <field name="name" required="1" readonly="status == 'confirmed'"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="start_date" required="1"
+                                       readonly="status == 'confirmed'"/>
+                            </group>
+                            <group>
+                                <field name="end_date" required="1"
+                                       readonly="status == 'confirmed'"/>
+                            </group>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_public_holidays" model="ir.actions.act_window">
+            <field name="name">Public Holidays</field>
+            <field name="res_model">public.holidays</field>
+            <field name="view_mode">list,form</field>
+            <field name="type">ir.actions.act_window</field>
+        </record>
+
+    </data>
+</odoo>

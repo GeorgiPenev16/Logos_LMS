@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <template id="sanction_letter_report">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="i">
+                    <t t-call="web.external_layout">
+                        <div class="page">
+                            <h2 class="text-center mb-5 display-6">
+                                Sanction Letter
+                            </h2>
+                            <br/>
+                            <div class="row mb-4">
+                                <div class="col-6">
+                                    <h6 style="background-color:#e9ecef;" class="py-1" t-if="i.loan_lines_ids">
+                                        <i class="fa fa-user px-2" aria-hidden="true"></i>
+
+                                        Customer Details
+                                    </h6>
+                                    <div class="row my-1">
+                                        <div class="col-4">
+                                            <span>Customer</span>
+                                        </div>
+                                        <div class="col-1">
+                                            <span>:</span>
+                                        </div>
+                                        <div class="col-7">
+                                            <strong>
+                                                <span t-field="i.customer_id.name"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                    <div class="row my-1" t-if="i.phone">
+                                        <div class="col-4">
+                                            <span>Phone</span>
+                                        </div>
+                                        <div class="col-1">
+                                            <span>:</span>
+                                        </div>
+                                        <div class="col-7">
+                                            <strong>
+                                                <span t-field="i.phone"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                    <div class="row my-1" t-if="i.email">
+                                        <div class="col-4">
+                                            <span>Email</span>
+                                        </div>
+                                        <div class="col-1">
+                                            <span>:</span>
+                                        </div>
+                                        <div class="col-7">
+                                            <strong>
+                                                <span t-field="i.email"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-5 ms-3">
+                                    <h6 style="background-color:#e9ecef;" class="py-1" t-if="i.loan_lines_ids">
+                                        <i class="fa fa-usd px-2" aria-hidden="true"></i>
+                                        Loan Details
+                                    </h6>
+
+                                    <div class="row my-1" t-if="i.app_date">
+                                        <div class="col-5">
+                                            <span>Reference</span>
+                                        </div>
+                                        <div class="col-1">
+                                            <span>:</span>
+                                        </div>
+                                        <div class="col-6">
+                                            <strong>
+                                                <span t-field="i.name"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                    <div class="row my-1" t-if="i.app_date">
+                                        <div class="col-5">
+                                            <span>Application Date</span>
+                                        </div>
+                                        <div class="col-1">
+                                            <span>:</span>
+                                        </div>
+                                        <div class="col-6">
+                                            <strong>
+                                                <span t-field="i.app_date"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="row my-1" t-if="i.responsible_id">
+                                        <div class="col-5">
+                                            <span>Responsible</span>
+                                        </div>
+                                        <div class="col-1">
+                                            <span>:</span>
+                                        </div>
+                                        <div class="col-6">
+                                            <strong>
+                                                <span t-field="i.responsible_id"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+
+                            <div class="row mb-4" t-if="i.is_penalty">
+                                <div class="col-6">
+                                    <h6 style="background-color:#e9ecef;" class="py-1" t-if="i.loan_lines_ids">
+                                        <i class="fa fa-gavel px-2" aria-hidden="true"></i>
+                                        Term Details
+                                    </h6>
+                                    <div class="row my-1" t-if="i.approved_loan_type_id.name">
+                                        <div class="col-4">
+                                            <span>Loan Type</span>
+                                        </div>
+                                        <div class="col-1">
+                                            <span>:</span>
+                                        </div>
+                                        <div class="col-7">
+                                            <strong>
+                                                <span t-field="i.approved_loan_type_id.name"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                    <div class="row my-1">
+                                        <div class="col-4">
+                                            <span>Loan Amount</span>
+                                        </div>
+                                        <div class="col-1">
+                                            <span>:</span>
+                                        </div>
+                                        <div class="col-7">
+                                            <strong>
+                                                <span t-field="i.loan_amount"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                    <div class="row my-1">
+                                        <div class="col-4">
+                                            <span>Installment Type</span>
+                                        </div>
+                                        <div class="col-1">
+                                            <span>:</span>
+                                        </div>
+                                        <div class="col-7">
+                                            <strong>
+                                                <span t-field="i.installment_type"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                    <div class="row my-1">
+                                        <div class="col-4">
+                                            <span>Term</span>
+                                        </div>
+                                        <div class="col-1">
+                                            <span>:</span>
+                                        </div>
+                                        <div class="col-7">
+                                            <strong>
+                                                <span t-field="i.term"/>
+                                                <span t-if="i.installment_type == 'monthly'">Months</span>
+                                                <span t-if="i.installment_type == 'quarterly'">Quarters</span>
+                                                <span t-if="i.installment_type == 'yearly'">Years</span>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-5 ms-3">
+                                    <h6 style="background-color:#e9ecef;" class="py-1">
+                                        <i class="fa fa-money px-2" aria-hidden="true"></i>
+                                        Penalty Details
+                                    </h6>
+
+                                    <div class="row my-1" t-if="i.penalty_type">
+                                        <div class="col-4">
+                                            <span>Type</span>
+                                        </div>
+                                        <div class="col-1">
+                                            <span>:</span>
+                                        </div>
+                                        <div class="col-7">
+                                            <strong>
+                                                <span t-field="i.penalty_type"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="row my-1" t-if="i.penalty_type">
+                                        <div class="col-4">
+                                            <span>Penalty</span>
+                                        </div>
+                                        <div class="col-1">
+                                            <span>:</span>
+                                        </div>
+                                        <div class="col-7">
+                                            <strong>
+                                                <span t-field="i.penalty_amount" t-if="i.penalty_type == 'fixed'"/>
+                                                <t t-if="i.penalty_type == 'percentage'">
+                                                    <span t-field="i.penalty_percentage"/>
+                                                    %
+                                                </t>
+                                            </strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="row my-1" t-if="i.penalty_tax_ids">
+                                        <div class="col-4">
+                                            <span>Taxes</span>
+                                        </div>
+                                        <div class="col-1">
+                                            <span>:</span>
+                                        </div>
+                                        <div class="col-7">
+                                            <strong>
+                                                <span t-field="i.penalty_tax_ids.name"/>
+                                            </strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="row mb-4" t-if="not i.is_penalty">
+                                <div class="col-12">
+                                    <h6 style="background-color:#e9ecef;" class="py-1" t-if="i.loan_lines_ids">
+                                        <i class="fa fa-gavel px-2" aria-hidden="true"></i>
+                                        Term Details
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="row my-1" t-if="i.approved_loan_type_id.name">
+                                                <div class="col-4">
+                                                    <span>Loan Type</span>
+                                                </div>
+                                                <div class="col-1">
+                                                    <span>:</span>
+                                                </div>
+                                                <div class="col-7">
+                                                    <strong>
+                                                        <span t-field="i.approved_loan_type_id.name"/>
+                                                    </strong>
+                                                </div>
+                                            </div>
+                                            <div class="row my-1">
+                                                <div class="col-4">
+                                                    <span>Loan Amount</span>
+                                                </div>
+                                                <div class="col-1">
+                                                    <span>:</span>
+                                                </div>
+                                                <div class="col-7">
+                                                    <strong>
+                                                        <span t-field="i.loan_amount"/>
+                                                    </strong>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-5 ms-3">
+                                            <div class="row my-1">
+                                                <div class="col-5">
+                                                    <span>Installment Type</span>
+                                                </div>
+                                                <div class="col-1">
+                                                    <span>:</span>
+                                                </div>
+                                                <div class="col-6">
+                                                    <strong>
+                                                        <span t-field="i.installment_type"/>
+                                                    </strong>
+                                                </div>
+                                            </div>
+                                            <div class="row my-1">
+                                                <div class="col-5">
+                                                    <span>Term</span>
+                                                </div>
+                                                <div class="col-1">
+                                                    <span>:</span>
+                                                </div>
+                                                <div class="col-6">
+                                                    <strong>
+                                                        <span t-field="i.term"/>
+                                                        <span t-if="i.installment_type == 'monthly'">Months</span>
+                                                        <span t-if="i.installment_type == 'quarterly'">Quarters</span>
+                                                        <span t-if="i.installment_type == 'yearly'">Years</span>
+                                                    </strong>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <style>
+                                table {
+                                width: 100%; height:100%;
+                                }
+                                .text-right {
+                                text-align: right;
+                                }
+                                .text-center {
+                                text-align: left;
+                                }
+                                tr:nth-child(even) {background-color: #f2f2f2;}
+                                .b-btm {
+                                border-bottom:0.5px solid #696a6a !important;
+                                }
+                            </style>
+                            <br/>
+
+                            <br t-if="i.collateral_ids"/>
+                            <table t-if="i.collateral_ids" class="table table-borderless">
+                                <tr class="b-btm">
+                                    <th colspan="2"
+                                        style="padding:0.625rem; text-align:center;border-top:0.5px solid #696a6a !important;">
+                                        Collateral Details
+                                    </th>
+                                </tr>
+                                <tr class="b-btm">
+                                    <th style="padding:0.625rem;text-align:left;">Collateral Type</th>
+                                    <th style="padding:0.625rem;text-align:left;">Description</th>
+                                </tr>
+
+                                <t t-foreach="i.collateral_ids" t-as="cl">
+                                    <tr class="b-btm">
+                                        <td style="padding:0.625rem;">
+                                            <t t-esc="cl.collateral_type_id.name"/>
+                                        </td>
+                                        <td style="padding:0.625rem;">
+                                            <t t-esc="cl.description"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </table>
+
+                            <br t-if="i.loan_lines_ids"/>
+                            <table t-if="i.loan_lines_ids"
+                                   style="border-collapse: collapse;" class="table table-borderless">
+                                <tr style="padding:0.625rem;border-top:0.5px solid #696a6a !important;" class="b-btm">
+                                    <th colspan="4" style="padding:0.625rem; text-align:center;">
+                                        Installments Details
+                                    </th>
+                                </tr>
+                                <tr style="padding:0.625rem;" class="b-btm">
+                                    <th style="padding:0.625rem;text-align:left;">Installment No.
+                                    </th>
+                                    <th style="padding:0.625rem;text-align:right;">Installment Amount
+                                        without Interest
+                                    </th>
+                                    <th style="padding:0.625rem;text-align:right;">Interest</th>
+                                    <th style="padding:0.625rem;text-align:right;">Total Installment
+                                        Amount
+                                    </th>
+                                </tr>
+
+                                <t t-foreach="i.loan_lines_ids" t-as="ld">
+                                    <tr style="padding:0.625rem;" class="b-btm"
+                                        t-if="ld.display_type != 'line_section'">
+                                        <td style="padding:0.625rem;text-align:right;">
+                                            <t t-esc="ld.installments_no"/>
+                                        </td>
+                                        <td style="padding:0.625rem;text-align:right;">
+                                            <span t-field="ld.installment_amount"/>
+                                        </td>
+                                        <td style="padding:0.625rem;text-align:right;">
+                                            <span t-field="ld.interest_amount"/>
+                                        </td>
+                                        <td style="padding:0.625rem;text-align:right;">
+                                            <span t-field="ld.total_installment_amount"/>
+                                        </td>
+                                    </tr>
+                                    <tr t-if="ld.display_type == 'line_section'">
+                                        <td colspan="4">
+                                            <strong t-field="ld.name"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <tr class="b-btm">
+                                    <td style="padding:0.625rem;text-align:right;" colspan="1">
+                                        <strong>Total</strong>
+                                    </td>
+                                    <td style="padding:0.625rem;text-align:right;">
+                                        <strong t-field="i.loan_amount"/>
+                                    </td>
+                                    <td style="padding:0.625rem;text-align:right;">
+                                        <strong t-field="i.interest_amount"/>
+                                    </td>
+                                    <td style="padding:0.625rem;text-align:right;">
+                                        <strong t-field="i.total_amount"/>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="page-break-before:always"/>
+                            <h6 style="background-color:#e9ecef;" class="py-1"
+                                t-if="not is_html_empty(i.terms_and_conditions)">
+                                <i class="fa fa-gavel px-2" aria-hidden="true"></i>
+                                Terms &amp; Conditions
+                            </h6>
+                            <p t-if="not is_html_empty(i.terms_and_conditions)" t-field="i.terms_and_conditions"/>
+
+                            <p style="page-break-before:always"/>
+                            <h6 style="background-color:#e9ecef;margin-top:1.25rem;" class="py-1"
+                                t-if="not is_html_empty(i.repayment_terms)">
+                                <i class="fa fa-gavel px-2" aria-hidden="true"></i>
+                                Repayment Terms
+                            </h6>
+                            <p t-if="not is_html_empty(i.repayment_terms)" t-field="i.repayment_terms"/>
+
+                            <table class="table table-borderless" style="margin-top:5rem;">
+                                <t t-if="i.cst_conf_stage == 'signed'">
+                                    <tr>
+                                        <td style="width:30%;">
+                                        </td>
+                                        <td style="width:40%;"></td>
+                                        <td style="width:30%;border-bottom:1px solid black;vertical-align:bottom;text-align:center;">
+                                            <t t-if="i.cst_sign">
+                                                <img t-att-src="image_data_uri(i.cst_sign)"
+                                                     att="Logo"
+                                                     style="width: 200px; height: 80px;"/>
+                                            </t>
+                                        </td>
+                                    </tr>
+                                    <tr style="background-color:transparent !important">
+                                        <td style="width:30%;vertical-align:bottom;text-align:center;">
+                                        </td>
+                                        <td style="width:40%;"></td>
+                                        <td style="width:30%;vertical-align:bottom;text-align:center;">
+                                            <span t-field="i.sign_by"/>
+                                            <br/>
+                                            <span>Accepted on:
+                                                <span t-field="i.accept_date_time"/>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <t t-else="">
+                                    <tr>
+                                        <td style="width:30%;">
+                                        </td>
+                                        <td style="width:40%;"></td>
+                                        <td style="width:30%;border-bottom:1px solid black;vertical-align:bottom;text-align:center;">
+
+                                        </td>
+                                    </tr>
+                                </t>
+                            </table>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    </data>
+    <record id="customer_sanction_letter_action" model="ir.actions.report">
+        <field name="name">Sanction Letter</field>
+        <field name="model">customer.loan</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">tk_loan_management.sanction_letter_report</field>
+        <field name="report_file">tk_loan_management.sanction_letter_report</field>
+        <field name="print_report_name">'Sanction Letter'</field>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <template id="closure_letter_report">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="i">
+                    <t t-call="web.external_layout">
+                        <div class="page">
+                            <style>
+                                table {
+                                width: 100%; height:100%;
+                                }
+                                .text-right {
+                                text-align: right;
+                                }
+                                .text-center {
+                                text-align: left;
+                                }
+                                tr:nth-child(even) {background-color: #f7f5f5 !important;}
+                                .b-btm {
+                                border-bottom:0.5px solid #696a6a !important;
+                                }
+                            </style>
+                            <h2 class="text-center mb-5 display-6">
+                                <span t-if="i.is_pre_closure">Pre-Closure Letter</span>
+                                <span t-if="not i.is_pre_closure">Closure Letter</span>
+                            </h2>
+
+                            <div class="text-muted small">Printed on
+                                <span t-out="context_timestamp(datetime.datetime.now()).strftime('%d-%m-%Y - %H:%M:%S')"/>
+                            </div>
+
+                            <br/>
+                            <br/>
+                            <strong t-field="i.customer_id.name"/>
+                            <br t-if="i.customer_id.name"/>
+                            <strong t-field="i.email"/>
+                            <br t-if="i.email"/>
+                            <strong t-field="i.phone"/>
+                            <br t-if="i.phone"/>
+
+                            <br/>
+
+                            <p>
+                                We are pleased to inform you that your loan with
+                                <span t-field="i.company_id.name"/>
+                                has been successfully closed. Below are the details of your loan:
+                            </p>
+
+                            <ul>
+                                <li>
+                                    <strong>Loan Reference No. :</strong>
+                                    <span t-field="i.name"/>
+                                </li>
+                                <li>
+                                    <strong>Type of Loan :</strong>
+                                    <span t-field="i.approved_loan_type_id.name"/>
+                                </li>
+                                <li>
+                                    <strong>Loan Amount :</strong>
+                                    <span t-field="i.loan_amount"/>
+                                </li>
+                                <li>
+                                    <strong>Loan Term :</strong>
+                                    <span t-field="i.term"/>
+                                    <t t-if="i.installment_type == 'monthly'">
+                                        Months
+                                    </t>
+                                    <t t-if="i.installment_type == 'quarterly'">
+                                        Quarters
+                                    </t>
+                                    <t t-if="i.installment_type == 'yearly'">
+                                        Years
+                                    </t>
+                                </li>
+                                <li>
+                                    <strong>Date of Loan Disbursement :</strong>
+                                    <span t-field="i.disbursement_date"/>
+                                </li>
+                                <li t-if="i.loan_closure_date">
+                                    <strong t-if="i.is_pre_closure">Date of Loan Pre-Closure :
+                                    </strong>
+                                    <strong t-if="not i.is_pre_closure">Date of Loan Closure :
+                                    </strong>
+                                    <span t-field="i.loan_closure_date"/>
+                                </li>
+                            </ul>
+
+                            <br/>
+                            <br t-if="i.loan_lines_ids and i.remaining_amount == 0"/>
+                            <table t-if="i.loan_lines_ids and i.remaining_amount == 0"
+                                   style="border-collapse: collapse;"
+                                   class="table table-borderless">
+                                <tr style="padding:0.625rem;border-top:0.5px solid #696a6a !important;"
+                                    class="b-btm">
+                                    <th colspan="4" style="padding:0.625rem; text-align:center;">
+                                        Installments Detail
+                                    </th>
+                                </tr>
+                                <tr style="padding:0.625rem;" class="b-btm">
+                                    <th style="padding:0.625rem;text-align:left;">Date</th>
+                                    <th style="padding:0.625rem;text-align:right;">Particular</th>
+                                    <th style="padding:0.625rem;text-align:right;">Debit</th>
+                                    <th style="padding:0.625rem;text-align:right;">Credit</th>
+                                </tr>
+
+                                <t t-foreach="i.loan_lines_ids" t-as="ld">
+                                    <t t-if="ld.display_type != 'line_section'">
+                                        <tr style="padding:0.625rem;" class="b-btm">
+                                            <td style="padding:0.625rem;text-align:left;">
+                                                <span t-field="ld.emi_date"/>
+                                            </td>
+                                            <td style="padding:0.625rem;text-align:right;">
+                                                <span t-field="ld.installments_no"/>
+                                            </td>
+                                            <td style="padding:0.625rem;text-align:right;">
+                                                <span t-field="ld.total_installment_amount"/>
+                                            </td>
+                                            <td></td>
+                                        </tr>
+                                        <tr style="padding:0.625rem;" class="b-btm">
+                                            <td style="padding:0.625rem;text-align:left;">
+                                                <span t-field="ld.journal_entry_id.entry_post_date"/>
+                                            </td>
+                                            <td style="padding:0.625rem;text-align:right;">
+                                                <span t-field="ld.installments_no"/>
+                                            </td>
+                                            <td></td>
+                                            <td style="padding:0.625rem;text-align:right;">
+                                                <span t-field="ld.total_installment_amount"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-else="">
+                                        <tr style="padding:0.625rem;" class="b-btm">
+                                            <td style="padding:0.625rem;text-align:left;"
+                                                colspan="4">
+                                                <strong t-field="ld.name"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+                            </table>
+
+                            <p style="page-break-before:always"
+                               t-if="i.penalty_lines_ids and i.outstanding_penalty == 0"/>
+                            <br t-if="i.penalty_lines_ids and i.outstanding_penalty == 0"/>
+                            <table t-if="i.penalty_lines_ids and i.outstanding_penalty == 0"
+                                   style="border-collapse: collapse;"
+                                   class="table table-borderless">
+                                <tr style="padding:0.625rem;border-top:0.5px solid #696a6a !important;"
+                                    class="b-btm">
+                                    <th colspan="4" style="padding:0.625rem; text-align:center;">
+                                        Penalty Details
+                                    </th>
+                                </tr>
+                                <tr style="padding:0.625rem;" class="b-btm">
+                                    <th style="padding:0.625rem;text-align:left;">Date</th>
+                                    <th style="padding:0.625rem;text-align:right;">Particular</th>
+                                    <th style="padding:0.625rem;text-align:right;">Debit</th>
+                                    <th style="padding:0.625rem;text-align:right;">Credit</th>
+                                </tr>
+
+                                <t t-foreach="i.penalty_lines_ids" t-as="pl">
+                                    <tr style="padding:0.625rem;" class="b-btm">
+                                        <td style="padding:0.625rem;text-align:left;">
+                                            <span t-field="pl.journal_entry_id.date"/>
+                                        </td>
+                                        <td style="padding:0.625rem;text-align:right;">
+                                            <span t-field="pl.penalty"/>
+                                        </td>
+                                        <td style="padding:0.625rem;text-align:right;">
+                                            <span t-field="pl.installment_amount"/>
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                    <tr style="padding:0.625rem;" class="b-btm">
+                                        <td style="padding:0.625rem;text-align:left;">
+                                            <span t-field="pl.journal_entry_id.entry_post_date"/>
+                                        </td>
+                                        <td style="padding:0.625rem;text-align:right;">
+                                            <span t-field="pl.penalty"/>
+                                        </td>
+                                        <td></td>
+                                        <td style="padding:0.625rem;text-align:right;">
+                                            <span t-field="pl.installment_amount"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </table>
+
+                            <p>
+                                As per our records, your loan has been fully repaid and closed as of
+                                the mentioned date.
+                                No further payments are due on this loan.
+                            </p>
+                            <p>
+                                We would like to take this opportunity to thank you for your timely
+                                payments and for
+                                choosing
+                                <span t-field="i.company_id.name"/>
+                                for your financial needs. Should you require any further
+                                documentation.
+                            </p>
+
+                            <p>
+                                We appreciate your association with us and look forward to serving
+                                you in the future.
+                            </p>
+                            <p>Best regards,
+                                <br/>
+                                <span t-field="i.company_id.name"/>
+                                <br/>
+                                <t t-if="i.company_id.phone">
+                                    <span>
+                                        Phone :
+                                        <span t-field="i.company_id.phone"/>
+                                    </span>
+                                    <br/>
+                                </t>
+                                <t t-if="i.company_id.email">
+                                    <span>
+                                        Email :
+                                        <span t-field="i.company_id.email"/>
+                                    </span>
+                                    <br/>
+                                </t>
+                                <t t-if="i.company_id.website">
+                                    <span>
+                                        Website :
+                                        <span t-field="i.company_id.website"/>
+                                    </span>
+                                </t>
+                            </p>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    </data>
+    <record id="customer_closure_letter_report_action" model="ir.actions.report">
+        <field name="name">Closure Letter</field>
+        <field name="model">customer.loan</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">tk_loan_management.closure_letter_report</field>
+        <field name="report_file">tk_loan_management.closure_letter_report</field>
+        <field name="print_report_name">'Closure Letter'</field>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

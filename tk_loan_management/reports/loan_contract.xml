@@ -1,0 +1,1412 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <template id="loan_contract_report_pdf">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.external_layout">
+                        <style>
+                            .text-justify{
+                            text-align: justify;
+                            }
+                        </style>
+                        <div class="page">
+                            <div class="mt-3">
+                                <h2 class="text-center">
+                                    Договор за потребителски кредит
+                                </h2>
+                            </div>
+                            <div class="text-center">
+                                №:
+                                <span t-out="o.name"></span>
+                            </div>
+                            <div class="mt-3">
+                                Днес,
+                                <span t-out="o.approval_date" class="me-1"/>
+                                г., в гр. София, между
+                            </div>
+                            <div class="mt-1 text-justify">
+                                <span class="fw-bold">„ФИНАНС ХОЛД БЪЛГАРИЯ“ ООД,</span>
+                                <span>дружество с ограничена отговорност, учредено и съществуващо
+                                    съгласно законите на Република България, вписано в Търговския
+                                    регистър при Агенция по вписванията с ЕИК: 200735614, със
+                                    седалище и адрес на управление: гр. София, 1700, ул. Проф.
+                                    Христо Данов № 11, вх. е, ап. офис 6, представлявано от
+                                    Валентина Карадашка, в качеството и на управител (наричано за
+                                    краткост <span class="fw-bold">„Кредитор“</span>),
+                                </span>
+                            </div>
+                            <div class="my-2">
+                                и
+                            </div>
+                            <div class="text-justify">
+                                <span t-out="o.customer_id.name"/>, с ЕГН
+                                <span t-out="o.customer_id.personal_number"/>
+                                притежаващ лична карта №
+                                <span t-out="o.customer_id.id_card"/>
+                                издадена на
+                                <span t-out="o.customer_id.date_of_issuing"/>
+                                г. от МВР-
+                                <span t-out="o.customer_id.issued_by"/>
+                                с постоянен адрес:&#160;<span t-out="o.customer_id.city"/>,
+                                <span t-out="o.customer_id.street"/>
+                                &#160;
+                                <span t-out="o.customer_id.zip"/> &#160;
+                                (наричан/а за краткост <span class="fw-bold">
+                                „Кредитополучател“</span>),
+                            </div>
+                            <div>
+                                -
+                            </div>
+                            <div class="text-justify">
+                                „_________________“ <span class="fw-bold">[ЕООД/ООД/АД]</span>,
+                                дружество учредено и съществуващо съгласно законите на Република
+                                България, вписано в Търговския регистър при `Агенция по вписванията
+                                с
+                                ЕИК _______________, със седалище и адрес на управление
+                                ______________________,
+                                представлявано от __________________ в качеството му/й на
+                                ____________
+                                (наричано за краткост <span class="fw-bold">„Поръчител“</span>),
+                                <span class="fw-bold">[три имена]</span>, с ЕГН _____________,
+                                притежаващ лична карта № ___________,
+                                издадена на __.__._____ г. от МВР-________________, с постоянен
+                                адрес:
+                                ______________________________ (наричан/а за краткост <span
+                                    class="fw-bold">„Поръчител“</span>),
+                            </div>
+                            <div class="mt-1">
+                                Като заедно Кредиторът, Кредитополучателят и Поръчителя ще бъдат
+                                наричани в този договор <span class="fw-bold">„Страните“</span>,
+                            </div>
+                            <div class="text-center mt-4">
+                                <span class="fw-bold">се сключи настоящият Договор за потребителски
+                                    кредит („Договорът“), при следните условия:
+                                </span>
+                                <div>
+                                    <span class="fw-bold">I. ОБОБЩЕНИ ПАРАМЕТРИ НА КРЕДИТА</span>
+                                </div>
+                            </div>
+                            <div>
+                                <table class="o_has_total_table table o_main_table table-borderless">
+                                    <body>
+                                        <tr>
+                                            <td style="width: 80% !important;">
+                                                <span>Общ размер на кредита (главница)</span>
+                                            </td>
+                                            <td style="width: 20% !important;" class="text-end">
+                                                <span t-out="o.loan_amount"/>
+                                                <span t-out="o.currency_id.symbol"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 80% !important;">
+                                                <span>Общ размер на лихвата (в лева)</span>
+                                            </td>
+                                            <td style="width: 20% !important;" class="text-end">
+                                                <span t-out="o.interest_amount"/>
+                                                <span t-out="o.currency_id.symbol"/>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 80% !important;">
+                                                <span>Годишен лихвен процент фиксиран</span>
+                                            </td>
+                                            <td style="width: 20% !important;" class="text-end">
+                                                <span t-out="o.interest_rate"/>
+                                                <span>%</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 80% !important;">
+                                                <span>Такса при просрочени плащания за всеки ден
+                                                    забава
+                                                </span>
+                                            </td>
+                                            <td style="width: 20% !important;" class="text-end">
+                                                ........... %
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td style="width: 80% !important;">
+                                                <span>Срок на договора</span>
+                                            </td>
+                                            <td style="width: 20% !important;" class="text-end">
+                                                <span t-out="o.term"/>
+                                                <span>месеца</span>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td style="width: 80% !important;">
+                                                <span>Брой погасителни вноски</span>
+                                            </td>
+                                            <td style="width: 20% !important;" class="text-end">
+                                                <span t-esc="len(o.loan_lines_ids)"/>
+                                                <span>броя</span>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td style="width: 80% !important;">
+                                                <span>Месечна погасителна вноска</span>
+                                            </td>
+                                            <td style="width: 20% !important;" class="text-end">
+
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td style="width: 80% !important;">
+                                                <span>Последна погасителна вноска</span>
+                                            </td>
+                                            <td style="width: 20% !important;" class="text-end">
+                                                <span t-esc="o.loan_lines_ids[-1].total_installment_amount"
+                                                      t-if="o.loan_lines_ids"/>
+                                                <span t-out="o.currency_id.symbol" t-if="o.loan_lines_ids"/>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td style="width: 80% !important;">
+                                                <span>Обща стойност на погасителните вноски</span>
+                                            </td>
+                                            <td style="width: 20% !important;" class="text-end">
+                                                <span t-esc="o.total_amount"/>
+                                                <span t-out="o.currency_id.symbol"/>
+                                            </td>
+                                        </tr>
+
+
+                                        <tr>
+                                            <td style="width: 80% !important;">
+                                                Подробен погасителен план по потребителския кредит
+                                                <!--                                                <table t-if="o.loan_lines_ids"-->
+                                                <!--                                                       class="o_has_total_table table o_main_table table-borderless">-->
+                                                <!--                                                    <tr style="padding:0.625rem;">-->
+                                                <!--                                                        <td style="padding:0.625rem; width: 25%;">-->
+                                                <!--                                                            Installment No.-->
+                                                <!--                                                        </td>-->
+                                                <!--                                                        <td style="padding:0.625rem; width: 30% !important">-->
+                                                <!--                                                            Installment Date.-->
+                                                <!--                                                        </td>-->
+                                                <!--                                                        <td style="padding:0.625rem;text-align:right; width: 15% !important;">-->
+                                                <!--                                                            Installment Amount-->
+                                                <!--                                                        </td>-->
+                                                <!--                                                        <td style="padding:0.625rem;text-align:right; width: 15% !important;">-->
+                                                <!--                                                            Interest-->
+                                                <!--                                                        </td>-->
+                                                <!--                                                        <td style="padding:0.625rem;text-align:right; width: 15% !important;">-->
+                                                <!--                                                            Total Installment Amount-->
+                                                <!--                                                        </td>-->
+                                                <!--                                                    </tr>-->
+
+                                                <!--                                                    <t t-set="count" t-value="0"/>-->
+                                                <!--                                                    <t t-foreach="o.loan_lines_ids" t-as="ld">-->
+                                                <!--                                                        <tr t-attf-style=" padding:0.625rem;">-->
+                                                <!--                                                            <td style=" padding:0.625rem;">-->
+                                                <!--                                                                <t t-esc="ld.installments_no"/>-->
+                                                <!--                                                            </td>-->
+                                                <!--                                                            <td style=" padding:0.625rem;">-->
+                                                <!--                                                                <t t-esc="ld.emi_date"/>-->
+                                                <!--                                                            </td>-->
+                                                <!--                                                            <td style=" padding:0.625rem;"-->
+                                                <!--                                                                class="text-end me-1">-->
+                                                <!--                                                                <t t-esc="ld.installment_amount"-->
+                                                <!--                                                                   t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>-->
+                                                <!--                                                            </td>-->
+                                                <!--                                                            <td style=" padding:0.625rem;text-align:right;">-->
+                                                <!--                                                                <t t-esc="ld.interest_amount"-->
+                                                <!--                                                                   t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>-->
+                                                <!--                                                            </td>-->
+                                                <!--                                                            <td style=" padding:0.625rem;text-align:right;">-->
+                                                <!--                                                                <t t-esc="ld.total_installment_amount"-->
+                                                <!--                                                                   t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>-->
+                                                <!--                                                            </td>-->
+                                                <!--                                                        </tr>-->
+                                                <!--                                                        <t t-set="count" t-value="count + 1"/>-->
+                                                <!--                                                    </t>-->
+                                                <!--                                                    <tr t-attf-style="{{'background-color: #f2f2f2;' if count % 2 != 0 else 'background-color: #FFFFFF;'}}">-->
+                                                <!--                                                        <td style=" padding:0.625rem;text-align:right;"-->
+                                                <!--                                                            colspan="2">-->
+                                                <!--                                                            <strong>Total</strong>-->
+                                                <!--                                                        </td>-->
+                                                <!--                                                        <td style=" padding:0.625rem;text-align:right;">-->
+                                                <!--                                                            <strong t-field="o.loan_amount"/>-->
+                                                <!--                                                        </td>-->
+                                                <!--                                                        <td style=" padding:0.625rem;text-align:right;">-->
+                                                <!--                                                            <strong t-field="o.interest_amount"/>-->
+                                                <!--                                                        </td>-->
+                                                <!--                                                        <td style=" padding:0.625rem;text-align:right;">-->
+                                                <!--                                                            <strong t-field="o.total_amount"/>-->
+                                                <!--                                                        </td>-->
+                                                <!--                                                    </tr>-->
+                                                <!--                                                </table>-->
+                                            </td>
+                                            <td style="width: 20% !important;" class="text-end">
+                                                Приложение № 1 към настоящия Договор
+                                            </td>
+                                        </tr>
+                                    </body>
+                                </table>
+                            </div>
+
+                            <table t-if="o.loan_lines_ids"
+                                   class="o_has_total_table table o_main_table table-borderless">
+                                <tr style="border:1px solid; padding:0.625rem;background-color: #86cffc;">
+                                    <th colspan="5"
+                                        style="border:1px solid; padding:0.625rem; text-align:center;">
+                                        Вноска Разбивка
+                                    </th>
+                                </tr>
+                                <tr style="padding:0.625rem;">
+                                    <td style="padding:0.625rem; width: 25%;">
+                                        Вноска №
+                                    </td>
+                                    <td style="padding:0.625rem; width: 20% !important">
+                                        Дата на плащане.
+                                    </td>
+                                    <td style="padding:0.625rem;text-align:right; width: 25% !important;">
+                                        Размер на вноска без интерес
+                                    </td>
+                                    <td style="padding:0.625rem;text-align:right; width: 15% !important;">
+                                        интерес
+                                    </td>
+                                    <td style="padding:0.625rem;text-align:right; width: 15% !important;">
+                                        Обща сума на вноската
+                                    </td>
+                                </tr>
+
+                                <t t-set="count" t-value="0"/>
+                                <t t-foreach="o.loan_lines_ids" t-as="ld">
+                                    <tr t-attf-style=" padding:0.625rem;">
+                                        <td style=" padding:0.625rem;">
+                                            <t t-esc="ld.installments_no"/>
+                                        </td>
+                                        <td style=" padding:0.625rem;">
+                                            <t t-esc="ld.emi_date"/>
+                                        </td>
+                                        <td style=" padding:0.625rem;"
+                                            class="text-end me-1">
+                                            <t t-esc="ld.installment_amount"
+                                               t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                        </td>
+                                        <td style=" padding:0.625rem;text-align:right;">
+                                            <t t-esc="ld.interest_amount"
+                                               t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                        </td>
+                                        <td style=" padding:0.625rem;text-align:right;">
+                                            <t t-esc="ld.total_installment_amount"
+                                               t-options='{"widget": "monetary", "display_currency": o.company_id.currency_id}'/>
+                                        </td>
+                                    </tr>
+                                    <t t-set="count" t-value="count + 1"/>
+                                </t>
+                                <tr t-attf-style="{{'background-color: #f2f2f2;' if count % 2 != 0 else 'background-color: #FFFFFF;'}}">
+                                    <td style=" padding:0.625rem;text-align:right;"
+                                        colspan="2">
+                                        <strong>Total</strong>
+                                    </td>
+                                    <td style=" padding:0.625rem;text-align:right;">
+                                        <strong t-field="o.loan_amount"/>
+                                    </td>
+                                    <td style=" padding:0.625rem;text-align:right;">
+                                        <strong t-field="o.interest_amount"/>
+                                    </td>
+                                    <td style=" padding:0.625rem;text-align:right;">
+                                        <strong t-field="o.total_amount"/>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <div class="fw-bold text-center mt-3">
+                                II. ПРЕДМЕТ НА ДОГОВОРА
+                            </div>
+                            <div class="mt-2 text-justify">
+                                Чл. 1.(1) С подписване на настоящия Договор, Кредиторът предоставя
+                                на Кредитополучателя, а последният приема да получи потребителски
+                                кредит под формата на паричен заем в общ размер на
+                                <span t-out="o.loan_amount"/>
+                                <span t-out="o.currency_id.symbol"/>
+                                <t t-set="loan_amount" t-value="o.loan_amount"/>
+                                (<span t-esc="o.number_to_words_generic(o.loan_amount)"/>лева)
+                                („<span class="text-bold">Потребителският кредит</span>“) за срок
+                                от ......... (.........) ......, съгласно условията на този Договор,
+                                а Кредитополучателят се задължава да върне Потребителския кредит
+                                заедно с дължимата лихва и всички други дължими на Кредитора суми, в
+                                сроковете и при условията на Договора.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (2) Потребителският кредит се усвоява като Кредиторът изплаща на
+                                Кредитополучателя общия размер на главницата по кредита. Кредиторът
+                                предоставя Потребителския кредит на Кредитополучателя, по един от
+                                следните начини, съобразно инструкциите на Кредитополучателя:
+                            </div>
+
+                            <div class="ms-3 mt-1 text-justify">
+                                а. в брой в някой от офисите на Кредитора - сумата ще бъде
+                                предоставена на Кредитополучателя в брой при подписването на
+                                договора или на дата, уговорена между страните, като получаването се
+                                удостоверява с отделна разписка, подписана от Кредитополучателя.
+                            </div>
+
+                            <div class="ms-3 mt-1 text-justify">
+                                б. по банков път на представено от Кредитополучателя удостоверение
+                                за банкова сметка - сумата ще бъде преведена по посочената от
+                                Кредитополучателя банкова сметка в срок до ............ работни дни
+                                от подписването на настоящия договор, като извлечение от банковия
+                                превод ще служи като доказателство за предоставянето на кредита.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (3) Потребителският кредит се усвоява изцяло и незабавно след
+                                предоставянето му от Кредитополучателя, съгласно предходната алинея.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (4) Потребителският кредит се отпуска за покриване на текущи нужди
+                                на Кредитополучателя.
+                            </div>
+
+                            <div style="page-break-after: always;"/>
+
+                            <div class="mt-4 text-center fw-bold">
+                                III. ПРАВА И ЗАДЪЛЖЕНИЯ НА КРЕДИТОРА
+                            </div>
+                            <div class="text-justify mt-2">
+                                <span class="fw-bold">Чл. 2.</span>
+                                (1) Кредиторът се задължава да предостави Потребителския
+                                кредит на Кредитополучателя при условията и сроковете на настоящия
+                                <Договор class=""></Договор>
+                            </div>
+
+                            <div class="text-justify mt-2">
+                                (2) Кредиторът има право да прехвърли вземането си по Потребителския
+                                кредит на трето лице, като уведоми Кредитополучателя за това в срок
+                                до 3 (три) работни дни от осъществяването на прехвърлянето.
+                                Кредиторът не се нуждае от съгласието на Кредитополучателя за да
+                                прехвърли вземането си по Потребителския кредит. Уведомлението за
+                                прехвърляне може да се извърши и от упълномощено от Кредитора лице.
+                            </div>
+
+                            <div class="text-justify mt-2">
+                                (3). Кредиторът си запазва правата да откаже да предостави сумата по
+                                договора за кредит ако се установи, че Кредитополучателя не е
+                                предоставил коректна и точна информация по чл. 6 ал. 1, както и при
+                                установяване на данни и обстоятелства, че има опасност
+                                Кредитополучателя да не върне предоставената му по договора сума
+                                заедно с начислените лихви. (4). Кредиторът си запазва правата да
+                                откаже да предостави сумата по договора за кредит и ако
+                                кредитополучателя не предостави предложеното по договора за кредит
+                                обезпечение, както и когато се установи, че третото лице-солидарен
+                                длъжник, гарант, поръчител е неплатежоспособно или когато
+                                предложеното обезпечението не е приемливо за Кредитора.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (4). Кредиторът уведомява Кредитополучателя за отказа си да
+                                предостави сумата по кредита с кратко едностранно писмено заявление,
+                                съдържащо причините.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 3.</span>
+                                С подписване на настоящия Договор, Кредиторът декларира и
+                                гарантира, че ще използва предоставената от Кредитополучателя
+                                информация само за нуждите на своята дейност, като предоставя достъп
+                                до същата информация на свои служители и/или изпълнители при
+                                условията на конфиденциалност и само доколкото това е необходимо за
+                                осъществяване на дейността му или за проверка на пълнотата и
+                                верността на същата информация.
+                            </div>
+
+                            <div class="text-center fw-bold mt-3">
+                                <span>IV. ПРАВА И ЗАДЪЛЖЕНИЯ НА КРЕДИТОПОЛУЧАТЕЛЯ</span>
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 4.</span>
+                                Кредитополучателят се задължава да използва Потребителския
+                                кредит за финансирането на свои лични нужди.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 5.</span>
+                                (1) Кредитополучателят се задължава да погаси предоставения
+                                Потребителски кредит, заедно с дължимите лихви, такси, комисионни и
+                                всички други видове разходи, пряко свързани с Договора, при
+                                условията на настоящия Договор и съгласно погасителния план на
+                                Потребителския кредит, посочен в Приложение № 1 – Погасителен план,
+                                неразделна част от настоящия Договор.
+                            </div>
+                            <div style="page-break-after: always;"/>
+                            <div class="mt-2 text-justify">
+                                (2) С подписване на настоящия Договор, Кредитополучателят декларира
+                                разбирането си, че:
+                            </div>
+
+                            <div class="mt-2 ms-2 text-justify">
+                                а. полето „Месечна погасителна вноска“, посочено в Раздел I от
+                                настоящия Договор, включва съответната част от лихвата, начислена
+                                върху главницата по Потребителския кредит, изчислена към момента на
+                                предоставяне на Потребителския кредит;
+                            </div>
+
+                            <div class="mt-2 ms-2 text-justify">
+                                б. полето „Последна погасителна вноска“ представлява сбор от
+                                главницата по Потребителския кредит и съответната част от лихвата,
+                                начислена върху главницата;
+                            </div>
+
+                            <div class="mt-2 ms-2 text-justify">
+                                в. Приложение № 1 определя размера, броя и падежа на изискуемост и
+                                погасяване на всяка една вноска по Потребителския кредит, като
+                                съдържа и информация за разпределение на вноските между различните
+                                неизплатени суми.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 6.</span>
+                                (1) С подписването на настоящия Договор, Кредитополучателят
+                                декларира, че предоставените от него данни и документи на Кредитора
+                                са точни, верни и актуални.
+                            </div>
+                            <div class="mt-2 text-justify">
+                                (2) Кредитополучателят се задължава своевременно да уведоми
+                                Кредитора в случай на промяна в данните и документите, които е
+                                предоставил на Кредитора при сключване на настоящия Договор,
+                                включително, но не само, всякакви промени в месечен доход, постоянен
+                                адрес, телефонни номера, обслужващи банки, банкови сметки и/или
+                                данните на работодателя на Кредитополучателя.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (3) Предоставената от Кредитополучателя информация съдържа лични
+                                данни и данни за имущественото състояние на Кредитополучателя,
+                                необходима предпоставка, за да бъде разгледано искането за
+                                потребителски кредит на Кредитополучателя.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (3) С подписване на настоящия Договор, Кредитополучателят
+                                потвърждава, че e предоставил информацията лично и доброволно и с
+                                цел да мотивира Кредитора да му предостави кредит при изложените в
+                                настоящия Договор условия и параметри. Кредитополучателят заявява
+                                съгласието си да бъде заснеман при кандидатстването, одобряването
+                                и/или усвояването на кредита от съображения за сигурност, като
+                                записите бъдат съхранявани на всякакви носители в бази данни на
+                                Кредитора.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (4) С подписване на настоящия Договор, Кредитополучателят
+                                упълномощава Кредитора да проверява пълнотата и верността на
+                                предоставената от Кредитополучателя информация, по всяко време до
+                                погасяването на Потребителския кредит, чрез свои служители, и/или
+                                независими изпълнители и/или източници.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (5) С подписването на договора Кредитополучателя удостоверява, че му
+                                е предоставена предварителна информация и стандартен европейски
+                                формуляр, съгласно приложение № 2 към чл. 5, ал. 2 от Закона за
+                                потребителския кредит и му е предоставена цялата преддоговорна
+                                информация за потребителския кредит, декларирайки, че:
+                            </div>
+                            <div style="page-break-after: always;"/>
+
+                            <div class="mt-2 text-justify">
+                                (а) са му предоставени всички необходими разяснения във връзка с
+                                договора и произтичащите от него задължения за кредитополучателя.
+                                Разяснения, свързани с характеристиките на кредитния продукт и
+                                въздействието, което може да окаже върху КРЕДИТОПОЛУЧАТЕЛЯ,
+                                разяснения, позволяващи на КРЕДИТОПОЛУЧАТЕЛЯ да прецени доколко
+                                предлаганият договор за кредит съответства на потребностите и на
+                                финансовото му състояние, както и последиците за КРЕДИТОПОЛУЧАТЕЛЯ в
+                                случай на забава/неизпълнение на задължение за плащане по кредита
+                                или на други задължения
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (б) подробно запознат с правилата и реда, по който се отпускат
+                                кредити от Кредигополучателя
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (в) е взел информирано решение за сключване на настоящия договор,
+                                като се е запознал с представените му различни видове кредитни
+                                продукти, предлагани от Кредитополучателя.
+                            </div>
+                            <div class="text-center mt-3 fw-bold">
+                                V. ОБЕЗПЕЧЕНИЯ
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 7.</span>
+                                (1) (1) Кредитополучателят може да осигури обезпечение по
+                                кредита, като избере едно от следните, в зависимост от своите
+                                предпочитания и възможности, с цел гарантиране на задълженията по
+                                настоящия договор. Изборът се отбелязва при сключването на договора
+                                за кредит чрез отбелязване на съответното поле.
+                            </div>
+                            <div class="mt-2 text-justify">
+                                (2) Предлаганите опции за обезпечения са, както следва:
+                            </div>
+
+                            <div class="mt-2 text-justify text-wrap w-100">
+                                ☐ Залог на вземания (конкретизирайте вземанията, които ще бъдат
+                                обект на залог):
+                            </div>
+                            <div class="mt-2">
+                                <div class="mt-1">
+                                    __________________________________________________________________________________________________________________________________________
+                                </div>
+                                <div class="mt-1">
+                                    __________________________________________________________________________________________________________________________________________
+                                </div>
+                                <div class="mt-1">
+                                    _________________________________________________________________________
+                                </div>
+                            </div>
+
+                            <div class="mt-2 text-justify text-wrap w-100">
+                                ☐ Застраховка (посочете вида на застраховката, застрахователя и
+                                покритието, което ще обезпечава кредита):
+                            </div>
+                            <div class="mt-1">
+                                __________________________________________________________________________________________________________________________________________
+                            </div>
+                            <div class="mt-1">
+                                __________________________________________________________________________________________________________________________________________
+                            </div>
+                            <div class="mt-1">
+                                _________________________________________________________________________
+                            </div>
+
+                            <div class="mt-2 text-justify text-wrap w-100">
+                                ☐ Поръчителство (предоставете данни за поръчителя и условията на
+                                поръчителството):
+                            </div>
+                            <div class="mt-1">
+                                __________________________________________________________________________________________________________________________________________
+                            </div>
+                            <div class="mt-1">
+                                __________________________________________________________________________________________________________________________________________
+                            </div>
+                            <div class="mt-1">
+                                _________________________________________________________________________
+                            </div>
+                            <div style="page-break-after: always;"/>
+
+                            <div class="mt-2 text-justify text-wrap w-100">
+                                ☐ Запис на заповед (пълно описание на задължението, което ще покрива
+                                записът на заповед):
+                            </div>
+                            <div class="mt-1">
+                                __________________________________________________________________________________________________________________________________________
+                            </div>
+                            <div class="mt-1">
+                                __________________________________________________________________________________________________________________________________________
+                            </div>
+                            <div class="mt-1">
+                                _________________________________________________________________________
+                            </div>
+
+                            <div class="mt-2 text-justify text-wrap w-100">
+                                ☐ Ипотека (опишете имота, който ще бъде ипотекиран, включително
+                                правното му състояние и стойност):
+                            </div>
+                            <div class="mt-1">
+                                __________________________________________________________________________________________________________________________________________
+                            </div>
+                            <div class="mt-1">
+                                __________________________________________________________________________________________________________________________________________
+                            </div>
+                            <div class="mt-1">
+                                _________________________________________________________________________
+                            </div>
+
+                            <div class="mt-2 text-justify text-wrap w-100">
+                                ☐ Не предлага обезпечение
+                                <br/>
+                                ☐ Друго (моля, посочете писмено предлаганото обезпечение):
+                            </div>
+                            <div class="mt-1">
+                                __________________________________________________________________________________________________________________________________________
+                            </div>
+                            <div class="mt-1">
+                                __________________________________________________________________________________________________________________________________________
+                            </div>
+                            <div class="mt-1">
+                                _________________________________________________________________________
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (3) В случай че кредитополучателят избере „друго” обезпечение, то
+                                трябва да бъде описано в съответствие с изискванията на кредитора и
+                                прието от него като адекватно.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (4) Кредиторът си запазва правото да откаже избраното от
+                                кредитополучателя обезпечение, ако то не отговаря на изискванията за
+                                покритие и надеждност, посочени в условията на договора.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (5) При неизпълнение от страна на Кредитополучателя на задълженията
+                                му за плащане на сумите по Погасителен план – Приложение 1,
+                                Кредиторът може да пристъпи към принудително изпълнение спрямо
+                                Кредитополучателя и/или Поръчителя.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (6) Отношенията между Кредитора и Поръчителя/Поръчителите могат да
+                                се уточнят с отделни договори, представляващи неразделна част от
+                                настоящия договор, като Поръчителя/Поръчителите ще отговарят спрямо
+                                Кредитора за задълженията на Кредитополучателя към Кредитора по този
+                                Договор и без да са сключени такива договори.
+                            </div>
+                            <div style="page-break-after: always;"/>
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 8.</span>
+                                Отношенията между Кредитополучателя и Поръчителя/Поръчителите
+                                могат да се уточнят с отделни договори, като предвидените в тези
+                                договори задължения и плащания на Кредитополучателя към
+                                Поръчителя/Поръчителите (ако има такива) не са част от задълженията
+                                по настоящия Договор, постигнати са на свободна уговорка между
+                                Кредитополучателя и Поръчителя/Поръчителите, без намесата и
+                                участието на Кредитора и поради това не представляват част от
+                                разходите по кредита, предмет на настоящия Договор. С цел яснота и
+                                избягване на съмнения, наличието, недействителността и/или
+                                неизпълнението на договорите между Кредитополучателя и Поръчителя не
+                                освобождава Поръчителя от отговорността спрямо Кредитора по този
+                                договор, както и не представлява неизпълнение на задължения по
+                                настоящия Договор.
+                            </div>
+
+                            <div class="mt-3 text-center fw-bold">
+                                VI. ЛИХВЕН ПРОЦЕНТ И УСЛОВИЯТА ЗА ПРИЛАГАНЕТО МУ
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 9.</span>
+                                (1) За предоставения Потребителски кредит, Кредитополучателят
+                                дължи на Кредитора възнаграждение под формата на лихва, като
+                                лихвеният процент, с който се олихвява предоставения кредит, изразен
+                                като годишен лихвен процент, е посочен в раздел I на Договора.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (2) Лихвата се начислява от датата на усвояване на кредита по
+                                настоящия Договор, като за дата на усвояване се счита датата на
+                                сключване на настоящия договор.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (3) Лихвата се изчислява по метода на изчисляване на лихва на равни
+                                месечни (анюитетни) вноски.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (4) При изчисляване на лихвата месецът се брои на 30 (тридесет) дни,
+                                а годината за 360 (триста и шестдесет) дни.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (5) За нуждите на този Договор, лихвеният процент за ден се
+                                изчислява като 1/360-та част от лихвения процент по чл. 1.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (6) Лихвеният процент е фиксиран за целия срок на Договора и не
+                                подлежи на промяна за целия срок на Договора.
+                            </div>
+
+                            <div class="text-center fw-bold">
+                                VII. ГОДИШЕН ПРОЦЕНТ НА РАЗХОДИТЕ (ГПР)
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 10. (1)</span>
+                                Годишният процент на разходите („ГПР“) по Потребителския
+                                кредит е определен съобразно формулата, съгласно Приложение 1 към
+                                чл.
+                                19, ал. 2 на Закона за потребителския кредит.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (2) Началната дата за изчисляване на ГПР е датата на подписване на
+                                настоящия Договор, като се приема че календарната година има 365
+                                (триста
+                                шестдесет и пет) дни и 366 (триста шестдесет и шест) дни за
+                                високосните
+                                години. ГПР се изчислява при допускане, че страните ще изпълнят
+                                коректно
+                                своите задължения по договора по условията и сроковете на договора.
+                                ГПР
+                                е изчислено съгласно условията, при които договорът е сключен.
+                            </div>
+
+                            <div class="mt-3 text-center fw-bold">
+                                VIII. УСЛОВИЯ ЗА ИЗДЪЛЖАВАНЕ НА КРЕДИТА ОТ КРЕДИТОПОЛУЧАТЕЛЯ
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 11.</span>
+                                (1) Кредитополучателят се задължава да погасява задълженията
+                                си по настоящия Договор, като ежемесечно заплаща на Кредитора
+                                погасителните вноски, определени по брой, размер и падеж в Раздел I
+                                от настоящия Договор и подробно описани в Приложение № 1.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (3) Последната погасителна вноска, може да бъде изравнителна и се
+                                съставлява изплащане на главницата по Потребителския кредит, и
+                                определената лихва по чл. 9, ал. 1 от настоящия Договор.
+                            </div>
+                            <div class="mt-2 text-justify">
+                                (4) Кредитополучателят може да заплаща месечните погасителни вноски
+                                по един от следните начини:
+                            </div>
+
+                            <div class="ms-4 mt-2 text-justify">
+                                а. в брой при някое от лицата, които са оправомощени да приемат
+                                плащания от името и за сметка на Кредитора;
+                                <br/>
+                                б. по банков път по следната банкова сметка на Кредитора:
+                                <br/>
+                                <span class="fw-bold">Банка:</span>
+                                _______________
+                                <br/>
+                                <span class="fw-bold">IBAN:</span>
+                                ____________________________
+                                <br/>
+                                <span class="fw-bold">BIC:</span>
+                                ____________
+                                <br/>
+                                <span class="fw-bold">Титуляр:</span>
+                                ________________________
+                                <br/>
+                                в. ще има ли възможност през изи пей. Да остане ли в договора?
+                            </div>
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 12.</span>
+                                Месечните погасителни вноски покриват компонентите от
+                                задължението в последователност: разно
+                                ски
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                Лихва за забава, лихва, главница.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 13.</span>
+                                (1) Кредитополучателят сам избира начина на погасяване на
+                                месечните вноски по настоящия Договор.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (2) Всички разходи, които биха възникнали във връзка с погасяването
+                                на месечните вноски от Кредитополучателя, са за сметка на последния.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (3) За целите на предходната алинея, Кредитополучателят заявява и
+                                декларира, че е уведомен и разбира, че всяка банка и друга финансова
+                                институция при извършване на безкасово плащане по нейна преценка
+                                определя и изменя вида и размера на собствените си такси и
+                                комисионни и че Кредиторът не може да влияе при определянето на вида
+                                и размера на таксите и комисионните на отделните банки и други
+                                финансови институции и Кредиторът не е длъжен да бъде запознат с
+                                тях.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 14.</span>
+                                Настоящият Договор е сключен при валутен курс 1.95583 лева
+                                за 1 евро. При промяна на валутния курс, остатъкът на задължението
+                                се преизчислява в евро по този курс и се погасява в лева по курса на
+                                БНБ в деня на плащането. В случай, че след подписване на Договора,
+                                Република България бъде приета в Еврозоната, то кредитът автоматично
+                                се конвертира от лева в евро, съгласно законовите разпоредби, приети
+                                от законодателен или друг орган в Република България.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 15.</span>
+                                Кредитополучателят има право да получи, а Кредиторът се
+                                задължава да му предостави безвъзмездно при писмено поискване от
+                                Кредитополучателя, във всеки един момент от изпълнението на
+                                настоящия Договор, извлечение за извършените плащания и дължимите
+                                суми от Кредитополучателя.
+                            </div>
+                            <div class="mt-3 text-center fw-bold">
+                                IX. ПРОСРОЧИЕ НА МЕСЕЧНИТЕ ПОГАСИТЕЛНИ ВНОСКИ.
+                                <br/>
+                                ПРЕДСРОЧНА ИЗИСКУЕМОСТ
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 16.</span>
+                                (1) В случай на просрочие при заплащането на месечните
+                                погасителни вноски, Кредитополучателят дължи на Кредитора лихва за
+                                просрочие в размер на законната лихва върху просрочената сума за
+                                периода на просрочието. За целите на настоящия Договор, страните
+                                изрично заявяват и декларират, че са запознати, че към момента на
+                                сключване на настоящия Договор, законната лихва е в размер на
+                                основния лихвен процент + 10 пункта надбавка. Основният лихвен
+                                процент се определя от Българската народна банка, а размерът на
+                                законната лихва се определя с постановление на Министерски съвет на
+                                Република България.
+                            </div>
+
+                            <div>
+                                (2) В случай на просрочие при изплащане на една или повече дължими
+                                месечни вноски, Кредитополучателят е длъжен да заплати на Кредитора
+                                и начислените лихви по предходната алинея за периода на просрочие,
+                                както и съдебните и други разходи, съгласно чл. 17 от настоящия
+                                Договор, когато същите се дължат.
+                            </div>
+
+                            <div class="ms-3 mt-2 text-justify">
+                                <span class="fw-bold">Чл. 17.</span>
+                                (1) В случай на просрочие при заплащането на месечните
+                                погасителни вноски, Кредитополучателят дължи на Кредитора всички
+                                разходи, които последният е направил във връзка със събирането на
+                                вземанията си по Потребителския кредит, включително и по съдебен
+                                ред, които включват:
+                            </div>
+
+                            <div class="ms-3 mt-2 text-justify">
+                                а. разходи за държавни такси за образуване на съдебно производство и
+                                разходи за самото производство, като депозити за вещи лица, за
+                                свидетели, разходи за снабдяване с документи, удостоверения и други
+                                подобни разноски;
+                            </div>
+                            <div class="ms-3 mt-2 text-justify">
+                                б. разходи за държавни такси и депозити за вещи, извършени в хода на
+                                образувано съдебно производство;
+                            </div>
+
+                            <div class="ms-3 mt-2 text-justify">
+                                в. разходи за държавни такси за издаване на изпълнителен лист;
+                            </div>
+                            <div class="ms-3 mt-2 text-justify">
+                                г. разходи за такси за образуване и водене на изпълнително
+                                производство;
+                            </div>
+                            <div class="ms-3 mt-2 text-justify">
+                                д. разходи за адвокатски или юрисконсултски възнаграждения,
+                                направени в хода на съдебното и/или изпълнителното производство.
+                            </div>
+                            <div class="ms-3 mt-2 text-justify">
+                                е. други разходи, посочени по вид и размер в издадения изпълнителен
+                                лист или предвидени в приложимото законодателство.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (2) Кредитополучателят декларира, че е запознат с условията по
+                                предходната алинея, и че е изрично уведомен, че в зависимост от
+                                дължимата от Кредитополучателя сума и периода на допуснатото
+                                просрочие, общата сума на дължимите от него лихви и разходите за
+                                съдебни и други такси, свързани с просрочието, могат да надхвърлят
+                                размера на просроченото задължение.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 18.</span>
+                                (1) В
+                                <span style="font-style: italic">случай че Кредитополучателят
+                                    допусне пълно или
+                                    частично просрочие при изплащане на дължима погасителна вноска и
+                                    просрочието продължи 5 работни дни след падежа на вноската,
+                                    цялото
+                                    му непогасено задължение съгласно Погасителния план по този
+                                    Договор
+                                    става предсрочно и незабавно изискуемо, считано от шестия
+                                    работен
+                                    ден след падежа на вноската. От тази дата върху непогасената
+                                    главница по кредита започва да се начислява законната лихва до
+                                    окончателното погасяване на задължението.
+                                </span>
+                            </div>
+
+                            <div class="mt-2 text-justify" style="font-style: italic">
+                                (2) Кредиторът уведомява Кредитополучателя за настъпването на
+                                предсрочната изискуемост чрез изпращане на писмено уведомление по
+                                електронна поща на посочения от Кредитополучателя имейл адрес. Счита
+                                се, че уведомлението е получено в деня на изпращането, освен ако
+                                Кредитополучателят не е предоставил доказателства за техническа
+                                невъзможност за получаване. Уведомлението съдържа:
+                            </div>
+
+                            <div class="ms-3 mt-2 text-justify">
+                                1. Основанията за обявяване на предсрочна изискуемост;
+                            </div>
+                            <div class="ms-3 mt-2 text-justify">
+                                2. Общата сума, която става дължима;
+                            </div>
+                            <div class="ms-3 mt-2 text-justify">
+                                3. Информация за законната лихва и други разходи, ако е приложимо
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (3) (В случай, че Кредитополучатрлят не изпълни задължението си за
+                                заплащане на дължимите погасителни вноски, Кредиторът има право да
+                                предприеме всички позволени от закона действия, за да събере
+                                вземането си, което от своя страна може да доведе до значително
+                                повишаване на размера на дължимите суми от страна на
+                                Кредитополучателя. По-конкретно, в случаите на просрочие от страна
+                                на Кредтополучатрля, включително и ако кредитър е станал предсрочно
+                                изискуем при условия на ал. 1, Кредиторът има право по своя преценка
+                                да се възполва от една или няколко възможности, предоставени му от
+                                закона и този Договор:
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                1. Да включи Кредитополучатрля в собственити си списъци и база данни
+                                на физически лица, които са ненадежни и некоректни партньори, пр
+                                испазване изискванията на действащото законодателство;
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                2. Ще провежда телефонни разговори с Кредитополучателя, както и с
+                                неговите Поръчители, ще им изпраща писма, за да уведоми
+                                Кредитополучатрля за просрочените му задължения;
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                3. Щер предприеме съответните процесуални действия по събиране на
+                                своето вземане;
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                4. Ще прехвърли вземането си срещу Кредитополучателя на трето лице;
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                5. Ще подаде данни за просрочието в Централен кредитен регистър при
+                                БНБ, което може да доведе до сериозни затруднения на
+                                Кредитополучатрля при евентуално получаване на следващи
+                                финансирания;
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                6. При основателни съмнения за извършено престъпление по реда на
+                                Наказателния кодекс, ще сигнализира компетентните органи.
+                            </div>
+                            <div class="mt-2 text-justify">
+                                (4) С подписване на настоящия Договор, Кредитополучателят дава
+                                изричното си съгласие, в случай на неизпълнение по някое от
+                                задълженията си по него, да носи отговорност съгласно чл. 133 от
+                                Закона за задълженията и договорите.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 19.</span>
+                                Кредитополучателят декларира, че се е запознал с
+                                разпоредбите на настоящия Договор и че е изрично уведомен за и
+                                приема последиците от неизпълнението на задълженията му по него,
+                                предвидени в настоящия Раздел IX.
+                            </div>
+
+                            <div class="fw-bold text-center mt-3">
+                                X. РАЗХОДИ ЗА НОТАРИАЛНИ И ДРУГИ ТАКСИ
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 20.</span>
+                                (1) Кредитополучателят не дължи нотариални такси във връзка
+                                със сключването на настоящия Договор.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (2) В случай, че към момента на сключване на настоящия Договор, е
+                                необходимо да заплатят допълнителни такси, всички те са за сметка на
+                                Кредитополучателя, и тяхната стойност се определя по актуалната
+                                тарифа на съответния доставчик на конкретната услуга към момента на
+                                сключване на Договора.
+                            </div>
+
+                            <div clas="mt-3 fw-bold text-center">
+                                XI. ПРАВО НА ОТКАЗ
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                Чл. 21. (1) Кредитополучателят има правото, без да дължи обезщетение
+                                и без да посочва причина, да се откаже от настоящия Договор в срок
+                                до 14 (четиринадесет) календарни дни, считано от датата на сключване
+                                на Договора. Кредитополучателят упражнява правата си по настоящия
+                                член с писмено уведомление до Кредитора.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (2) Когато Кредитополучателят е упражнил правото си на отказ по
+                                предходната алинея, Кредитополучателят се задължава да върне на
+                                Кредитора получената сума по Потребителския кредит, заедно с
+                                лихвата, начислена за периода от датата на усвояване на
+                                Потребителския кредит до датата на връщане по настоящата алинея, без
+                                неоправдано забавяне и не по-късно от 30 (тридесет) календарни дни,
+                                считано от изпращането на уведомлението по ал. 1 по-горе. Лихвата се
+                                изчислява по реда на Раздел VI от настоящия Договор.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (3) При упражняване на правото си на отказ по настоящия член,
+                                Кредитополучателят дължи на Кредитора компенсация в пълен размер на
+                                разходите към публични административни органи, които Кредиторът е
+                                извършил във връзка с предоставянето на Потребителския кредит. да се
+                                добави как се изчислява, предвидено е в системата.
+                            </div>
+                            <div style="page-break-after: always;"/>
+                            <div class="mt-3 text-center fw-bold">
+                                Х. ПРЕДСРОЧНО ПОГАСЯВАНЕ
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 22.</span>
+                                (1) Кредитополучателят има право по всяко време да погаси
+                                изцяло или частично задълженията си по настоящия Договор. При
+                                предсрочно погасяване, Кредитополучателят има право на намаляване на
+                                общите разходи по Потребителския кредит, като това намаляване се
+                                отнася до лихвата и ГПР за оставащата част от срока на настоящия
+                                Договор.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (2) При предсрочно погасяване на Потребителския кредит, Кредиторът
+                                има право на обезщетение за евентуалните разходи, пряко свързани с
+                                предсрочното погасяване на Потребителския кредит. Обезщетението по
+                                предходното изречение е в размер на 1% , когато оставащият период на
+                                договора за кредит е по-голям от една година и в размер на 0.5 %
+                                когато оставащият период на договора за кредит е по-малък от една
+                                година, обезщетението се изчислява от от предсрочно погасената сума
+                                по Потребителския кредит.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (3) За извършване на предсрочно погасяване, Кредитополучателят се
+                                задължава да попълни Искане за предсрочно погасяване, съгласно
+                                утвърден от Кредитора образец в някой от офисите на Кредитора.
+                            </div>
+
+                            <div class="mt-3 fw-bold text-center">
+                                XI. ПРЕКРАТЯВАНЕ
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 23.</span>
+                                Настоящият Договор влиза в сила от датата на неговото
+                                подписване за срок до пълното изпълнение на задълженията на страните
+                                по него.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 24.</span>
+                                Действието на настоящия Договор се прекратява с пълното
+                                погасяване на всички задължения на Кредитополучателя в следните
+                                случаи:
+                            </div>
+
+                            <div class="mt-2 ms-3 text-justify">
+                                а. при изтичане на срока, за който е сключен настоящият Договор, при
+                                условие, че Потребителят е изплатил в срок всичките си дължими
+                                месечни погасителни вноски съгласно погасителния план по Приложение
+                                № 1;
+                            </div>
+
+
+                            <div class="mt-2 ms-3 text-justify">
+                                б. когато Кредитополучателят е упражнил правото си на отказ по
+                                Раздел IX от настоящия Договор;
+                            </div>
+                            <div class="mt-2 ms-3 text-justify">
+                                в. когато Кредитополучателят е погасил предсрочно Потребителския
+                                кредит при условията на Раздел X от настоящия Договор.
+                            </div>
+
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 25.</span>
+                                Кредиторът има право да прекрати едностранно настоящия
+                                Договор, без да е длъжен да дава допълнителен срок за изпълнение на
+                                Кредитополучателя и да обяви всичките си вземания по Потребителския
+                                кредит, в т.ч. изтекли и непогасени вноски, остатъчна главница,
+                                остатъчни лихви, лихви за забава, такси, комисионни и разноски по
+                                събиране на вземането, за предсрочно изискуеми в пълен размер, при
+                                настъпване на някоя от следните хипотези:
+                            </div>
+                            <div class="mt-2 ms-3 text-justify">
+                                а. Кредитополучателят е нарушил някое от условията по настоящия
+                                Договор;
+                            </div>
+
+                            <div class="mt-2 ms-3 text-justify">
+                                б. Кредитополучателят е нарушил декларациите по чл. 5, ал. 2 от
+                                настоящия Договор;
+                            </div>
+
+                            <div class="mt-2 ms-3 text-justify">
+                                в. Кредиторът предприеме действия по принудително изпълнение срещу
+                                Кредитополучателя.
+                            </div>
+                            <div class="fw-bold mt-3 text-center">
+                                XII. СПОРОВЕ
+                            </div>
+
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 26.</span>
+                                За всеки спор относно съществуването и действието на
+                                настоящия Договор или във връзка с неговото нарушаване, включително
+                                спорове и разногласия относно действителността, тълкуването,
+                                прекратяването, изпълнението или неизпълнението му, се уреждат чрез
+                                споразумение между страните. При непостигане на съгласие, спорът се
+                                отнася за решаване пред компетентния български съд.
+                            </div>
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 27.</span>
+                                (1) Преди да отнесе спора пред компетентния български съд,
+                                Кредитополучателят има правото да сезира помирителните комисии,
+                                създадени по реда на чл. 182-184 от Закона за защита на
+                                потребителите.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (2) Данни за контакт с Комисията за защита на потребителите могат да
+                                бъдат достъпени на следния уеб адрес: https://www.kzp.bg/kontakti и
+                                на
+                                адрес: гр. София, п.к. 1000, ул. „Врабча“ № 1, ет. 3, 4 и 5..
+                            </div>
+
+
+                            <div class="fw-bold text-center mt-3">
+                                XIII. ДРУГИ КЛАУЗИ
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 28.</span>
+                                (1) Всяка кореспонденция между страните във връзка с
+                                настоящия Договор се счита за валидна, когато е осъществена в
+                                писмена форма, като същата се счита за получена от получаващата
+                                страна, когато е изпратена на посочените адреси за кореспонденция,
+                                вкл. посочения имейл на страните.. За валидни адреси на всяка от
+                                страните се считат адресите, посочени по-долу в настоящия Договор.
+                            </div>
+
+                            <table class="o_has_total_table table o_main_table table-borderless">
+                                <tr>
+                                    <td>
+                                        <span>Страна</span>
+                                    </td>
+                                    <td>
+                                        <span>Кредитор</span>
+                                    </td>
+                                    <td>
+                                        <span>Кредитололучател</span>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <span>Населено място</span>
+                                    </td>
+                                    <td>
+
+                                    </td>
+                                    <td>
+                                        <span t-out="o.customer_id.city"/>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <span>Адрес</span>
+                                    </td>
+                                    <td>
+
+                                    </td>
+                                    <td>
+                                        <span t-out="o.customer_id.street"/>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <span>Адрес</span>
+                                    </td>
+                                    <td>
+
+                                    </td>
+                                    <td>
+
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <span>Телефонен номер</span>
+                                    </td>
+                                    <td>
+
+                                    </td>
+                                    <td>
+                                        <span t-out="o.customer_id.phone"/>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <span>Имейл за кореспонденция</span>
+                                    </td>
+                                    <td>
+
+                                    </td>
+                                    <td>
+                                        <span t-out="o.customer_id.email"/>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <div class="mt-3 text-justify">
+                                (2) В случай че КРЕДИТОПОЛУЧАТЕЛЯТ промени посочените в настоящия
+                                адреси за кореспонденция, то следва да уведоми КРЕДИТОРА писмено за
+                                това обстоятелство. Ако КРЕДИТОПОЛУЧАТЕЛЯТ не е уведомил писмено
+                                КРЕДИТОРА за новите адреси за кореспонденция, всички изброени
+                                по-горе съобщения и известия ще се считат за редовно връчени на
+                                стария адрес.
+                            </div>
+                            <div style="page-break-after: always;"/>
+                            <div class="mt-3 text-justify">
+                                (3) Опитът за връчване на уведомления, писма, извлечения, други
+                                съобщения и изявления по реда на предходната алинея, изпратени до
+                                Кредитополучателя, ще се счита за надлежно връчване от страна на
+                                КРЕДИТОРА. Кредитополучателя се счита за уведомен, включително и за
+                                изпратени по електронна поща уведомления, писма, извлечения, други
+                                съобщения и изявления изпратени от Кредитора на посочените от
+                                Кредитополучателя адреси. Чл. 29. (1) С подписване на настоящия
+                                Договор, Кредитополучателят потвърждава, че внимателно се е запознал
+                                и разбира условията по него.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (2) С подписване на настоящия Договор, Кредитополучателят
+                                потвърждава, че се е приема условията и параметрите на настоящия
+                                Договор и че е запознат с обстоятелството, че подписването на
+                                настоящия Договор води до встъпване в договорна обвързаност при
+                                условията и сроковете в него.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (3) С подписването на настоящия Договор, Кредитополучателят дава
+                                съгласието си Кредиторът да го уведомява чрез предоставените данни
+                                за
+                                контакт за статуса на Потребителския кредит, характера и размера на
+                                погасителните вноски по Потребителския кредит, нови финансови
+                                продукти и
+                                / или услуги, бизнес партньори и стоки / услуги, предлагани от
+                                бизнес
+                                партньори, и/или други обстоятелства, свързани с кредитната дейност
+                                на
+                                Кредитополучателя.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                <span class="fw-bold">Чл. 30.</span>
+                                (1) Настоящият Договор е изготвен в съответствие със и се
+                                подчинява на законите на Република България.
+                            </div>
+
+                            <div class="mt-2 text-justify">
+                                (2) За неуредените въпроси се прилагат съответните разпоредби на
+                                приложимото българско законодателство.
+                            </div>
+
+                            <div class="mt-2 text-justify" style="font-style: italic">
+                                Настоящият Договор се сключи в три еднообразни екземпляра – по един
+                                за всяка от страните.
+                            </div>
+
+                            <table class="table table-bordered mt-3">
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 0.0rem 0.5rem;" class="text-center">
+                                            <div class="pb-4">
+                                                За Кредитора:
+                                            </div>
+                                            <div>
+                                                ______________________
+                                            </div>
+                                        </td>
+                                        <td style="padding: 0.0rem 0.5rem;" class="text-center">
+                                            <div class="pb-4">
+
+                                            </div>
+                                            <div class="mt-4">
+                                                ______________________
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="p-0">
+
+                                        </td>
+                                        <td class="text-center p-0">
+                                            <div>
+                                                ______________________
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td style="padding: 0.0rem 0.5rem;"
+                                            class="text-center pb-4">
+
+                                        </td>
+                                        <td style="padding: 0.0rem 0.5rem;" class="text-center">
+                                            <div class="pb-4">
+
+                                            </div>
+                                            <div class="mt-4">
+                                                ______________________
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td class="p-0">
+
+                                        </td>
+                                        <td class="text-center p-0">
+                                            <div>
+                                                Поръчител
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+        <record id="loan_contract_report" model="ir.actions.report">
+            <field name="name">Loan Contract</field>
+            <field name="model">customer.loan</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">tk_loan_management.loan_contract_report_pdf</field>
+            <field name="report_file">tk_loan_management.loan_contract_report_pdf</field>
+            <field name="binding_model_id" ref="tk_loan_management.model_customer_loan"/>
+            <field name="binding_type">report</field>
+            <field name="print_report_name">'%s credit application' %(object.name)</field>
+        </record>
+    </data>
+
+</odoo>

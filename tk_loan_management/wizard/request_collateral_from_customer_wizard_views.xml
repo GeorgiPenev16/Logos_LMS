@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="req_collateral_form_customer_wizard_form_view" model="ir.ui.view">
+            <field name="name">request.collateral.from.customer.form.view</field>
+            <field name="model">request.collateral.from.customer</field>
+            <field name="arch" type="xml">
+                <form string="Collateral request" duplicate="0">
+                    <group>
+                        <group>
+                            <field name="customer_loan_id" invisible="1"/>
+                            <field name="req_collateral_from_customer_ids" widget="many2many_tags" string="Collateral" options="{'no_create':True}"/>
+                            <field name="uploaded_collateral_ids" widget="many2many_tags" invisible="1"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="action_request_collateral" string="Request Collateral" type="object"
+                                class="oe_highlight"
+                                confirm="Are you sure you want to request this collateral documents?"/>
+                        <button special="cancel" string="Cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="req_collateral_form_customer_wizard_action" model="ir.actions.act_window">
+            <field name="name">Request collateral from customer</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">request.collateral.from.customer</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+    </data>
+</odoo>

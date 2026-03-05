@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (C) 2024-TODAY TechKhedut (<https://www.techkhedut.com>)
+    Part of TechKhedut. See LICENSE file for full copyright and licensing details.
+-->
+<odoo>
+    <data>
+        <menuitem id="menu_customer_loan_management" name="Customers Loan"
+                  groups="tk_loan_management.department_manager"
+                  web_icon="tk_loan_management,static/description/icon.png"/>
+        <menuitem id="menu_customer_loan_dashboard" name="Dashboard"
+                  parent="menu_customer_loan_management"
+                  action="action_customer_loan_dashboard"
+                  groups="tk_loan_management.department_manager" sequence="0"/>
+        <menuitem id="leads_root_menu" name="Leads" parent="menu_customer_loan_management"
+                  sequence="1"/>
+        <menuitem id="leads_menu" name="Leads" action="crm.crm_lead_all_leads" sequence="1"
+                  parent="leads_root_menu"/>
+        <menuitem id="pipeline_menu" name="Pipeline" action="crm.crm_lead_action_pipeline"
+                  sequence="2"
+                  parent="leads_root_menu"/>
+        <menuitem id="menu_customer_loans" name="Customers Loans"
+                  parent="menu_customer_loan_management"
+                  action="customer_loan_action" groups="tk_loan_management.department_manager"
+                  sequence="2"/>
+        <menuitem id="menu_loan_type" name="Loan Types" parent="menu_customer_loan_management"
+                  action="customer_loan_type_action" groups="tk_loan_management.department_manager"
+                  sequence="3"/>
+        <menuitem id="customer_loan_configuration" name="Configurations"
+                  parent="menu_customer_loan_management"
+                  groups="tk_loan_management.department_manager" sequence="4"/>
+
+        <!-- Templates -->
+        <menuitem id="menu_loan_management_templates_parent" name="Templates"
+                  parent="customer_loan_configuration"
+                  groups="tk_loan_management.department_manager" sequence="1"/>
+        <menuitem id="menu_installments_term_templates" name="Installments Term Templates"
+                  parent="menu_loan_management_templates_parent"
+                  action="customer_term_template_action"
+                  groups="tk_loan_management.department_manager" sequence="1"/>
+        <menuitem id="menu_terms_and_conditions" name="Terms &amp; Conditions Templates"
+                  parent="menu_loan_management_templates_parent"
+                  action="customer_terms_and_conditions_template_action"
+                  groups="tk_loan_management.department_manager" sequence="2"/>
+        <menuitem id="menu_repayment_terms" name="Repayment Terms Templates"
+                  parent="menu_loan_management_templates_parent"
+                  action="customer_repayment_terms_template_action"
+                  groups="tk_loan_management.department_manager"
+                  sequence="3"/>
+
+        <!-- Types -->
+        <menuitem id="menu_loan_management_types_parent" name="Types"
+                  parent="customer_loan_configuration"
+                  groups="tk_loan_management.department_manager" sequence="1"/>
+        <menuitem id="menu_document_types" name="Document Types"
+                  parent="menu_loan_management_types_parent"
+                  action="customer_document_type_action"
+                  groups="tk_loan_management.department_manager" sequence="4"/>
+        <menuitem id="menu_collateral_types" name="Collateral Types"
+                  parent="menu_loan_management_types_parent"
+                  action="customer_collateral_type_action"
+                  groups="tk_loan_management.department_manager" sequence="5"/>
+
+        <menuitem id="menu_customer_loan_menu_family_info"
+                  name="Family Info"
+                  parent="customer_loan_configuration"
+                  action="action_customer_loan_family_info"/>
+        <menuitem id="menu_customer_loan_menu_labour_relation"
+                  name="Labour Relations"
+                  parent="customer_loan_configuration"
+                  action="action_labour_relation"/>
+        <menuitem id="menu_customer_loan_public_holidays"
+                  name="Public Holidays"
+                  parent="customer_loan_configuration"
+                  action="action_public_holidays"/>
+    </data>
+</odoo>

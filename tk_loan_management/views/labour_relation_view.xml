@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <record id="labour_relation_view_list" model="ir.ui.view">
+            <field name="name">labour.relation.view.list</field>
+            <field name="model">labour.relation</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="name"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="labour_relation_view_form" model="ir.ui.view">
+            <field name="name">labour.relation.view.form</field>
+            <field name="model">labour.relation</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" string="Title"/>
+                            <h1>
+                                <field name="name" required="1"/>
+                            </h1>
+                        </div>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_labour_relation" model="ir.actions.act_window">
+            <field name="name">Labour Relations</field>
+            <field name="view_mode">list,form</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">labour.relation</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,1146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Copyright (C) 2024-TODAY TechKhedut (<https://www.techkhedut.com>)
+    Part of TechKhedut. See LICENSE file for full copyright and licensing details.
+-->
+<odoo>
+    <!-- Portal card template -->
+    <template id="portal_customer_loan" name="Customer Loans" customize_show="True"
+              inherit_id="portal.portal_my_home"
+              priority="10">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/tk_loan_management/static/src/img/signing.png'"/>
+                <t t-set="title">Loans</t>
+                <t t-set="url" t-value="'/customer/my/loans'"/>
+                <t t-set="placeholder_count" t-value="'loan_count'"/>
+                <t t-set="text">Your Loans</t>
+                <t t-set="config_card" t-value="True"/>
+            </t>
+        </xpath>
+
+        <div id="portal_alert_category" position="inside">
+            <div class="o_portal_index_card col-12 order-0"
+                 t-if="not request.env.user.partner_id.is_document_uploaded">
+                <a href="/customer-documents-pending" title="Documents pending for upload"
+                   class="d-flex gap-2 gap-md-3 py-3 pe-2 px-md-3 h-100 rounded text-decoration-none alert alert-primary align-items-center">
+                    <div class="alert-link">
+                        <div class="mt-0 fw-normal mb-1 lh-1"
+                             style="font-size:1.25rem;color:black;">
+                            <h5>
+                                <t t-if="request.env.user.partner_id.loan_to_review_for_doc_upload &gt;= 1">
+                                    <span t-field="request.env.user.partner_id.docs_upload_pending"/>
+                                    <span>Document
+                                        <t t-if="request.env.user.partner_id.docs_upload_pending &gt; 1">
+                                            s are
+                                        </t>
+                                        <t t-else="">is</t>
+                                        pending for
+                                        <span t-field="request.env.user.partner_id.loan_to_review_for_doc_upload"/>
+                                        loan
+                                    </span>
+                                </t>
+                            </h5>
+                        </div>
+                        <div class="opacity-75">
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="o_portal_index_card col-12 order-0"
+                 t-if="not request.env.user.partner_id.is_collateral_added">
+                <a href="/customer-collateral-pending" title="Documents pending for upload"
+                   class="d-flex gap-2 gap-md-3 py-3 pe-2 px-md-3 h-100 rounded text-decoration-none alert alert-primary align-items-center">
+                    <div class="alert-link">
+                        <div class="mt-0 fw-normal mb-1 lh-1"
+                             style="font-size:1.25rem;color:black;">
+                            <h5>
+                                <span t-field="request.env.user.partner_id.collateral_upload_pending"/>
+                                <span>Collateral
+                                    <t t-if="request.env.user.partner_id.collateral_upload_pending &gt; 1">
+                                        are
+                                    </t>
+                                    <t t-else="">is</t>
+                                    pending for
+                                    <span t-field="request.env.user.partner_id.loan_to_review_for_collateral_upload"/>
+                                    loan
+                                </span>
+                            </h5>
+                        </div>
+                        <div class="opacity-75">
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+        </div>
+    </template>
+    <!-- Bread crumbs  -->
+    <template id="portal_customer_loans_breadcrumbs" inherit_id="portal.portal_breadcrumbs"
+              name="Portal Breadcrumbs">
+        <xpath position="inside" expr="//ol[hasclass('o_portal_submenu')]">
+            <li t-if="page_name == 'customer_loans_portal_list_view'" class="breadcrumb-item">Loans
+            </li>
+            <li t-if="page_name == 'customer_loans_portal_req_doc_list_view'"
+                class="breadcrumb-item">Loans
+            </li>
+            <li t-if="page_name == 'customer_loans_portal_req_collateral_list_view'"
+                class="breadcrumb-item">Loans
+            </li>
+            <li t-if="page_name in ['portal_customer_loan_form_view']"
+                class="breadcrumb-item">
+                <a href="/customer/my/loans">
+                    Loans
+                </a>
+            </li>
+            <li t-if="page_name == 'portal_customer_loan_form_view'" class="breadcrumb-item">
+                <span t-field="loan_record.name"/>
+            </li>
+
+            <li t-if="page_name in ['portal_customer_loan_req_doc_form_view']"
+                class="breadcrumb-item">
+                <a href="/customer-documents-pending">
+                    Loans
+                </a>
+            </li>
+            <li t-if="page_name == 'portal_customer_loan_req_doc_form_view'"
+                class="breadcrumb-item">
+                <span t-field="req_document_line.customer_loan_id.name"/>
+            </li>
+
+
+            <li t-if="page_name in ['portal_customer_loan_req_collateral_form_view']"
+                class="breadcrumb-item">
+                <a href="/customer-collateral-pending">
+                    Loans
+                </a>
+            </li>
+            <li t-if="page_name == 'portal_customer_loan_req_collateral_form_view'"
+                class="breadcrumb-item">
+                <span t-field="loan_record.name"/>
+            </li>
+
+        </xpath>
+    </template>
+
+    <!--    List view template-->
+    <template id="customer_loans_portal_list_template" name="Customer Loans">
+        <t t-call="portal.portal_layout">
+            <t t-if="not customer_loans">
+                <p>There are currently no loans associated with your account.</p>
+            </t>
+            <t t-call="portal.portal_table" t-else="">
+                <thead>
+                    <tr class="active">
+                        <th class="text-start">Reference No.</th>
+                        <th class="text-center">Application Date</th>
+                        <th class="text-center">Loan Type</th>
+                        <th class="text-end">Loan Amount</th>
+                        <th class="text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="customer_loans" t-as="loan">
+                        <tr>
+                            <td class="text-start">
+                                <a t-attf-href="/customer/my/loans-form/#{loan.access_token}">
+                                    <t t-out="loan.name"/>
+                                    <a class="btn btn-primary fw-bold btn-sm ms-2"
+                                       t-if="loan.cst_conf_stage == 'sent'"
+                                       title="Sign sanction letter"
+                                       t-attf-href="/customer/loan-confirmation/#{loan.access_token}"
+                                       target="_blank">
+                                        <i class="fa fa-arrow-circle-right" aria-hidden="true" title="Sign sanction letter"/>
+                                        Sign sanction letter
+                                    </a>
+                                </a>
+                            </td>
+                            <td class="text-center">
+                                <span t-field="loan.app_date"/>
+                            </td>
+                            <td class="text-center">
+                                <span t-field="loan.approved_loan_type_id.name"/>
+                            </td>
+                            <td class="text-end">
+                                <span t-field="loan.loan_amount"/>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge text-bg-secondary py-1 loan-badge"
+                                      t-if="loan.status == 'draft'">
+                                    <span class="px-2">
+                                        Draft
+                                    </span>
+                                </span>
+
+                                <span class="badge text-bg-info py-1 loan-badge"
+                                      t-if="loan.status in ['confirm','dept_approval']">
+                                    <span class="px-2" t-if="loan.status == 'confirm'">
+                                        Confirm
+                                    </span>
+                                    <span class="px-2" t-if="loan.status == 'dept_approval'">
+                                        Department Approval
+                                    </span>
+                                </span>
+
+                                <span class="badge text-bg-primary py-1 loan-badge"
+                                      t-if="loan.status in ['confirmation','disbursement','in_progress']">
+                                    <span class="px-2" t-if="loan.status == 'in_progress'">
+                                        In Progress
+                                    </span>
+                                    <span class="px-2" t-if="loan.status == 'confirmation'">
+                                        Confirmation
+                                    </span>
+                                    <span class="px-2" t-if="loan.status == 'disbursement'">
+                                        Disbursement
+                                    </span>
+                                </span>
+
+                                <span class="badge text-bg-success py-1 loan-badge"
+                                      t-if="loan.status in ['pre_closure','closure','settlement']">
+                                    <span class="px-2" t-if="loan.status == 'closure'">
+                                        Closure
+                                    </span>
+                                    <span class="px-2" t-if="loan.status == 'pre_closure'">
+                                        Pre Closure
+                                    </span>
+                                    <span class="px-2" t-if="loan.status == 'settlement'">
+                                        Settlement
+                                    </span>
+                                </span>
+
+                                <span class="badge text-bg-danger py-1 px-2 loan-badge"
+                                      t-if="loan.status == 'rejected'">
+                                    Rejected
+                                </span>
+                                <span class="badge text-bg-danger py-1 px-2 loan-badge"
+                                      t-if="loan.status == 'cancel'">
+                                    Cancelled
+                                </span>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </t>
+        </t>
+    </template>
+
+    <!--     Form template -->
+    <template inherit_id="portal.portal_sidebar" id="customer_loan_portal_form_view"
+              name="Booking Order Details">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <t t-if="page_name == 'portal_customer_loan_form_view'">
+                <div class="container bg-white mt-1">
+
+                    <t t-if="message and loan_record.status == 'confirmation'">
+                        <div t-attf-class="alert alert-{{message['type']}} alert-dismissible fade show mb-0 text-center fw-bold"
+                             role="alert">
+                            <i class="fa fa-info-circle"/>
+                            <span t-esc="message['message']"/>
+                        </div>
+                    </t>
+                    <div class="row px-2 align-items-center mt-3">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="row align-items-center">
+                                <div class="col-md-12 col-sm-12 text-start d-flex gap-3 align-items-center justify-content-between">
+                                    <h3 class="mb0">
+                                        <span class="text-center text-primary"
+                                              t-field="loan_record.name"/>
+                                    </h3>
+                                    <div>
+                                        <t t-if="loan_record.status">
+                                            <span class="badge text-bg-secondary py-2 loan-badge"
+                                                  t-if="loan_record.status == 'draft'">
+                                                <span class="px-3">
+                                                    Draft
+                                                </span>
+                                            </span>
+
+                                            <span class="badge text-bg-info py-1 loan-badge"
+                                                  t-if="loan_record.status in ['confirm','dept_approval']">
+                                                <span class="px-2"
+                                                      t-if="loan_record.status == 'confirm'">
+                                                    Confirm
+                                                </span>
+                                                <span class="px-2"
+                                                      t-if="loan_record.status == 'dept_approval'">
+                                                    Department Approval
+                                                </span>
+                                            </span>
+
+                                            <span class="badge text-bg-primary py-1 loan-badge"
+                                                  t-if="loan_record.status in ['confirmation','disbursement','in_progress']">
+                                                <span class="px-2"
+                                                      t-if="loan_record.status == 'in_progress'">
+                                                    In Progress
+                                                </span>
+                                                <span class="px-2"
+                                                      t-if="loan_record.status == 'confirmation'">
+                                                    Confirmation
+                                                </span>
+                                                <span class="px-2"
+                                                      t-if="loan_record.status == 'disbursement'">
+                                                    Disbursement
+                                                </span>
+                                            </span>
+
+                                            <span class="badge text-bg-success py-1 loan-badge"
+                                                  t-if="loan_record.status in ['pre_closure','closure','settlement']">
+                                                <span class="px-2"
+                                                      t-if="loan_record.status == 'closure'">
+                                                    Closure
+                                                </span>
+                                                <span class="px-2"
+                                                      t-if="loan_record.status == 'pre_closure'">
+                                                    Pre Closure
+                                                </span>
+                                                <span class="px-2"
+                                                      t-if="loan_record.status == 'settlement'">
+                                                    Settlement
+                                                </span>
+                                            </span>
+
+                                            <span class="badge text-bg-danger py-1 px-2 loan-badge"
+                                                  t-if="loan_record.status == 'rejected'">
+                                                Rejected
+                                            </span>
+                                            <span class="badge text-bg-danger py-1 px-2 loan-badge"
+                                                  t-if="loan_record.status == 'cancel'">
+                                                Cancelled
+                                            </span>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="bgc-primary"/>
+                    <!--this route is from sanction letter controller-->
+                    <div class="d-flex flex-wrap justify-content-md-end align-items-center"
+                         t-if="loan_record.status in ['closure','pre_closure','settlement']">
+
+                        <a class="btn btn-outline-primary d-inline ms-2 mb-2 rounded-0 w-auto"
+                           t-if="loan_record.status in ['closure','pre_closure']"
+                           t-attf-href="/customer/download-closure-letter/#{loan_record.access_token}"
+                           target="_blank">
+                            <i class="fa fa-download me-1" aria-hidden="true"/>
+                            <span t-if="loan_record.status == 'pre_closure'">Pre-</span>Closure
+                            Letter
+                        </a>
+                        <a class="btn btn-outline-primary d-inline ms-2 mb-2 rounded-0 w-auto"
+                           t-if="loan_record.status == 'settlement'"
+                           t-attf-href="/customer/download-settlement-letter/#{loan_record.access_token}"
+                           target="_blank">
+                            <i class="fa fa-download me-1" aria-hidden="true"/>
+                            Settlement Letter
+                        </a>
+                        <a class="btn btn-outline-primary d-inline ms-2 mb-2 rounded-0 w-auto"
+                           t-if="loan_record.status in ['closure','pre_closure','settlement']"
+                           t-attf-href="/customer/download-noc/#{loan_record.access_token}"
+                           target="_blank">
+                            <i class="fa fa-download me-1" aria-hidden="true"/>
+                            NOC
+                        </a>
+                    </div>
+                    <div>
+                        <div class="row p-2">
+                            <div class="col-md-12 col-sm-12">
+                                <div class="row">
+                                    <div class="col-md-12 col-sm-12 mb-4">
+                                        <div class="border-bottom border-primary mb-2 pb-2">
+                                            <h5 class="d-inline text-primary">
+                                                <i class="fa fa-user me-1" aria-hidden="true"></i>
+                                                Customer Details
+                                            </h5>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.customer_id.name">
+                                                <span class="c-label text-muted">Customer</span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.customer_id.name"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.phone">
+                                                <span class="c-label text-muted">Phone</span>
+                                                <span class="c-value" t-field="loan_record.phone"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.email">
+                                                <span class="c-label text-muted">Email</span>
+                                                <span class="c-value" style="word-wrap: break-word;"
+                                                      t-field="loan_record.email"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-md-12 col-sm-12 mb-4">
+                                        <div class="border-bottom border-primary mb-2 pb-2">
+                                            <h5 class="d-inline text-primary">
+                                                <i class="fa fa-university me-1"
+                                                   aria-hidden="true"></i>
+                                                Customer Bank Details
+                                            </h5>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.cst_bank_name">
+                                                <span class="c-label text-muted">Bank Name</span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.cst_bank_name"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.cst_bank_account_number">
+                                                <span class="c-label text-muted">Account Number
+                                                </span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.cst_bank_account_number"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.cst_bank_branch_name">
+                                                <span class="c-label text-muted">Branch Name</span>
+                                                <span class="c-value" style="word-wrap: break-word;"
+                                                      t-field="loan_record.cst_bank_branch_name"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.cst_bank_branch_code">
+                                                <span class="c-label text-muted">Branch Code</span>
+                                                <span class="c-value" style="word-wrap: break-word;"
+                                                      t-field="loan_record.cst_bank_branch_code"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.cst_bank_swift_bic_code">
+                                                <span class="c-label text-muted">SWIFT/BIC Code
+                                                </span>
+                                                <span class="c-value" style="word-wrap: break-word;"
+                                                      t-field="loan_record.cst_bank_swift_bic_code"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-md-12 col-sm-12 mb-4"
+                                         t-if="loan_record.approved_loan_type_id">
+                                        <div class="border-bottom border-primary mb-2 pb-2">
+                                            <h5 class="d-inline text-primary">
+                                                <i class="fa fa-usd me-1" aria-hidden="true"></i>
+                                                Loan Details
+                                            </h5>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.app_date">
+                                                <span class="c-label text-muted">Reference No.
+                                                </span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.name"/>
+                                            </div>
+
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.app_date">
+                                                <span class="c-label text-muted">Application Date
+                                                </span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.app_date"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.approved_loan_type_id">
+                                                <span class="c-label text-muted">Loan Type</span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.approved_loan_type_id.name"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12 col-sm-12 mb-4"
+                                         t-if="loan_record.approved_loan_type_id and loan_record.cst_conf_stage not in ['draft', 'expired', 'rejected', 'cancelled']">
+                                        <div class="border-bottom border-primary mb-2 pb-2">
+                                            <h5 class="d-inline text-primary">
+                                                <i class="fa fa-gavel me-1" aria-hidden="true"></i>
+                                                Term Details
+                                            </h5>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.approved_loan_type_id">
+                                                <span class="c-label text-muted">Loan Type</span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.approved_loan_type_id.name"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.loan_amount">
+                                                <span class="c-label text-muted">Loan Amount</span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.loan_amount"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.installment_type">
+                                                <span class="c-label text-muted">Installment Type
+                                                </span>
+                                                <span>
+                                                    <span class="c-value"
+                                                          t-if="loan_record.installment_type == 'monthly'">
+                                                        Monthly
+                                                    </span>
+                                                    <span class="c-value"
+                                                          t-if="loan_record.installment_type == 'quarterly'">
+                                                        Quarterly
+                                                    </span>
+                                                    <span class="c-value"
+                                                          t-if="loan_record.installment_type == 'yearly'">
+                                                        Yearly
+                                                    </span>
+                                                </span>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.term > 0">
+                                                <span class="c-label text-muted">Term</span>
+                                                <span class="c-value" t-field="loan_record.term"/>
+                                                <span>
+                                                    <span class=" c-value"
+                                                          t-if="loan_record.installment_type == 'monthly'">
+                                                        Months
+                                                    </span>
+                                                    <span class="c-value"
+                                                          t-if="loan_record.installment_type == 'quarterly'">
+                                                        Quarters
+                                                    </span>
+                                                    <span class="c-value"
+                                                          t-if="loan_record.installment_type == 'yearly'">
+                                                        Years
+                                                    </span>
+                                                </span>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.interest_rate">
+                                                <span class="c-label text-muted">Interest Rate
+                                                </span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.interest_rate"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 col-sm-12 mb-4"
+                                         t-if="loan_record.is_penalty">
+                                        <div class="border-bottom border-primary mb-2 pb-2">
+                                            <h5 class="d-inline text-primary">
+                                                <i class="fa fa-money me-1" aria-hidden="true"></i>
+                                                Penalty Details
+                                            </h5>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.penalty_type">
+                                                <span class="c-label text-muted">Type</span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.penalty_type"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.penalty_type == 'percentage'">
+                                                <span class="c-label text-muted">Penalty</span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.penalty_percentage"/>
+                                                %
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.penalty_type == 'fixed'">
+                                                <span class="c-label text-muted">Penalty</span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.penalty_amount"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.penalty_tax_ids">
+                                                <span class="c-label text-muted">Taxes</span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.penalty_tax_ids"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.outstanding_penalty">
+                                                <span class="c-label text-muted">Outstanding
+                                                    Penalty
+                                                </span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.outstanding_penalty"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-md-12 col-sm-12 mb-4"
+                                         t-if="loan_record.bill_id">
+                                        <div class="border-bottom border-primary mb-2 pb-2">
+                                            <h5 class="d-inline text-primary">
+                                                <i class="fa fa-info me-1" aria-hidden="true"></i>
+                                                Disbursement Details
+                                            </h5>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.bill_id.name">
+                                                <span class="c-label text-muted">Bill Reference
+                                                    No.
+                                                </span>
+
+                                                <a t-attf-href="/my/invoices/#{loan_record.bill_id.id}"
+                                                   target="_blank"
+                                                   t-if="loan_record.bill_id.state == 'posted'">
+                                                    <span class="c-value"
+                                                          t-field="loan_record.bill_id.name"/>
+                                                </a>
+
+                                                <span class="c-value"
+                                                      t-if="loan_record.bill_id.state != 'posted'"
+                                                      t-field="loan_record.bill_id.name"/>
+                                            </div>
+
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.disbursement_date">
+                                                <span class="c-label text-muted">Disbursement Date
+                                                </span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.disbursement_date"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.installment_start_date">
+                                                <span class="c-label text-muted">Installment Start
+                                                    Date
+                                                </span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.installment_start_date"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.end_date">
+                                                <span class="c-label text-muted">Installment End
+                                                    Date
+                                                </span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.end_date"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-md-12 col-sm-12 mb-4"
+                                         t-if="loan_record.is_processing_fee">
+                                        <div class="border-bottom border-primary mb-2 pb-2">
+                                            <h5 class="d-inline text-primary">
+                                                <i class="fa fa-bars me-1" aria-hidden="true"></i>
+                                                Processing Fee Details
+                                            </h5>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-12 c-field">
+                                                <span class="c-label text-muted">Type</span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.processing_fee_type"/>
+                                            </div>
+
+                                            <div class="col-md-3 col-sm-12 c-field">
+                                                <span class="c-label text-muted">Deduct From</span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.processing_fee_deduct_from"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.processing_fee_type == 'percentage'">
+                                                <span class="c-label text-muted">Fee Percentage
+                                                </span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.processing_fee_percentage"/>
+                                                %
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field">
+                                                <span class="c-label text-muted">Fee</span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.processing_fee_amount"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.processing_fee_tax_ids">
+                                                <span class="c-label text-muted">Tax</span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.processing_fee_tax_ids"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.invoice_id">
+                                                <span class="c-label text-muted">Processing Fee
+                                                    Reference No.
+                                                </span>
+
+                                                <a t-attf-href="/my/invoices/#{loan_record.invoice_id.id}"
+                                                   target="_blank"
+                                                   t-if="loan_record.invoice_state == 'posted'">
+                                                    <span class="c-value"
+                                                          t-field="loan_record.invoice_id.name"/>
+                                                </a>
+
+                                                <span class="c-value"
+                                                      t-if="loan_record.invoice_state != 'posted'"
+                                                      t-field="loan_record.invoice_id.name"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-md-12 col-sm-12 mb-4"
+                                         t-if="loan_record.status == 'settlement'">
+                                        <div class="border-bottom border-primary mb-2 pb-2">
+                                            <h5 class="d-inline text-primary">
+                                                <i class="fa fa-handshake-o me-1"
+                                                   aria-hidden="true"></i>
+                                                Settlement Details
+                                            </h5>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.settlement_date">
+                                                <span class="c-label text-muted">Settlement Date
+                                                </span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.settlement_date"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.settlement_amount">
+                                                <span class="c-label text-muted">Settlement Amount
+                                                </span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.settlement_amount"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.forgiven_debt">
+                                                <span class="c-label text-muted">Forgiven Debt.
+                                                </span>
+                                                <span class="c-value"
+                                                      t-field="loan_record.forgiven_debt"/>
+                                            </div>
+                                            <div class="col-md-3 col-sm-12 c-field"
+                                                 t-if="loan_record.settlement_journal_entry_id">
+                                                <span class="c-label text-muted">Settlement
+                                                    Reference No.
+                                                </span>
+
+                                                <t t-if="loan_record.settlement_journal_entry_id.state == 'posted'">
+                                                    <span class="c-value"
+                                                          t-field="loan_record.settlement_journal_entry_id"/>
+                                                </t>
+                                                <span class="c-value"
+                                                      t-if="loan_record.settlement_journal_entry_id.state != 'posted'"
+                                                      t-field="loan_record.settlement_journal_entry_id"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row"
+                         t-if="(loan_record.loan_lines_ids or loan_record.collateral_ids or loan_record.customer_loan_doc_ids) and loan_record.cst_conf_stage not in ['expired', 'rejected', 'cancelled']">
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <ul class="nav nav-tabs border-primary" id="installmentsTab"
+                                    style="flex-wrap: nowrap;overflow-x: auto;overflow-y: hidden;"
+                                    role="tablist">
+                                    <li class="nav-item w-auto" role="presentation"
+                                        t-if="loan_record.loan_lines_ids">
+                                        <button t-attf-class="nav-link #{'active' if loan_record.loan_lines_ids else '' } border-bottom-0 portal-button"
+                                                id="installments-tab"
+                                                data-bs-toggle="tab"
+                                                data-bs-target="#installments-tab-pane"
+                                                type="button"
+                                                role="tab" aria-controls="installments-tab-pane"
+                                                aria-selected="true">
+                                            Installments
+                                        </button>
+                                    </li>
+                                    <li class="nav-item w-auto" role="presentation"
+                                        t-if="loan_record.penalty_lines_ids and loan_record.is_penalty">
+                                        <button class="nav-link border-bottom-0 portal-button"
+                                                id="penalty-tab"
+                                                data-bs-toggle="tab"
+                                                data-bs-target="#penalty-tab-pane"
+                                                type="button"
+                                                role="tab" aria-controls="penalty-tab-pane"
+                                                aria-selected="true">
+                                            Penalties
+                                        </button>
+                                    </li>
+
+                                    <li class="nav-item w-auto" role="presentation"
+                                        t-if="loan_record.customer_loan_doc_ids">
+                                        <button t-attf-class="nav-link #{'active' if not loan_record.loan_lines_ids else '' } border-bottom-0 portal-button"
+                                                id="documents-tab"
+                                                data-bs-toggle="tab"
+                                                data-bs-target="#documents-tab-pane"
+                                                type="button"
+                                                role="tab" aria-controls="documents-tab-pane"
+                                                aria-selected="true">
+                                            Documents
+                                        </button>
+                                    </li>
+
+                                    <li class="nav-item w-auto" role="presentation"
+                                        t-if="loan_record.is_collateral and loan_record.collateral_ids">
+                                        <button class="nav-link border-bottom-0 portal-button"
+                                                id="collateral-tab"
+                                                data-bs-toggle="tab"
+                                                data-bs-target="#collateral-tab-pane"
+                                                type="button"
+                                                role="tab" aria-controls="collateral-tab-pane"
+                                                aria-selected="true">
+                                            Collateral
+                                        </button>
+                                    </li>
+
+                                    <li class="nav-item w-auto" role="presentation"
+                                        t-if="loan_record.terms_and_conditions">
+                                        <button class="nav-link border-bottom-0 portal-button"
+                                                id="terms-conditions-tab"
+                                                data-bs-toggle="tab"
+                                                data-bs-target="#terms-conditions-tab-pane"
+                                                type="button"
+                                                role="tab" aria-controls="terms-conditions-tab-pane"
+                                                aria-selected="true">
+                                            Terms &amp; Conditions
+                                        </button>
+                                    </li>
+                                    <li class="nav-item w-auto" role="presentation"
+                                        t-if="loan_record.repayment_terms">
+                                        <button class="nav-link border-bottom-0 portal-button"
+                                                id="terms-conditions-tab"
+                                                data-bs-toggle="tab"
+                                                data-bs-target="#repayment-terms-tab-pane"
+                                                type="button"
+                                                role="tab" aria-controls="repayment-terms-tab-pane"
+                                                aria-selected="true">
+                                            Repayment Terms
+                                        </button>
+                                    </li>
+
+                                    <li class="nav-item w-auto" role="presentation"
+                                        t-if="loan_record.loan_purpose">
+                                        <button class="nav-link border-bottom-0 portal-button"
+                                                id="purpose-tab"
+                                                data-bs-toggle="tab"
+                                                data-bs-target="#purpose-tab-pane"
+                                                type="button"
+                                                role="tab" aria-controls="purpose-tab-pane"
+                                                aria-selected="true">
+                                            Purpose
+                                        </button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content overflow-auto"
+                                     id="loanEvaluationTabContent">
+                                    <div t-attf-class="tab-pane fade show #{'active' if loan_record.loan_lines_ids else '' }"
+                                         id="installments-tab-pane"
+                                         role="tabpanel" t-if="loan_record.loan_lines_ids"
+                                         aria-labelledby="installments-tab" tabindex="0">
+                                        <table class="table table-responsive table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th class="p-bold">
+                                                        Installment No.
+                                                    </th>
+                                                    <t t-if="loan_record.status in ['in_progress','closure','pre_closure','settlement']">
+                                                        <th class="p-bold">
+                                                            Installment Date
+                                                        </th>
+                                                        <th class="p-bold">
+                                                            Installment Reference No.
+                                                        </th>
+                                                    </t>
+                                                    <th class="p-bold text-end">
+                                                        Installment Amount
+                                                    </th>
+                                                    <th class="p-bold text-end">
+                                                        Interest
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="installments-details">
+                                                <t t-set="total_installment_amount" t-value="0"/>
+                                                <t t-set="total_interest_amount" t-value="0"/>
+                                                <t t-foreach="loan_record.loan_lines_ids"
+                                                   t-as="installment">
+                                                    <tr t-if="installment.display_type != 'line_section'">
+                                                        <td class="cus-value"
+                                                            style="font-size: 0.9rem;">
+                                                            <span t-field="installment.installments_no"/>
+                                                        </td>
+
+                                                        <t t-if="loan_record.status in ['in_progress','closure','pre_closure','settlement']">
+                                                            <td class="cus-value"
+                                                                style="font-size: 0.9rem;">
+                                                                <span t-field="installment.emi_date"/>
+                                                            </td>
+
+                                                            <td class="cus-value"
+                                                                style="font-size: 0.9rem;">
+                                                                <t
+                                                                   t-if="installment.journal_entry_id.state == 'posted'">
+                                                                    <span class="c-value"
+                                                                          t-field="installment.journal_entry_id"/>
+                                                                </t>
+                                                                <span class="c-value"
+                                                                      t-if="installment.journal_entry_id.state != 'posted'"
+                                                                      t-field="installment.journal_entry_id"/>
+                                                            </td>
+
+
+                                                        </t>
+
+
+                                                        <td class="cus-value text-end"
+                                                            style="font-size: 0.9rem;">
+                                                            <span t-field="installment.installment_amount"/>
+                                                            <t t-set="total_installment_amount"
+                                                               t-value="total_installment_amount + installment.installment_amount"/>
+                                                        </td>
+                                                        <td class="text-end cus-value"
+                                                            style="font-size: 0.9rem;">
+                                                            <span t-field="installment.interest_amount"/>
+                                                            <t t-set="total_interest_amount"
+                                                               t-value="total_interest_amount + installment.interest_amount"/>
+                                                        </td>
+                                                    </tr>
+                                                    <tr t-if="installment.display_type == 'line_section'">
+                                                        <td class="cus-value" colspan="6"
+                                                            style="font-size: 0.9rem;">
+                                                            <strong t-field="installment.name"/>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                                <tr>
+                                                    <t t-if="loan_record.status in ['in_progress','closure','pre_closure','settlement']">
+                                                        <td colspan="3">
+                                                        </td>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <td colspan="1">
+                                                        </td>
+                                                    </t>
+                                                    <td class="cus-value text-end fw-bold"
+                                                        style="font-size: 0.9rem;">
+                                                        <span t-esc="round(total_installment_amount,2)"
+                                                              t-options='{"widget": "monetary", "display_currency": loan_record.company_id.currency_id}'/>
+                                                    </td>
+                                                    <td class="text-end cus-value fw-bold"
+                                                        style="font-size: 0.9rem;">
+                                                        <span t-esc="round(total_interest_amount,2)"
+                                                              t-options='{"widget": "monetary", "display_currency": loan_record.company_id.currency_id}'/>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="tab-pane fade show" id="penalty-tab-pane"
+                                         role="tabpanel"
+                                         t-if="loan_record.penalty_lines_ids and loan_record.is_penalty"
+                                         aria-labelledby="collateral-tab" tabindex="0">
+                                        <table class="table table-responsive table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th class="p-bold">
+                                                        Penalty Reference No.
+                                                    </th>
+                                                    <th class="p-bold">
+                                                        Penalty Amount
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="penalty-details">
+                                                <t t-foreach="loan_record.penalty_lines_ids"
+                                                   t-as="penalty">
+                                                    <tr>
+                                                        <td class="cus-value"
+                                                            style="font-size: 0.9rem;">
+                                                            <t
+                                                               t-if="penalty.journal_entry_id.state == 'posted'">
+                                                                <span class="c-value"
+                                                                      t-field="penalty.journal_entry_id"/>
+                                                            </t>
+                                                            <span class="c-value"
+                                                                  t-if="penalty.journal_entry_id.state != 'posted'"
+                                                                  t-field="penalty.journal_entry_id"/>
+                                                        </td>
+
+                                                        <td class="cus-value"
+                                                            style="font-size: 0.9rem;">
+                                                            <span t-field="penalty.penalty_amount"/>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div t-attf-class="tab-pane fade show #{'active' if not loan_record.loan_lines_ids else '' }"
+                                         id="documents-tab-pane"
+                                         role="tabpanel" t-if="loan_record.customer_loan_doc_ids"
+                                         aria-labelledby="documents-tab" tabindex="0">
+                                        <table class="table table-responsive table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th class="p-bold">
+                                                        Document Type
+                                                    </th>
+                                                    <th class="p-bold">
+                                                        Document
+                                                    </th>
+                                                    <th class="p-bold">
+                                                        Status
+                                                    </th>
+                                                    <th class="p-bold">
+                                                        Validate By
+                                                    </th>
+                                                    <th class="p-bold">
+                                                        Reason
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="document-details">
+                                                <t t-foreach="loan_record.customer_loan_doc_ids"
+                                                   t-as="doc">
+                                                    <tr>
+                                                        <td class="cus-value"
+                                                            style="font-size: 0.9rem;">
+                                                            <span t-field="doc.document_type_id.name"/>
+                                                        </td>
+
+                                                        <td class="cus-value"
+                                                            style="font-size: 0.9rem;">
+                                                            <a t-attf-href="/web/content?model=customer.loan.document.lines&amp;id=#{doc.id}&amp;field=document&amp;filename_field=file_name&amp;download=true"
+                                                               t-if="doc.document">
+                                                                <span t-field="doc.file_name"/>
+                                                            </a>
+
+                                                            <span t-if="not doc.document"
+                                                                  class="badge text-bg-warning py-1 loan-badge">
+                                                                <i class="fa fa-clock-o"
+                                                                   title="pending"/>
+                                                                Pending
+                                                            </span>
+                                                        </td>
+                                                        <td class="cus-value"
+                                                            style="font-size: 0.9rem;">
+                                                            <span class="badge rounded-pill text-bg-secondary py-1 px-2"
+                                                                  t-if="doc.status == 'draft'">
+                                                                <span t-field="doc.status"/>
+                                                            </span>
+                                                            <span class="badge rounded-pill text-bg-danger py-1 px-2"
+                                                                  t-if="doc.status in ['rejected','cancelled']">
+                                                                <span t-field="doc.status"/>
+                                                            </span>
+                                                            <span class="badge rounded-pill text-bg-success py-1 px-2"
+                                                                  t-if="doc.status == 'verified'">
+                                                                <span t-field="doc.status"/>
+                                                            </span>
+                                                        </td>
+                                                        <td class="cus-value"
+                                                            style="font-size: 0.9rem;">
+                                                            <span t-field="doc.validator_id.name"/>
+                                                        </td>
+                                                        <td class="cus-value"
+                                                            style="font-size: 0.9rem;">
+                                                            <span t-field="doc.reason"/>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="tab-pane fade show" id="collateral-tab-pane"
+                                         role="tabpanel"
+                                         t-if="loan_record.is_collateral and loan_record.collateral_ids"
+                                         aria-labelledby="collateral-tab" tabindex="0">
+                                        <table class="table table-responsive table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th class="p-bold">
+                                                        Collateral Type
+                                                    </th>
+                                                    <th class="p-bold">
+                                                        Collateral
+                                                    </th>
+                                                    <th class="p-bold">
+                                                        Description
+                                                    </th>
+                                                    <th class="p-bold">
+                                                        Customer Note
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="collateral-details">
+                                                <t t-foreach="loan_record.collateral_ids"
+                                                   t-as="collateral">
+                                                    <tr>
+                                                        <td class="cus-value"
+                                                            style="font-size: 0.9rem;">
+                                                            <span t-field="collateral.collateral_type_id.name"/>
+                                                        </td>
+
+                                                        <td class="cus-value"
+                                                            style="font-size: 0.9rem;">
+                                                            <a t-attf-href="/web/content?model=customer.collateral.lines&amp;id=#{collateral.id}&amp;field=document&amp;filename_field=file_name&amp;download=true"
+                                                               t-if="collateral.document">
+                                                                <span t-field="collateral.file_name"/>
+                                                            </a>
+
+                                                            <span t-if="not collateral.document"
+                                                                  class="badge text-bg-warning py-1 loan-badge">
+                                                                <i class="fa fa-clock-o"
+                                                                   title="pending"/>
+                                                                Pending
+                                                            </span>
+                                                        </td>
+
+                                                        <td class="cus-value"
+                                                            style="font-size: 0.9rem;">
+                                                            <span t-field="collateral.description"/>
+                                                        </td>
+                                                        <td class="cus-value"
+                                                            style="font-size: 0.9rem;">
+                                                            <span t-field="collateral.customer_note"/>
+                                                        </td>
+                                                    </tr>
+                                                </t>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="tab-pane p-2 fade show"
+                                         id="terms-conditions-tab-pane"
+                                         role="tabpanel" t-if="loan_record.terms_and_conditions"
+                                         aria-labelledby="terms-conditions-tab" tabindex="0">
+                                        <span t-field="loan_record.terms_and_conditions"/>
+                                    </div>
+
+                                    <div class="tab-pane p-2 fade show"
+                                         id="repayment-terms-tab-pane"
+                                         role="tabpanel" t-if="loan_record.repayment_terms"
+                                         aria-labelledby="repayment-terms-tab" tabindex="0">
+                                        <span t-field="loan_record.repayment_terms"/>
+                                    </div>
+
+                                    <div class="tab-pane p-2 fade show" id="purpose-tab-pane"
+                                         role="tabpanel" t-if="loan_record.loan_purpose"
+                                         aria-labelledby="purpose-tab" tabindex="0">
+                                        <span t-field="loan_record.loan_purpose"/>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="container py-5">
+                    <h1>History</h1>
+                    <t t-call="portal.message_thread">
+                        <t t-set="object" t-value="loan_record"/>
+                    </t>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>
