@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (C) 2024-TODAY TechKhedut (<https://www.techkhedut.com>)
+    Part of TechKhedut. See LICENSE file for full copyright and licensing details.
+-->
+<odoo>
+    <data>
+        <record id="customer_term_template_form_view" model="ir.ui.view">
+            <field name="name">customer.term.template.form.view</field>
+            <field name="model">customer.term.template</field>
+            <field name="arch" type="xml">
+                <form string="Term Template">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" string="Title"/>
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <notebook>
+                            <page name="terms" string="Terms">
+                                <group col="12" class="oe_invoice_lines_tab">
+                                    <group colspan="6">
+                                        <field name="template_line_ids" colspan="2" nolabel="1">
+                                            <list editable="bottom">
+                                                <field name="term_template_id" column_invisible="1"/>
+                                                <field name="installment_type"/>
+                                                <field name="duration"/>
+                                                <field name="interest_rate"/>
+                                            </list>
+                                        </field>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="customer_term_template_tree_view" model="ir.ui.view">
+            <field name="name">customer.term.template.tree.view</field>
+            <field name="model">customer.term.template</field>
+            <field name="arch" type="xml">
+                <list sample="1">
+                    <field name="name"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="customer_term_template_action" model="ir.actions.act_window">
+            <field name="name">Installments Term Templates</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">customer.term.template</field>
+            <field name="view_mode">list,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no examples click here to add new template.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

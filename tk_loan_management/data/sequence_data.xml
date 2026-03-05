@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Copyright (C) 2024-TODAY TechKhedut (<https://www.techkhedut.com>)
+    Part of TechKhedut. See LICENSE file for full copyright and licensing details.
+-->
+<odoo>
+    <data noupdate="0">
+        <record id="customer_loan_sequence" model="ir.sequence">
+            <field name="name">Customer Loan No.</field>
+            <field name="code">customer.loan.sequence</field>
+            <field name="prefix">CSL/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="customer_loan_req_doc_sequence" model="ir.sequence">
+            <field name="name">Request Document Sequence</field>
+            <field name="code">customer.loan.req.doc.sequence</field>
+            <field name="prefix">LRD/</field>
+            <field name="padding">6</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="customer_loan_req_col_doc_sequence" model="ir.sequence">
+            <field name="name">Request Collateral Sequence</field>
+            <field name="code">customer.loan.req.col.doc.sequence</field>
+            <field name="prefix">LRC/</field>
+            <field name="padding">6</field>
+            <field name="company_id" eval="False"/>
+        </record>
+        <record id="customer_loan_sanction_letter_sequence" model="ir.sequence">
+            <field name="name">Customer Loan Sanction letter sequence</field>
+            <field name="code">customer.loan.sanction.letter.sequence</field>
+            <field name="prefix">CLS/</field>
+            <field name="padding">6</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

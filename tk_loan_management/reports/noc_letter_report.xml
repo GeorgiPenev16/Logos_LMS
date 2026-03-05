@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <template id="noc_letter_report">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="i">
+                    <t t-call="web.external_layout">
+                        <div class="page">
+                            <h2 class="text-center mb-5 display-6">
+                                No Objection Certificate
+                            </h2>
+
+                            <div class="text-muted small">Printed on
+                                <span t-out="context_timestamp(datetime.datetime.now()).strftime('%d-%m-%Y - %H:%M:%S')"/>
+                            </div>
+
+                            <br/>
+                            <br/>
+                            <strong t-field="i.customer_id.name"/>
+                            <br t-if="i.customer_id.name"/>
+                            <strong t-field="i.email"/>
+                            <br t-if="i.email"/>
+                            <strong t-field="i.phone"/>
+                            <br t-if="i.phone"/>
+
+                            <br/>
+                            <br/>
+
+                            <p>Subject: Issuance of No Objection Certificate (NOC) for Loan Closure</p>
+
+                            <br/>
+                            <br/>
+
+                            <p>Dear <span t-field="i.customer_id.name"/>,
+                            </p>
+
+                            <p>
+                                We are pleased to inform you that your loan with
+                                <span t-field="i.company_id.name"/>
+                                has been successfully
+                                closed. After the full payment of the outstanding loan amount, we hereby issue this
+                                No Objection Certificate (NOC) confirming that there are no further dues against the
+                                loan.
+                            </p>
+
+                            <p>
+                                Below are the details of the loan:
+                            </p>
+
+                            <ul>
+                                <li>
+                                    <strong>Loan Reference No. :</strong>
+                                    <span t-field="i.name"/>
+                                </li>
+                                <li>
+                                    <strong>Type of Loan :</strong>
+                                    <span t-field="i.approved_loan_type_id.name"/>
+                                </li>
+                                <li>
+                                    <strong>Loan Amount :</strong>
+                                    <span t-field="i.loan_amount"/>
+                                </li>
+                                <li>
+                                    <strong>Loan Term :</strong>
+                                    <span t-field="i.term"/>
+                                    <t t-if="i.installment_type == 'monthly'">
+                                        Months
+                                    </t>
+                                    <t t-if="i.installment_type == 'quarterly'">
+                                        Quarters
+                                    </t>
+                                    <t t-if="i.installment_type == 'yearly'">
+                                        Years
+                                    </t>
+                                </li>
+                                <li>
+                                    <strong>Date of Loan Disbursement :</strong>
+                                    <span t-field="i.disbursement_date"/>
+                                </li>
+                                <li t-if="i.loan_closure_date">
+                                    <strong>Date of Loan Closure :</strong>
+                                    <span t-field="i.loan_closure_date"/>
+                                </li>
+                            </ul>
+
+                            <p>
+                                This NOC certifies that there are no outstanding dues against the mentioned loan
+                                account, and you have fully discharged your obligations towards the bank.
+                            </p>
+                            <p>
+                                Please note that this NOC is issued based on the final settlement of your loan and
+                                serves as confirmation of the closure. If you require any further documents or
+                                assistance, please feel free to contact us.
+                            </p>
+
+                            <p>Best regards,
+                                <br/>
+                                <span t-field="i.company_id.name"/>
+                                <br/>
+                                <t t-if="i.company_id.phone">
+                                    <span>
+                                        Phone :
+                                        <span t-field="i.company_id.phone"/>
+                                    </span>
+                                    <br/>
+                                </t>
+                                <t t-if="i.company_id.email">
+                                    <span>
+                                        Email :
+                                        <span t-field="i.company_id.email"/>
+                                    </span>
+                                    <br/>
+                                </t>
+                                <t t-if="i.company_id.website">
+                                    <span>
+                                        Website :
+                                        <span t-field="i.company_id.website"/>
+                                    </span>
+                                </t>
+                            </p>
+                        </div>
+                    </t>
+                </t>
+            </t>
+        </template>
+    </data>
+    <record id="customer_noc_letter_report_action" model="ir.actions.report">
+        <field name="name">NOC</field>
+        <field name="model">customer.loan</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">tk_loan_management.noc_letter_report</field>
+        <field name="report_file">tk_loan_management.noc_letter_report</field>
+        <field name="print_report_name">'NOC'</field>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

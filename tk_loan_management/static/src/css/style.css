@@ -1,0 +1,67 @@
+@media only screen and (max-width: 991px) {
+  .remove_colon_2 {
+    display: none;
+  }
+  .remove_colon {
+    display: none;
+  }
+}
+@media only screen and (max-width: 767px){
+  .cus-col{
+    margin: 0.33rem 0rem !important;
+  }
+}
+.email {
+    overflow-wrap: break-word;
+}
+.cus-label{
+    font-weight:500 !important;
+    font-size: 0.9rem !important;
+}
+.cus-value{
+    font-size: 0.9rem !important;
+}
+.form-label {
+    margin-bottom: 0.3rem !important;
+    font-weight:500;
+}
+.stat-text {
+    font-size: 0.9rem;
+}
+.active{
+    border-color: #714B67 !important;
+}
+
+.bbw-0-a{
+    border-bottom-width: 0px !important;
+}
+
+.c-label {
+    font-size: 0.85rem !important;
+    display: block;
+    margin-bottom: -4px;
+}
+
+.c-value{
+    font-weight: 500 !important;
+    font-size: 0.95rem !important;
+    margin-bottom: 30px;
+}
+
+.c-field{
+    margin-bottom: 10px;
+}
+
+.p-bold{
+    font-weight: 500 !important;
+    font-size: 0.95rem !important;
+}
+
+.loan-badge{
+    padding: 6.5px 14px;
+}
+.portal-button{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;width: auto;
+}

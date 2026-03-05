@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data noupdate="0">
+        <record id="loan_request_submitted_mail_template" model="mail.template">
+            <field name="name">Loan Request Submitted Email Template</field>
+            <field name="model_id" ref="tk_loan_management.model_crm_lead"/>
+            <field name="subject">Loan Request Submitted Successfully</field>
+            <field name="email_from">{{ object.company_id.email_formatted if object.company_id else ctx.get('lead_company', {'email_formatted': ""}).get('email_formatted') or '' }}</field>
+            <field name="email_to">{{ object.email_from or '' }}</field>
+            <field name="body_html" type="html">
+                <p>Dear
+                    <t t-out="object.contact_name"/>,
+                </p>
+                <p>Thank you for choosing
+                    <t t-if="object.company_id" t-out="object.company_id.name"/>
+                    <t t-if="not object.company_id" t-out="ctx.get('lead_company').name"/>. We are writing to confirm that we have
+                    successfully received your loan application for "<t t-out="object.approved_loan_type_id.name"/>"
+                    submitted on <span t-if="ctx.get('date_time')" t-out="ctx.get('date_time')"/>.
+                </p>
+
+                <p>
+                    Our team will begin processing your request, and we will reach out to you soon with any updates or
+                    if additional information is needed.
+                </p>
+
+                <p>
+                    We appreciate your trust in us and look forward to assisting you. If you have any questions, please
+                    don’t hesitate to contact us
+                </p>
+
+                <p>
+                    In the meantime, you can track the status of your loan by clicking on the "Track Loan Request"
+                    button
+                    below:
+                </p>
+
+                <a t-att-href="object.customer_requested_loan_tracking_url" role="button" target="_blank" style="border: 1px solid #28a745;
+                                                    padding: 4px 24px;
+                                                    text-decoration: none;
+                                                    color: white;
+                                                    background-color: #28a745;
+                                                    border-radius: 3px;
+                                                    font-size: 0.875rem;
+                                                    font-weight: 500;">
+                    Track Loan Request
+                </a>
+                <p>
+                    We appreciate your trust in us and look forward to assisting you. If you have any questions, please
+                    don’t hesitate to contact us.
+                </p>
+
+                <p>Best regards,
+                    <br/>
+                    <t t-if="object.company_id">
+                        <t t-out="object.company_id.name"/>
+                        <span>
+                            Phone :
+                            <t t-if="object.company_id.phone" t-out="object.company_id.phone"/>
+                            <br/>
+                        </span>
+                        <span>
+                            Email :
+                            <t t-if="object.company_id.email" t-out="object.company_id.email"/>
+                            <br/>
+                        </span>
+                        <span>
+                            Website :
+                            <t t-if="object.company_id.website" t-out="object.company_id.website"/>
+                        </span>
+                    </t>
+
+                    <t t-if="not object.company_id">
+                        <t t-out="ctx.get('lead_company').name"/>
+                        <br/>
+                        <span>
+                            Phone :
+                            <t t-if="ctx.get('lead_company').phone" t-out="ctx.get('lead_company').phone"/>
+                            <br/>
+                        </span>
+                        <span>
+                            Email :
+                            <t t-if="ctx.get('lead_company').email" t-out="ctx.get('lead_company').email"/>
+                            <br/>
+                        </span>
+                        <span>
+                            Website :
+                            <t t-if="ctx.get('lead_company').website" t-out="ctx.get('lead_company').website"/>
+                        </span>
+                    </t>
+                </p>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+    </data>
+</odoo>

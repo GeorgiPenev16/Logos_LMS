@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data noupdate="0">
+        <record id="sanction_letter_mail_template" model="mail.template">
+            <field name="name">Sanction Letter Email Template</field>
+            <field name="model_id" ref="tk_loan_management.model_customer_loan"/>
+            <field name="subject">Sign Your Sanction Letter Application</field>
+            <field name="email_from">{{ object.company_id.email_formatted or '' }}</field>
+            <field name="email_to">{{ object.email or '' }}</field>
+            <field name="body_html" type="html">
+                <p>Dear
+                    <t t-out="object.customer_id.name"/>,
+                </p>
+                <p>I hope this message finds you well.</p>
+                <p>We are pleased to inform you that your loan application
+                    <t t-out="object.name"/>
+                    with <t t-out="object.company_id.name"/>. has been approved. Congratulations!
+                </p>
+
+                <p>
+                    <strong>Loan Details:</strong>
+                </p>
+                <ul>
+                    <li>
+                        <strong>Loan Type:</strong>
+                        <t t-out="object.approved_loan_type_id.name"/>
+                    </li>
+                    <li>
+                        <strong>Loan Amount Approved:</strong>
+                        <t t-out="object.loan_amount"/>
+                    </li>
+                    <li>
+                        <strong>Interest Rate:</strong>
+                        <t t-out="object.interest_rate"/>
+                    </li>
+                    <li>
+                        <strong>Loan Tenure:</strong>
+                        <t t-out="object.term"/>
+                        <t t-if="object.installment_type == 'monthly'">
+                            Months
+                        </t>
+                        <t t-if="object.installment_type == 'quarterly'">
+                            Quarters
+                        </t>
+                        <t t-if="object.installment_type == 'yearly'">
+                            Years
+                        </t>
+                    </li>
+                </ul>
+
+                <p>
+                    Our team will now begin preparing the necessary documentation and processing the
+                    disbursement. If you have any questions regarding the terms or next steps,
+                    please don’t hesitate to reach out.
+                </p>
+
+                <p>Thank you for choosing<t t-out="object.company_id.name"/>. We look forward to
+                    serving you.
+                </p>
+                <p>Best regards,
+                    <br/>
+                    <t t-out="object.company_id.name"/>
+                    <br/>
+                    <t t-if="object.company_id.phone">
+                        <span>
+                            Phone :
+                            <t t-out="object.company_id.phone"/>
+                        </span>
+                        <br/>
+                    </t>
+                    <t t-if="object.company_id.email">
+                        <span>
+                            Email :
+                            <t t-out="object.company_id.email"/>
+                        </span>
+                        <br/>
+                    </t>
+                    <t t-if="object.company_id.website">
+                        <span>
+                            Website :
+                            <t t-out="object.company_id.website"/>
+                        </span>
+                    </t>
+                </p>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+    </data>
+</odoo>
