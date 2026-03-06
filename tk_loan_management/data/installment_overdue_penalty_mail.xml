@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data noupdate="0">
+        <record id="installment_overdue_penalty_mail_template" model="mail.template">
+            <field name="name">Installment Overdue Penalty Email Template</field>
+            <field name="model_id" ref="tk_loan_management.model_customer_loan"/>
+            <field name="subject">Urgent: Overdue Loan Installment &amp; Penalty Breakdown</field>
+            <field name="email_from">{{ object.company_id.email_formatted or '' }}</field>
+            <field name="email_to">{{ object.email or '' }}</field>
+            <field name="body_html" type="html">
+                <style>
+                    .text-right {
+                    text-align: right;
+                    }
+                    .text-center {
+                    text-align: left;
+                    }
+                    tr:nth-child(even) {background-color: #f2f2f2;}
+                    .center {
+                    margin-left: 3rem;
+                    margin-right: 3rem;
+                    padding-left: 3rem;
+                    padding-right:3rem;
+                    }
+                </style>
+                <p>Dear
+                    <t t-out="object.customer_id.name"/>,
+                </p>
+                <p>I hope this message finds you well. We are writing to inform you that there are
+                    overdue
+                    installments on your loan account, along with the associated penalties for late
+                    payment. As per the
+                    terms of your loan agreement, penalties have been applied due to the delay.
+                </p>
+
+                <t t-set="total_due" t-value="0"/>
+                <t t-set="installment_total" t-value="0"/>
+                <t t-set="interest_total" t-value="0"/>
+                <t t-set="installment_total_with_interest" t-value="0"/>
+
+                <table t-if="object.loan_lines_ids"
+                       style="border:1px solid; border-collapse: collapse; width:90%;">
+                    <tr style="border:1px solid; padding:0.625rem;background-color: #FFBF61;">
+                        <th colspan="5"
+                            style="border:1px solid; padding:0.625rem; text-align:center;">
+                            Installment
+                            overdue breakdown
+                        </th>
+                    </tr>
+                    <tr style="border:1px solid; padding:0.625rem;background-color: #FFE6A5;">
+                        <th style="border:1px solid; padding:0.625rem;text-align:right;">Installment
+                            No.
+                        </th>
+                        <th style="border:1px solid; padding:0.625rem;text-align:right;">Installment
+                            Date.
+                        </th>
+                        <th style="border:1px solid; padding:0.625rem;text-align:right;">Installment
+                            Amount without
+                            Interest
+                        </th>
+                        <th style="border:1px solid; padding:0.625rem;text-align:right;">Interest
+                        </th>
+                        <th style="border:1px solid; padding:0.625rem;text-align:right;">Total
+                            Installment Amount
+                        </th>
+                    </tr>
+
+                    <t t-set="count" t-value="0"/>
+                    <t t-foreach="object.loan_lines_ids" t-as="ld">
+                        <t t-if="ld.journal_entry_id and ld.journal_entry_id.state != 'posted'">
+                            <tr t-attf-style="border:1px solid; padding:0.625rem;{{'background-color: #f2f2f2;' if count%2 != 0 else 'background-color: #FFFFFF;'}}">
+                                <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                                    <span t-field="ld.installments_no"/>
+                                </td>
+                                <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                                    <span t-field="ld.emi_date"/>
+                                </td>
+                                <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                                    <span t-field="ld.installment_amount"/>
+                                    <t t-set="installment_total"
+                                       t-value="installment_total + ld.installment_amount"/>
+                                </td>
+                                <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                                    <span t-field="ld.interest_amount"/>
+                                    <t t-set="interest_total"
+                                       t-value="interest_total + ld.interest_amount"/>
+                                </td>
+                                <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                                    <span t-field="ld.total_installment_amount"/>
+                                    <t t-set="installment_total_with_interest"
+                                       t-value="installment_total_with_interest + ld.total_installment_amount"/>
+                                </td>
+                            </tr>
+                        </t>
+                        <t t-set="count" t-value="count + 1"/>
+                    </t>
+                    <tr t-attf-style="{{'background-color: #f2f2f2;' if count%2 != 0 else 'background-color: #FFFFFF;'}}">
+                        <td style="border:1px solid; padding:0.625rem;text-align:right;"
+                            colspan="2">
+                            <strong>Total</strong>
+                        </td>
+                        <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                            <strong t-esc="round(installment_total, 2)"
+                                    t-options='{"widget": "monetary", "display_currency": object.company_id.currency_id}'/>
+                            <t t-set="installment_total" t-value="0"/>
+                        </td>
+                        <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                            <strong t-esc="round(interest_total, 2)"
+                                    t-options='{"widget": "monetary", "display_currency": object.company_id.currency_id}'/>
+                            <t t-set="interest_total" t-value="0"/>
+                        </td>
+                        <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                            <strong t-esc="round(installment_total_with_interest, 2)"
+                                    t-options='{"widget": "monetary", "display_currency": object.company_id.currency_id}'/>
+                            <t t-set="total_due"
+                               t-value="total_due + installment_total_with_interest"/>
+                            <t t-set="installment_total_with_interest" t-value="0"/>
+                        </td>
+                    </tr>
+                </table>
+
+                <br/>
+                <br/>
+
+
+                <table t-if="object.penalty_lines_ids"
+                       style="border:1px solid; border-collapse: collapse; width:90%;">
+                    <tr style="border:1px solid; padding:0.625rem;background-color: #FFBF61;">
+                        <th colspan="7"
+                            style="border:1px solid; padding:0.625rem; text-align:center;">
+                            Penalty breakdown
+                        </th>
+                    </tr>
+                    <tr style="border:1px solid; padding:0.625rem;background-color: #FFE6A5;">
+                        <th style="border:1px solid; padding:0.625rem;text-align:left;">Name
+                        </th>
+                        <th style="border:1px solid; padding:0.625rem;text-align:right;">Date
+                        </th>
+
+                        <th style="border:1px solid; padding:0.625rem;text-align:right;">Amount
+                        </th>
+                    </tr>
+                    <t t-set="penalty_total" t-value="0"/>
+                    <t t-set="penalty_total_with_tax" t-value="0"/>
+                    <t t-set="count_2" t-value="0"/>
+                    <t t-foreach="object.penalty_lines_ids" t-as="pl">
+                        <t t-if="pl.journal_entry_id.state != 'posted'">
+                            <tr t-attf-style="border:1px solid; padding:0.625rem;{{'background-color: #f2f2f2;' if count_2 % 2 != 0 else 'background-color: #FFFFFF;'}}">
+                                <td style="border:1px solid; padding:0.625rem;text-align:left;">
+                                    <span t-field="pl.penalty"/>
+                                </td>
+                                <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                                    <span t-field="pl.journal_entry_id.date"/>
+                                </td>
+                                <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                                    <t t-set="penalty_total_with_tax"
+                                       t-value="penalty_total_with_tax + pl.penalty_amount"/>
+                                    <span t-field="pl.penalty_amount"/>
+                                </td>
+                            </tr>
+                            <t t-set="count_2" t-value="count_2 + 1"/>
+
+                        </t>
+                    </t>
+                    <tr t-attf-style="{{'background-color: #f2f2f2;' if count_2 % 2 != 0 else 'background-color: #FFFFFF;'}}">
+                        <td style="border:1px solid; padding:0.625rem;text-align:right;"
+                            colspan="2">
+                            <strong>Total</strong>
+                        </td>
+                        <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                            <strong t-out="penalty_total_with_tax"
+                                    t-options='{"widget": "monetary", "display_currency": object.company_id.currency_id}'/>
+                            <t t-set="total_due" t-value="total_due + penalty_total_with_tax"/>
+                            <t t-set="penalty_total_with_tax" t-value="0"/>
+                        </td>
+                    </tr>
+                </table>
+                <br/>
+                <br/>
+
+
+                <strong>Total Amount Due (Including Penalties):
+                    <t t-esc="total_due"
+                       t-options='{"widget": "monetary", "display_currency": object.company_id.currency_id}'/>
+                </strong>
+
+                <p>Please be advised that it is important to clear the outstanding payments as soon
+                    as possible to avoid
+                    further penalties or other actions as per the loan agreement.
+                </p>
+                <p>
+                    We understand that unforeseen circumstances may have caused the delay, and if
+                    you need any
+                    assistance or wish to discuss your payment options, please feel free to contact
+                    us.
+                </p>
+                <p>
+                    We appreciate your immediate attention to this matter. Kindly make the payment
+                    at your earliest
+                    convenience to avoid any further issues.
+                </p>
+                <p>
+                    Thank you for your cooperation.
+                </p>
+
+                <p>Best regards,
+                    <br/>
+                    <t t-out="object.company_id.name"/>
+                    <br/>
+                    <t t-if="object.company_id.phone">
+                        <span>
+                            Phone :
+                            <t t-out="object.company_id.phone"/>
+                        </span>
+                        <br/>
+                    </t>
+                    <t t-if="object.company_id.email">
+                        <span>
+                            Email :
+                            <t t-out="object.company_id.email"/>
+                        </span>
+                        <br/>
+                    </t>
+                    <t t-if="object.company_id.website">
+                        <span>
+                            Website :
+                            <t t-out="object.company_id.website"/>
+                        </span>
+                    </t>
+                </p>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+    </data>
+</odoo>

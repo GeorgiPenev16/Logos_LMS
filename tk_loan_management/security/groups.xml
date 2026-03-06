@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <record id="module_tk_loan_management_category" model="ir.module.category">
+            <field name="name">Customer Loan Management</field>
+            <field name="description">Access rights for Customer Loan Management</field>
+        </record>
+
+        <record id="privilege_tk_loan_management_department_manager" model="res.groups.privilege">
+            <field name="name">Department Manager</field>
+            <field name="category_id" ref="module_tk_loan_management_category"/>
+            <field name="description">Access rights for Advance Vehicle Repair</field>
+        </record>
+
+        <record id="privilege_tk_loan_management_create_installment_entry" model="res.groups.privilege">
+            <field name="name">Create Installment Entry</field>
+            <field name="category_id" ref="module_tk_loan_management_category"/>
+            <field name="description">Access rights for Advance Vehicle Repair</field>
+        </record>
+
+        <record id="department_manager" model="res.groups">
+            <field name="name">Department Manager</field>
+            <field name="privilege_id" ref="privilege_tk_loan_management_department_manager"/>
+            <field name="user_ids" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+
+        <record id="create_loan_installment_invoice_access" model="res.groups">
+            <field name="name">Create Loan Installment Entry Access</field>
+            <field name="privilege_id" ref="privilege_tk_loan_management_create_installment_entry"/>
+        </record>
+
+    </data>
+</odoo>

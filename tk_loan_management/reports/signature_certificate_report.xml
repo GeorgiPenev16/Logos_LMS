@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="loan_sign_certificate_qweb_report_template">
+            <t t-call="web.html_container">
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="web.external_layout">
+                        <t t-if="o.cst_conf_stage == 'signed'">
+                            <h2 class="mt16">
+                                Signature Certificate
+                            </h2>
+                            <h4>
+                                <strong t-field="o.name"/>
+                            </h4>
+                            <div class="text-muted small">Printed on
+                                <span t-out="context_timestamp(datetime.datetime.now()).strftime('%d-%m-%Y - %H:%M:%S')"/>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <div>
+                                        <strong>Loan Ref:</strong>
+                                        <span t-field="o.name"/>
+                                    </div>
+                                    <div>
+                                        <strong>Created on:</strong>
+                                        <span t-field="o.create_date"/>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div>
+                                        <strong>Customer:</strong>
+                                        <span t-field="o.customer_id.name"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <br/>
+                            <h5 class="mb-1">
+                                <i class="fa fa-pencil-square-o me-1" aria-hidden="true"/>
+                                Signature
+                            </h5>
+                            <div class="row py-2">
+                                <div class="col-6 border p-2">
+                                    <strong>
+                                        <i class="fa fa-lock me-1" aria-hidden="true"/>Signature Hash :
+                                    </strong>
+                                    <pre style="display:inline" t-field="o.signature_hash">#7898678</pre>
+                                </div>
+                                <div class="col-6 border p-2">
+                                    <strong>
+                                        Signature :
+                                    </strong>
+                                    <br/>
+                                    <img t-if="o.cst_sign"
+                                         class="text-start"
+                                         t-att-src="image_data_uri(o.cst_sign)"
+                                         style="max-height: 100px"/>
+                                </div>
+                            </div>
+                            <section class="mb-4">
+                                <div class="text-muted" t-if="o.cst_conf_stage=='signed' and o.cst_sign">
+                                    <small>Loan Verification: The customer has confirmed and signed
+                                        loan by clicking on a unique link
+                                    </small>
+                                </div>
+                            </section>
+                            <h5 class="mb-1 mt-4">
+                                <i class="fa fa-calendar me-1" aria-hidden="true"/>Event
+                            </h5>
+                            <div class="row py-2 mb-4">
+                                <div class="col-6 border p-2">
+                                    <strong>
+                                        <i class="fa fa-lock me-1" aria-hidden="true"/>Event Hash :
+                                    </strong>
+                                    <pre style="display:inline" t-field="o.event_hash">#7898678</pre>
+                                </div>
+                                <div class="col-6 border p-2">
+                                    <strong>
+                                        Event :
+                                    </strong>
+                                    <br/>
+                                    <ul style="font-size:14px;">
+                                        <li>
+                                            Sanction letter sent on datetime
+                                        </li>
+                                        <li>
+                                            Sanction letter signed and accepted on datetime
+                                        </li>
+                                        <li>
+                                            Loan amount
+                                        </li>
+                                        <li>
+                                            Interest rate
+                                        </li>
+                                        <li>
+                                            Installment type
+                                        </li>
+                                        <li>
+                                            Customer name
+                                        </li>
+                                        <li>
+                                            Loan confirmation sign state
+                                        </li>
+                                        <li>
+                                            Loan installments
+                                        </li>
+                                        <li>
+                                            Terms &amp; Conditions
+                                        </li>
+                                        <li>
+                                            Repayment Terms
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div t-if="o.cst_conf_stage=='signed' and o.cst_sign"
+                                 class="small text-end text-success">
+                                <p>
+                                    <i class="fa fa-check"/>
+                                    Loan has been signed and validated.
+                                </p>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <span>The loan confirmation has not been signed by the customer, so there is no signature
+                                certificate.
+                            </span>
+                        </t>
+                    </t>
+                </t>
+            </t>
+        </template>
+    </data>
+    <record id="customer_loan_signature_certificate_qweb_report_action" model="ir.actions.report">
+        <field name="name">Signature Certificate</field>
+        <field name="model">customer.loan</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">tk_loan_management.loan_sign_certificate_qweb_report_template</field>
+        <field name="report_file">tk_loan_management.loan_sign_certificate_qweb_report_template</field>
+        <field name="print_report_name">'Signature Certificate'</field>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

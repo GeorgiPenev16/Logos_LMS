@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data noupdate="0">
+        <record id="loan_request_approved_mail_template" model="mail.template">
+            <field name="name">Loan Request Approved Email Template</field>
+            <field name="model_id" ref="tk_loan_management.model_customer_loan"/>
+            <field name="subject">Loan Request Approval - {{object.name}}</field>
+            <field name="email_from">{{ object.company_id.email_formatted or '' }}</field>
+            <field name="email_to">{{ object.email or '' }}</field>
+            <field name="body_html" type="html">
+                <p>Dear
+                    <t t-out="object.customer_id.name"/>,
+                </p>
+                <p>
+                    We are pleased to inform you that your loan request has been successfully approved. Your loan
+                    reference number is <t t-out="object.name"/>.
+                </p>
+                <p>
+                    If you have any questions or need further assistance, please don't hesitate to reach out to us.
+                    We're happy to help.
+                </p>
+                <p>
+                    Thank you for choosing <t t-out="object.company_id.name"/>. We look forward to continuing to serve
+                    you.
+                </p>
+
+                <p>Best regards,
+                    <br/>
+                    <t t-out="object.company_id.name"/>
+                    <br/>
+                    <span>
+                        Phone :
+                        <t t-if="object.company_id.phone" t-out="object.company_id.phone"/>
+                        <br/>
+                    </span>
+                    <span>
+                        Email :
+                        <t t-if="object.company_id.email" t-out="object.company_id.email"/>
+                        <br/>
+                    </span>
+                    <span>
+                        Website :
+                        <t t-if="object.company_id.website" t-out="object.company_id.website"/>
+                    </span>
+                </p>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+    </data>
+</odoo>

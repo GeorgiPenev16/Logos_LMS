@@ -1,0 +1,30 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* tk_loan_management_bg
+#
+# Bulgarian translation for tk_loan_management_bg
+# Превод на български за модул tk_loan_management_bg
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-06 00:00+0000\n"
+"PO-Revision-Date: 2026-03-06 00:00+0000\n"
+"Last-Translator: VitoshaBG EOOD\n"
+"Language-Team: Bulgarian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: bg\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: tk_loan_management_bg
+#: model:ir.module.module,shortdesc:tk_loan_management_bg.module_tk_loan_management_bg
+msgid "Loan Management - Bulgarian Localization"
+msgstr "Управление на кредити - Българска локализация"
+
+#. module: tk_loan_management_bg
+#: model:ir.module.module,summary:tk_loan_management_bg.module_tk_loan_management_bg
+msgid "Bulgarian compliance additions for Customer Loan Management"
+msgstr "Добавки за българско законодателство към управление на кредити"

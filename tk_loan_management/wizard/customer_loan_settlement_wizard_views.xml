@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    Copyright (C) 2024-TODAY TechKhedut (<https://www.techkhedut.com>)
+    Part of TechKhedut. See LICENSE file for full copyright and licensing details.
+-->
+<odoo>
+    <record id="customer_loan_settlement_wizard_form_view" model="ir.ui.view">
+        <field name="name">customer.loan.settlement.wizard.form.view</field>
+        <field name="model">customer.loan.settlement.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="loan_id" invisible="1"/>
+                <field name="currency_id" invisible="1"/>
+                <group string="Loan Details">
+                    <group>
+                        <field name="remaining_loan_principle_amount"/>
+                        <field name="settlement_amount"/>
+                    </group>
+                    <group>
+                        <field name="outstanding_penalty"/>
+                    </group>
+                </group>
+
+                <footer>
+                    <button name="action_settlement" string="Settlement" type="object" class="oe_highlight"
+                            confirm="Are you sure you want to settle this loan?"/>
+                    <button special="cancel" string="Cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="customer_loan_settlement_wizard_action" model="ir.actions.act_window">
+        <field name="name">Settlement</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">customer.loan.settlement.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
+

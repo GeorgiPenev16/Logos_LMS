@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <!--
+            Разширение на формата за кредит.
+            Добавя „Представляван от", табове за съдлъжници и поръчители.
+        -->
+        <record id="customer_loan_bg_inherit_form_view" model="ir.ui.view">
+            <field name="name">customer.loan.bg.inherit.form.view</field>
+            <field name="model">customer.loan</field>
+            <field name="inherit_id"
+                   ref="tk_loan_management.customer_loan_form_view"/>
+            <field name="arch" type="xml">
+
+                <!-- ═══ ПРЕДСТАВЛЯВАН ОТ — след полето за клиент ═══ -->
+                <xpath expr="//field[@name='phone']" position="before">
+                    <field name="represented_by"
+                           options="{'no_create_edit': True, 'no_create': True}"
+                           readonly="status != 'draft'"/>
+                </xpath>
+
+                <!-- ═══ ТАБ „СЪДЛЪЖНИЦИ" ═══ -->
+                <xpath expr="//page[@name='repayment_terms']" position="after">
+                    <page name="codebtors_bg" string="Съдлъжници / Co-debtors">
+                        <field name="codebtor_loan_ids" nolabel="1"
+                               widget="many2many_tags"
+                               options="{'no_create_edit': True, 'no_create': True}"
+                               readonly="status not in ('draft', 'confirm')"/>
+                        <group>
+                            <div class="text-muted fst-italic">
+                                Само партньори с роля „Съдлъжник" могат да бъдат добавени.
+                            </div>
+                        </group>
+                    </page>
+
+                    <!-- ═══ ТАБ „ПОРЪЧИТЕЛИ" ═══ -->
+                    <page name="guarantors_bg" string="Поръчители / Guarantors">
+                        <field name="guarantor_ids" nolabel="1"
+                               widget="many2many_tags"
+                               options="{'no_create_edit': True, 'no_create': True}"
+                               readonly="status not in ('draft', 'confirm')"/>
+                        <group>
+                            <div class="text-muted fst-italic">
+                                Само партньори с роля „Поръчител" могат да бъдат добавени.
+                            </div>
+                        </group>
+                    </page>
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,290 @@
+<!--
+    Copyright (C) 2024-TODAY TechKhedut (<https://www.techkhedut.com>)
+    Part of TechKhedut. See LICENSE file for full copyright and licensing details.
+-->
+<odoo>
+    <!-- Requested document list view template-->
+    <template id="customer_loans_portal_requested_document_list_template" name="Customer Loans">
+        <t t-call="portal.portal_layout">
+            <t t-if="not customer_loans or is_req_doc_pending">
+                <p>There are no documents pending for upload.</p>
+            </t>
+            <t t-call="portal.portal_table" t-else="">
+                <thead>
+                    <tr class="active">
+                        <th class="text-start">Request Reference No.</th>
+                        <th class="text-start">Loan Reference No.</th>
+                        <th class="text-start">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="customer_loans" t-as="loans">
+                        <t t-foreach="loans.req_document_ids" t-as="req_doc_line">
+                            <t t-if="req_doc_line.stage == 'pending'">
+                                <tr>
+                                    <td class="text-start">
+                                        <a t-attf-href="/customer-req-doc-form/#{req_doc_line.access_token}">
+                                            <t t-out="req_doc_line.name"/>
+                                        </a>
+                                    </td>
+                                    <td class="text-start">
+                                        <t t-out="req_doc_line.customer_loan_id.name"/>
+                                    </td>
+                                    <td class="text-start">
+                                        <span class="badge text-bg-success py-2 loan-badge"
+                                              t-if="req_doc_line.stage == 'submitted'">All
+                                            documents uploaded.
+                                        </span>
+                                        <span class="badge text-bg-warning py-1 px-2 m-0"
+                                              t-if="req_doc_line.stage == 'pending'">
+                                            <i class="fa fa-clock-o" title="pending"/>
+                                            Pending
+                                        </span>
+                                        <span class="badge text-bg-danger py-2 loan-badge"
+                                              t-if="req_doc_line.stage == 'rejected'">Document upload request has been
+                                            rejected.
+                                        </span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </t>
+                    </t>
+                </tbody>
+            </t>
+        </t>
+    </template>
+
+    <!-- Requested document form view-->
+    <template inherit_id="portal.portal_sidebar" id="customer_loan_portal_requested_document_form_view"
+              name="Booking Order Details">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <t t-if="page_name == 'portal_customer_loan_req_doc_form_view'">
+                <div class="container bg-white mt-1">
+                    <div class="alert alert-danger mt-3 fw-bold text-center" id="validation-error"
+                         role="alert" t-if="not_uploaded == False">
+                        <i class="fa fa-ban" title="info"/>
+                        Please upload document before submit!
+                    </div>
+
+                    <div class="alert alert-success alert-dismissible fade show text-center fw-bold" role="alert"
+                         t-if="req_document_line.stage == 'submitted'">
+                        <i class="fa fa-info-circle" title="info"/>
+                        <span>All documents uploaded successfully.</span>
+                    </div>
+                    <div class="alert alert-danger alert-dismissible fade show text-center fw-bold" role="alert"
+                         t-if="req_document_line.stage == 'rejected'">
+                        <i class="fa fa-info-circle" title="info"/>
+                        <span>You cancelled document request.</span>
+                    </div>
+
+                    <div class="row px-2 align-items-center mt-3">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="row align-items-center">
+                                <div class="col-md-12 col-sm-12 text-start d-flex gap-3 align-items-center justify-content-between">
+                                    <h3 class="mb0">
+                                        <span class="text-center text-primary"
+                                              t-field="req_document_line.customer_loan_id.name"/>
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="bgc-primary"/>
+
+                    <div class="row p-2">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 mb-4">
+                                    <div class="border-bottom border-primary mb-2 pb-2">
+                                        <h5 class="d-inline text-primary">
+                                            <i class="fa fa-user me-1" aria-hidden="true"></i>
+                                            Customer Details
+                                        </h5>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3 col-sm-12 c-field"
+                                             t-if="req_document_line.customer_loan_id.customer_id.name">
+                                            <span class="c-label text-muted">Customer</span>
+                                            <span class="c-value"
+                                                  t-field="req_document_line.customer_loan_id.customer_id.name"/>
+                                        </div>
+                                        <div class="col-md-3 col-sm-12 c-field"
+                                             t-if="req_document_line.customer_loan_id.phone">
+                                            <span class="c-label text-muted">Phone</span>
+                                            <span class="c-value" t-field="req_document_line.customer_loan_id.phone"/>
+                                        </div>
+                                        <div class="col-md-3 col-sm-12 c-field"
+                                             t-if="req_document_line.customer_loan_id.email">
+                                            <span class="c-label text-muted">Email</span>
+                                            <span class="c-value" style="word-wrap: break-word;"
+                                                  t-field="req_document_line.customer_loan_id.email"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 col-sm-12" t-if="req_document_line.stage != 'rejected'">
+                        <div class="border-bottom border-primary mb-2 pb-2">
+                            <h5 class="d-inline text-primary">
+                                <i class="fa fa-file me-1" aria-hidden="true"></i>
+                                Requested Documents
+                            </h5>
+                        </div>
+                    </div>
+                    <form t-attf-action="/upload-req-doc/#{req_document_line.customer_loan_id.access_token}/#{req_document_line.access_token}"
+                          method="post" t-if="req_document_line.stage != 'rejected'"
+                          id="uploadDocument" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <t t-call="portal.portal_table">
+                            <thead>
+                                <tr class="active">
+                                    <th class="p-bold">
+                                        Document Type
+                                    </th>
+                                    <th class="p-bold">
+                                        Document
+                                    </th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="req_document_line.cst_doc_lines_ids" t-as="doc">
+                                    <tr>
+                                        <td class="cus-value" style="font-size: 0.9rem;">
+                                            <span t-field="doc.document_type_id.name"/>
+                                        </td>
+
+                                        <td t-if="doc.uploaded_status == 'pending'">
+                                            <span class="badge text-bg-warning py-1 loan-badge px-2"
+                                                  t-if="req_document_line.stage == 'pending'">
+                                                <i class="fa fa-clock-o" title="pending"/>
+                                                <span t-field="doc.uploaded_status"/>
+                                            </span>
+
+                                            <span class="badge text-bg-danger py-1 loan-badge px-2" t-if="req_document_line.stage == 'rejected'">
+                                                <i class="fa fa-ban" title="pending"/>
+                                                <span t-field="req_document_line.stage"/>
+                                            </span>
+                                        </td>
+                                        <td t-if="doc.uploaded_status == 'uploaded'">
+                                            <a t-attf-href="/web/content?model=customer.loan.document.lines&amp;id=#{doc.id}&amp;field=document&amp;filename_field=file_name&amp;download=true"
+                                               target='_blank' t-if="doc.document">
+                                                <span t-field="doc.file_name"/>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <a data-bs-toggle="modal" class="btn btn-primary btn-sm"
+                                               style="font-size: 0.9rem;"
+                                               t-attf-href="#documentUploadModalToggle{{doc.access_token}}"
+                                               role="button"
+                                               t-if="doc.uploaded_status == 'pending' and req_document_line.stage == 'pending'">
+                                                <i class="fa fa-upload me-md-2"></i>
+                                                Upload Document
+                                            </a>
+
+
+                                            <a data-bs-toggle="modal"
+                                               t-attf-href="#documentUploadModalToggle{{doc.access_token}}"
+                                               role="button" class="btn btn-outline-success px-1 py-0 ms-1"
+                                               t-if="doc.uploaded_status == 'uploaded' and req_document_line.stage == 'pending'">
+                                                <i class="fa fa-pencil-square-o ps-1" aria-hidden="true"> </i>
+                                            </a>
+
+                                            <a t-attf-href="/delete-req-doc-line/#{doc.access_token}/#{req_document_line.access_token}"
+                                               class="btn btn-outline-danger px-2 py-0 ms-1"
+                                               t-if="doc.uploaded_status == 'uploaded' and req_document_line.stage == 'pending'">
+                                                <i class="fa fa-trash-o" aria-hidden="true"> </i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </t>
+                        <div class="text-start mt-4 me-2">
+                            <button type="submit" class="btn btn-primary mb-md-0 mb-1" form="uploadDocument"
+                                    t-if="req_document_line.stage == 'pending'">
+                                Submit Document
+                            </button>
+
+                            <a t-attf-href="/cancel-doc-request/#{req_document_line.customer_loan_id.access_token}/#{req_document_line.access_token}"
+                               class="btn btn-danger"
+                               t-if="req_document_line.stage == 'pending'">
+                                Cancel Request
+                            </a>
+                        </div>
+                    </form>
+
+
+                    <t t-foreach="req_document_line.cst_doc_lines_ids" t-as="doc">
+                        <form t-attf-action="/upload-req-doc-line/#{doc.access_token}/#{req_document_line.access_token}"
+                              method="post"
+                              t-attf-id="uploadLineDocument{{doc.access_token}}" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <div class="modal fade" t-attf-id="documentUploadModalToggle{{doc.access_token}}"
+                                 aria-hidden="true"
+                                 t-attf-aria-labelledby="documentUploadModal{{doc.access_token}}ToggleLabel"
+                                 tabindex="-1">
+                                <div class="modal-dialog modal-xl">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="modal-title"
+                                                id="documentUploadModal{{doc.access_token}}ToggleLabel">
+                                                Upload Document
+                                            </h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"/>
+                                        </div>
+                                        <div class="modal-body">
+
+                                            <div class="input-group">
+                                                <input type="file" class="form-control"
+                                                       t-attf-name="#{doc.access_token}"
+                                                       t-attf-id="#{doc.access_token}" aria-describedby="docHelp"
+                                                       accept="image/*,.pdf"/>
+                                            </div>
+                                            <div id="docHelp" class="form-text text-primary">
+                                                <i class="fa fa-lock"></i>
+                                                Your document is securely protected by us. Rest assured, your
+                                                information is in safe hands.
+                                                <br/>
+                                                <i class="fa fa-check"></i>
+                                                We accept documents in both image and PDF formats (JPEG, PNG, GIF,
+                                                BMP, TIFF, SVG) for your convenience.
+                                            </div>
+
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="submit" t-attf-id="upload{doc.access_token}"
+                                                    class="btn btn-primary"
+                                                    t-attf-form="uploadLineDocument{{doc.access_token}}">
+                                                <i class="fa fa-upload"></i>
+                                                Upload
+                                                <span t-field="doc.document_type_id.name"/>
+                                            </button>
+                                            <button type="button" class="btn btn-danger me-auto"
+                                                    data-bs-dismiss="modal">
+                                                Close
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </t>
+
+
+                </div>
+                <div class="container py-5">
+                    <h1>History</h1>
+                    <t t-call="portal.message_thread">
+                        <t t-set="object" t-value="loan_record"/>
+                    </t>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>

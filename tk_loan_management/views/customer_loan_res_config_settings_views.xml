@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (C) 2024-TODAY TechKhedut (<https://www.techkhedut.com>)
+    Part of TechKhedut. See LICENSE file for full copyright and licensing details.
+-->
+<odoo>
+    <data>
+        <record id="cst_loan_conf_config_settings_view_form" model="ir.ui.view">
+            <field name="name">customer.loan.confirmation.config.settings.view.form</field>
+            <field name="model">res.config.settings</field>
+            <field name="priority" eval="90"/>
+            <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form" position="inside">
+                    <app data-string="Customer Loan Management" id="tk_loan_management"
+                         string="Customer Loan Management" name="tk_loan_management">
+                        <block title="Sanction Letter Expiry Days Configuration" id="sanction_letter_setting">
+                            <setting string="Set Sanction Letter Expiration Day">
+                                <field name="sanction_letter_expire_days" class="text-center oe_inline"/>
+                            </setting>
+                        </block>
+                        <block title="Processing Fee Configuration" id="processing_fee_setting">
+                            <setting string="Select item for processing fee">
+                                <field name="processing_fee_id" options="{'no_quick_create':True}"/>
+                            </setting>
+                            <setting string="Select type of invoice for processing fee invoice">
+                                <field name="processing_fee_status" widget="radio" options="{'horizontal':True}"/>
+                            </setting>
+                        </block>
+
+                        <block title="Installment Configuration" id="installment_setting">
+                            <setting string="Installment Reminder Days">
+                                <field name="installment_reminder_days" class="text-center oe_inline"/>
+                            </setting>
+                        </block>
+                        <block title="Lead Salesperson Configuration" id="settlement_setting">
+                            <setting string="Select salesperson for lead">
+                                <field name="sales_person_id" options="{'no_create':True}"/>
+                            </setting>
+                        </block>
+
+                    </app>
+                </xpath>
+            </field>
+        </record>
+        <record id="cst_loan_conf_config_settings_action" model="ir.actions.act_window">
+            <field name="name">Settings</field>
+            <field name="res_model">res.config.settings</field>
+            <field name="view_mode">form</field>
+            <field name="target">current</field>
+            <field name="context">{'module' : 'tk_loan_management', 'bin_size': False}</field>
+        </record>
+    </data>
+</odoo>

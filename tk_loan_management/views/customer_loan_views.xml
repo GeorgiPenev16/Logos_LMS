@@ -1,0 +1,1204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (C) 2024-TODAY TechKhedut (<https://www.techkhedut.com>)
+    Part of TechKhedut. See LICENSE file for full copyright and licensing details.
+-->
+<odoo>
+    <data>
+        <record id="customer_loan_installment_penalty_lines_form_view" model="ir.ui.view">
+            <field name="name">customer.loan.installment.penalty.lines.form.view</field>
+            <field name="model">customer.loan.installment.penalty.lines</field>
+            <field name="arch" type="xml">
+                <form string="Penalties" create="0" edit="0" delete="0" duplicate="0">
+                    <field name="customer_loan_id" invisible="1"/>
+                    <field name="company_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="invoice_paid_date" invisible="1"/>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="penalty"/>
+                                <field name="installment_amount"/>
+                            </group>
+                            <group>
+                                <field name="penalty_amount"/>
+                                <label for="invoice_id" class="mt-1"
+                                       invisible="not invoice_id"/>
+                                <div name="invoice_id" invisible="not invoice_id">
+                                    <field name="invoice_id" readonly="1" class="oe_inline"
+                                           force_save="1"
+                                           style="width: auto;" invisible="not invoice_id"/>
+                                    <field name="invoice_state" widget="badge"
+                                           invisible="not invoice_id"
+                                           decoration-success="invoice_state == 'posted'"
+                                           decoration-secondary="invoice_state == 'draft'"
+                                           decoration-danger="invoice_state == 'cancel'"
+                                           style="margin-left: 10px; width: auto;"/>
+                                </div>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="customer_loan_request_collateral_form_view" model="ir.ui.view">
+            <field name="name">customer.loan.request.collateral.form.view</field>
+            <field name="model">customer.loan.request.collateral</field>
+            <field name="arch" type="xml">
+                <form string="Requested Collateral" create="0" edit="0" delete="0" duplicate="0">
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="cst_collateral_doc_lines_ids" widget="many2many_tags"
+                                   invisible="1"/>
+                            <field name="req_collateral_ids" widget="many2many_tags"/>
+                        </group>
+                        <group>
+                            <field name="stage"/>
+                        </group>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="customer_collateral_lines_form_view" model="ir.ui.view">
+            <field name="name">customer.collateral.lines.form.view</field>
+            <field name="model">customer.collateral.lines</field>
+            <field name="arch" type="xml">
+                <form string="Collateral" create="0" edit="0" delete="0" duplicate="0">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="collateral_type_id" options="{'no_create':True}"
+                                       readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="file_name" invisible="1"/>
+                                <field name="document" filename="file_name" widget="binary"
+                                       readonly="1"/>
+                            </group>
+                        </group>
+                        <group string="Description" col="12">
+                            <field name="description"
+                                   placeholder="Please write a detailed description of the collateral."
+                                   nolabel="1" colspan="12"/>
+                        </group>
+
+                        <group string="Customer Note" col="12">
+                            <field name="customer_note" readonly="1"
+                                   placeholder="Please write a detailed description of the collateral."
+                                   nolabel="1" colspan="12"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="customer_loan_request_document_form_view" model="ir.ui.view">
+            <field name="name">customer.loan.request.document.form.view</field>
+            <field name="model">customer.loan.request.document</field>
+            <field name="arch" type="xml">
+                <form string="Customer Loan Requested Documents" create="0" edit="0" delete="0"
+                      duplicate="0">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="stage" widget="badge"
+                                       decoration-success="stage == 'submitted'"
+                                       decoration-warning="stage == 'pending'"
+                                       decoration-danger="stage == 'rejected'"/>
+                            </group>
+                            <group>
+                                <field name="cst_doc_lines_ids" widget="many2many_tags"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="customer_loan_document_lines_form_view" model="ir.ui.view">
+            <field name="name">customer.loan.document.lines.form.view</field>
+            <field name="model">customer.loan.document.lines</field>
+            <field name="arch" type="xml">
+                <form string="Customer Loan Documents" create="0" edit="0" delete="0" duplicate="0">
+                    <sheet>
+                        <group string="Document Details">
+                            <group>
+                                <field name="customer_loan_id" invisible="1"/>
+                                <field name="document_type_id" options="{'no_create':True}"
+                                       readonly="status == 'verified'"/>
+                                <field name="file_name" invisible="1"/>
+                                <field name="document" filename="file_name" widget="binary"
+                                       readonly="status == 'verified'"/>
+                                <field name="status" readonly="1" force_save="1" widget="badge"
+                                       decoration-success="status == 'verified'"
+                                       decoration-info="status == 'draft'"
+                                       decoration-danger="status in ('rejected','cancelled')"/>
+                            </group>
+                            <group>
+                                <field name="validator_id" readonly="1" force_save="1"
+                                       widget="many2one_avatar_user"/>
+                                <field name="reason" readonly="1" force_save="1"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="customer_loan_form_view" model="ir.ui.view">
+            <field name="name">customer.loan.form.view</field>
+            <field name="model">customer.loan</field>
+            <field name="arch" type="xml">
+                <form string="Customer Loan" duplicate="0">
+                    <field name="currency_id" invisible="1"/>
+                    <field name="access_token" invisible="1"/>
+                    <field name="customer_loan_portal_url" invisible="1"/>
+                    <field name="is_expired" invisible="1"/>
+                    <field name="current_installment_amount" invisible="1"/>
+                    <field name="current_installment_due_date" invisible="1"/>
+                    <field name="is_pre_closure" invisible="1"/>
+                    <field name="show_settlement" invisible="1"/>
+                    <field name="loan_od_count" invisible="1"/>
+                    <field name="lead_id" invisible="1"/>
+                    <field name="user_id" readonly="1" force_save="1" invisible="1"/>
+                    <field name="is_document_uploaded" invisible="1"/>
+                    <field name="is_collateral_added" invisible="1"/>
+                    <field name="compute_customer_doc" invisible="1"/>
+                    <field name="compute_customer_collateral" invisible="1"/>
+                    <field name="send_revised_sanction_letter" invisible="1"/>
+                    <field name="remain_installment_count" invisible="1"/>
+                    <header>
+                        <button name="action_confirm_stage" string="Confirm" class="btn-success"
+                                type="object"
+                                invisible="status != 'draft'" icon="fa-check"/>
+
+                        <button name="action_open_wizard" string="Grant Portal Access"
+                                class="oe_highlight"
+                                type="object" invisible="status != 'confirm' or user_id"/>
+
+                        <button name="action_submit_request" string="Submit Request"
+                                class="btn-success" type="object"
+                                invisible="status != 'confirm' or not user_id" icon="fa-check"/>
+
+                        <button name="action_approve_request"
+                                string="Approve &amp; Send Confirmation"
+                                class="btn btn-success"
+                                type="object" invisible="status != 'dept_approval'" icon="fa-check"
+                                groups="tk_loan_management.department_manager"/>
+
+                        <button name="%(customer_loan_reject_reason_action)d" string="Reject"
+                                class="btn-danger"
+                                type="action"
+                                invisible="status != 'dept_approval'" icon="fa-times"
+                                groups="tk_loan_management.department_manager"/>
+
+                        <button name="action_disbursement" string="Disbursement"
+                                class="oe_highlight" type="object"
+                                invisible="status != 'confirmation'"/>
+
+                        <button name="action_create_invoice" string="Receive Processing Fee"
+                                class="oe_highlight"
+                                type="object"
+                                invisible="status != 'disbursement' or processing_fee_deduct_from == 'disbursement' or invoice_id or not is_processing_fee"/>
+
+                        <button name="action_disburse_loan" string="Disburse loan"
+                                class="oe_highlight" type="object"
+                                invisible="status != 'disbursement' or (processing_fee_deduct_from == 'customer' and not invoice_id and is_processing_fee) or journal_entry_id"/>
+
+                        <button name="action_in_progress" string="In Progress" class="oe_highlight"
+                                type="object"
+                                invisible="status != 'disbursement' or not journal_entry_id"/>
+
+                        <button name="%(tk_loan_management.customer_loan_cancel_reason_action)d"
+                                string="Cancel"
+                                type="action" class="btn-danger" icon="fa-times"
+                                invisible="status not in ('draft','confirm','dept_approval','confirmation')"/>
+
+                        <button name="action_reset_to_draft" string="Reset to Draft"
+                                type="object" icon="fa-repeat"
+                                confirm="Are you sure you want to reset the loan application to draft?"
+                                invisible="status not in ('dept_approval','confirmation','rejected') or not id"/>
+
+                        <button name="%(tk_loan_management.customer_pre_closure_wizard_action)d"
+                                string="Pre-Closure"
+                                type="action" class="oe_highlight"
+                                invisible="status != 'in_progress' or is_pre_closure or (remaining_amount == 0 and outstanding_penalty == 0)"/>
+
+                        <button name="action_closure" string="Closure" type="object"
+                                class="oe_highlight"
+                                invisible="status != 'in_progress' or is_pre_closure"/>
+
+                        <button name="%(tk_loan_management.customer_loan_settlement_wizard_action)d"
+                                string="Settlement"
+                                type="action" class="oe_highlight"
+                                invisible="show_settlement"/>
+
+                        <button name="%(tk_loan_management.action_loan_payment)d"
+                                string="Register Payment"
+                                type="action" class="oe_highlight"
+                                invisible="status != 'in_progress' or remaining_amount &lt; 0"/>
+
+                        <button name="action_send_recalculate_mail"
+                                string="Send Revised Schedule"
+                                type="object" class="oe_highlight"
+                                invisible="not send_recalculate_inst_mail"/>
+
+                        <field name="status" widget="statusbar" options="{'clickable':0}"
+                               statusbar_visible="draft,confirmation,disbursement,in_progress,closure"/>
+                    </header>
+                    <div class="w-100 d-flex align-items-center justify-content-end gap-2 mb-2">
+                        <button name="action_download_closure_letter" type="object"
+                                string="Closure Letter"
+                                icon="fa-download"
+                                invisible="status not in ('closure','pre_closure')"/>
+                        <button name="action_download_settlement_letter" type="object"
+                                string="Settlement Letter"
+                                icon="fa-download"
+                                invisible="status != 'settlement'"/>
+                        <button name="action_download_noc_letter" type="object" string="NOC Letter"
+                                icon="fa-download"
+                                invisible="status not in ('closure','pre_closure','settlement')"/>
+                    </div>
+                    <div class="alert alert-info o_for_header text-center fw-bold" role="alert"
+                         invisible="is_collateral_added">
+                        <i class="fa fa-info-circle me-1" title="info"/>
+                        <span>The customer has not yet uploaded some collateral.</span>
+                    </div>
+
+                    <div class="alert alert-info o_for_header text-center fw-bold" role="alert"
+                         invisible="is_document_uploaded">
+                        <i class="fa fa-info-circle me-1" title="info"/>
+                        <span>The customer has not yet uploaded some document.</span>
+                    </div>
+
+
+                    <div class="alert alert-info o_for_header text-center fw-bold" role="alert"
+                         invisible="user_id or not id">
+                        <i class="fa fa-info-circle me-1" title="info"/>
+                        <span>Please grant portal access to the customer to proceed further.</span>
+                    </div>
+                    <sheet>
+                        <widget name="web_ribbon" title="Rejected" bg_color="text-bg-danger"
+                                invisible="status != 'rejected'"/>
+                        <widget name="web_ribbon" title="Cancelled" bg_color="text-bg-danger"
+                                invisible="status != 'cancel'"/>
+                        <widget name="web_ribbon" title="Closure" bg_color="text-bg-success"
+                                invisible="status != 'closure'"/>
+                        <widget name="web_ribbon" title="Pre-Closure" bg_color="text-bg-success"
+                                invisible="status != 'pre_closure'"/>
+                        <widget name="web_ribbon" title="Settlement" bg_color="text-bg-success"
+                                invisible="status != 'settlement'"/>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Title" readonly="1" force_save="1"/>
+                            </h1>
+                        </div>
+
+                        <group string="Customer Details">
+                            <group>
+                                <field name="customer_id" options="{'no_create':True}"
+                                       readonly="status != 'draft'"/>
+                                <field name="customer_tooltip" string=""
+                                       class="fst-italic text-muted"
+                                       invisible="customer_id" readonly="1" force_save="1"/>
+                                <field name="phone" widget="phone"/>
+                                <field name="email" widget="email"/>
+                            </group>
+                            <group>
+                                <field name="app_date" readonly="status != 'draft'"/>
+                                <field name="company_id" options="{'no_create':True}"
+                                       readonly="status not in ['draft','confirm']"/>
+                            </group>
+                        </group>
+
+                        <group string="Requested Loan Details">
+                            <group>
+                                <field name="approved_loan_type_id" options="{'no_create':True}"
+                                       readonly="status != 'draft'" string="Loan Type"/>
+                                <field name="requested_loan_amount" readonly="status != 'draft'"
+                                       string="Loan Amount"/>
+                                <field name="requested_start_date" string="Expected Start Date"
+                                       readonly="status != 'draft'"/>
+                            </group>
+                            <group>
+                                <field name="requested_installment_type" widget="radio"
+                                       options="{'horizontal':True}"
+                                       string="Installment Type"
+                                       readonly="status != 'draft'"/>
+                                <label for="requested_term"/>
+                                <div name="requested_term">
+                                    <field name="requested_term" class="oe_inline me-2"
+                                           readonly="status != 'draft'"/>
+                                    <strong invisible="requested_installment_type != 'monthly'">
+                                        Months
+                                    </strong>
+                                    <strong invisible="requested_installment_type != 'quarterly'">
+                                        Quarters
+                                    </strong>
+                                    <strong invisible="requested_installment_type != 'yearly'">
+                                        Years
+                                    </strong>
+                                </div>
+                            </group>
+                        </group>
+
+                        <group string="Approved Loan Details" invisible="status == 'draft'">
+                            <group>
+                                <field name="approved_loan_type_id" options="{'no_create':True}"
+                                       string="Loan Type"
+                                       readonly="status != 'draft'"/>
+                                <field name="loan_amount"
+                                       readonly="loan_lines_ids or status in ['rejected','cancel']"/>
+                                <field name="approval_date"
+                                       readonly="loan_lines_ids or status in ['rejected','cancel']"/>
+                                <field name="start_date" string="Installment Start Date"
+                                       readonly="loan_lines_ids or status in ['rejected','cancel']"/>
+                                <field name="is_penalty"
+                                       readonly="status not in ('draft','dept_approval','confirmation')"/>
+                                <field name="is_initial_fee"
+                                       readonly="status not in ('draft','confirm','dept_approval') or loan_lines_ids"/>
+
+                                <label for="initial_fee_amount" class="fw-bold text-dark"
+                                       invisible="not is_initial_fee"/>
+                                <div name="initial_fee_details" invisible="not is_initial_fee">
+                                    <field name="initial_fee_amount" class="oe_inline me-2"
+                                           readonly="status not in ('draft','confirm','dept_approval') or loan_lines_ids"/>
+                                    <strong>
+                                        %
+                                    </strong>
+                                </div>
+                            </group>
+                            <group>
+                                <field name="installment_type" widget="radio"
+                                       options="{'horizontal':True}"
+                                       readonly="loan_lines_ids or status in ['rejected','cancel']"/>
+                                <label for="term"/>
+                                <div name="term">
+                                    <field name="term" class="oe_inline me-2"
+                                           readonly="loan_lines_ids or status in ['rejected','cancel']"/>
+                                    <strong invisible="installment_type != 'monthly'">Months
+                                    </strong>
+                                    <strong invisible="installment_type != 'quarterly'">Quarters
+                                    </strong>
+                                    <strong invisible="installment_type != 'yearly'">Years</strong>
+                                </div>
+                                <field name="is_collateral"
+                                       readonly="status not in ('draft','confirm','dept_approval')"/>
+                                <field name="is_fee"
+                                       readonly="status not in ('draft','confirm','dept_approval') or loan_lines_ids"/>
+                                <label for="fee_amount" class="fw-bold text-dark"
+                                       invisible="not is_fee"/>
+                                <div name="fee_details" invisible="not is_fee">
+                                    <field name="fee_amount" class="oe_inline me-2"
+                                           readonly="status not in ('draft','confirm','dept_approval') or loan_lines_ids"/>
+                                    <strong>
+                                        %
+                                    </strong>
+                                </div>
+                                <field name="total_amount" invisible="1"/>
+                                <field name="is_grace_period"
+                                       readonly="loan_lines_ids or status in ['rejected','cancel']"/>
+                                <label for="grace_period" invisible="not is_grace_period"/>
+                                <div name="grace_period" invisible="not is_grace_period">
+                                    <field name="grace_period" class="oe_inline me-2"
+                                           readonly="status not in ('draft','confirm','dept_approval') or loan_lines_ids"/>
+                                    <strong>
+                                        Months
+                                    </strong>
+                                </div>
+                                <field name="is_overdue_penalty_interest"
+                                       readonly="loan_lines_ids or status in ['rejected','cancel']"/>
+
+                                <label for="od_penalty_interest" class="fw-bold text-dark"
+                                       invisible="not is_overdue_penalty_interest"/>
+                                <div name="od_penalty_interest"
+                                     invisible="not is_overdue_penalty_interest">
+                                    <field name="od_penalty_interest" class="oe_inline me-2"
+                                           readonly="loan_lines_ids or status in ['rejected','cancel']"/>
+                                    <strong>
+                                        %(Yearly)
+                                    </strong>
+                                </div>
+                            </group>
+                        </group>
+
+                        <group invisible="status == 'draft'">
+                            <group name="accounting_details" string="Accounting Details">
+                                <field name="receivable_account_id"
+                                       readonly="journal_entry_id"
+                                       required="status == 'disbursement'"
+                                       options="{'no_create': True}"
+                                       invisible="status == 'draft'"/>
+                                <field name="interest_income_account_id"
+                                       readonly="journal_entry_id"
+                                       required="status == 'disbursement'"
+                                       options="{'no_create': True}"
+                                       invisible="status == 'draft'"/>
+                                <field name="bank_cash_account"
+                                       readonly="journal_entry_id"
+                                       required="status == 'disbursement'"
+                                       options="{'no_create': True}"
+                                       invisible="status == 'draft'"/>
+                            </group>
+                            <group name="journal_details" string="Journal Details">
+                                <field name="journal_item_id"
+                                       readonly="journal_entry_id"
+                                       required="status == 'disbursement'"
+                                       options="{'no_create': True}"
+                                       invisible="status == 'draft'"/>
+                                <field name="repayment_journal_item_id"
+                                       readonly="journal_entry_id"
+                                       required="status == 'disbursement'"
+                                       options="{'no_create': True}"
+                                       invisible="status == 'draft'"/>
+                                <field name="journal_entry_id"
+                                       readonly="1"
+                                       force_save="1"
+                                       invisible="not journal_entry_id"/>
+                            </group>
+                        </group>
+
+                        <group invisible="lead_id">
+                            <group string="Other Details">
+                                <field name="responsible_id" options="{'no_create':True}"
+                                       readonly="status in ('closure','pre_closure','settlement','rejected','cancel')"/>
+                            </group>
+                        </group>
+                        <group string="Other Details" invisible="not lead_id">
+                            <group>
+                                <field name="responsible_id" options="{'no_create':True}"
+                                       readonly="status in ('closure','pre_closure','settlement','rejected','cancel')"/>
+                            </group>
+                            <group>
+                                <field name="lead_id" readonly="1" force_save="1"
+                                       invisible="not lead_id"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page name="loan_reason" string="Purpose">
+                                <field name="loan_purpose" placeholder="Write down loan purpose."
+                                       readonly="status != 'draft'"/>
+                            </page>
+
+                            <page name="customer_bank_details" string="Bank Details">
+                                <group string="Customer Bank Details">
+                                    <group>
+                                        <field name="cst_bank_name"
+                                               readonly="journal_entry_id or status in ['rejected','cancel']"/>
+                                        <field name="cst_bank_account_number"
+                                               readonly="journal_entry_id or status in ['rejected','cancel']"/>
+                                        <field name="cst_bank_branch_name"
+                                               readonly="journal_entry_id or status in ['rejected','cancel']"/>
+                                    </group>
+                                    <group>
+                                        <field name="cst_bank_branch_code"
+                                               readonly="journal_entry_id or status in ['rejected','cancel']"/>
+                                        <field name="cst_bank_swift_bic_code"
+                                               readonly="journal_entry_id or status in ['rejected','cancel']"/>
+                                    </group>
+                                </group>
+                            </page>
+
+                            <page name="customer_loan_documents" string="Documents">
+                                <header>
+                                    <button name="%(req_doc_form_customer_wizard_action)d"
+                                            string="Request Document"
+                                            invisible="not user_id or status not in ['confirm','dept_approval']"
+                                            class="oe_highlight" type="action"/>
+                                </header>
+                                <field name="customer_loan_doc_ids"
+                                       readonly="status not in ('draft','confirm','dept_approval')">
+                                    <list editable="bottom" create="0" delete="0" edit="1">
+                                        <field name="customer_loan_id" column_invisible="1"/>
+                                        <field name="uploaded_status" column_invisible="1"/>
+                                        <field name="is_requested_from_customer"
+                                               column_invisible="1"/>
+                                        <field name="document_type_id" options="{'no_create':True}"
+                                               readonly="1" force_save="1"/>
+                                        <field name="file_name" column_invisible="1"/>
+                                        <field name="document" filename="file_name" widget="binary"
+                                               readonly="status == 'verified'"/>
+                                        <field name="status" readonly="1" force_save="1"
+                                               widget="badge"
+                                               decoration-success="status == 'verified'"
+                                               decoration-info="status == 'draft'"
+                                               decoration-danger="status in ('rejected','cancelled')"/>
+                                        <field name="validator_id" readonly="1" force_save="1"
+                                               widget="many2one_avatar_user"/>
+
+                                        <field name="reason" readonly="1" force_save="1"/>
+                                        <!--verification buttons for departments-->
+                                        <button name="action_approve" string="Approve"
+                                                class="btn-success" type="object"
+                                                invisible="status != 'draft' or parent.status in ['rejected', 'cancel']"
+                                                groups="tk_loan_management.department_manager"/>
+                                        <button name="%(customer_document_reject_reason_action)d"
+                                                string="Reject"
+                                                class="btn-danger" type="action"
+                                                invisible="status != 'draft' or parent.status in ['rejected', 'cancel']"
+                                                groups="tk_loan_management.department_manager"/>
+
+                                        <button name="action_resubmit" string="Resubmit"
+                                                class="btn-warning text-white"
+                                                type="object"
+                                                invisible="status != 'rejected' or parent.status in ['rejected', 'cancel']"/>
+                                    </list>
+                                    <form edit="0" create="0" delete="0">
+                                        <group>
+                                            <group>
+                                                <field name="document_type_id"/>
+                                                <field name="file_name" invisible="1"/>
+                                                <field name="document" filename="file_name"
+                                                       widget="binary"/>
+                                                <field name="status" readonly="1" force_save="1"
+                                                       widget="badge"
+                                                       decoration-success="status == 'verified'"
+                                                       decoration-info="status == 'draft'"
+                                                       decoration-danger="status in ('rejected','cancelled')"/>
+                                            </group>
+                                            <group>
+                                                <field name="validator_id" readonly="1"
+                                                       force_save="1"
+                                                       widget="many2one_avatar_user"/>
+                                                <field name="reason" readonly="1" force_save="1"/>
+                                            </group>
+                                        </group>
+                                    </form>
+                                </field>
+
+                                <group string="Requested Documents"
+                                       invisible="not req_document_ids">
+                                </group>
+
+                                <field name="req_document_ids" readonly="1" force_save="1"
+                                       invisible="not req_document_ids"
+                                       string="Requested Documents">
+                                    <list>
+                                        <field name="name"/>
+                                        <field name="cst_doc_lines_ids" widget="many2many_tags"/>
+                                        <field name="stage" widget="badge"
+                                               decoration-success="stage == 'submitted'"
+                                               decoration-warning="stage == 'pending'"
+                                               decoration-danger="stage == 'rejected'"/>
+                                    </list>
+                                    <form>
+                                        <group>
+                                            <group>
+                                                <field name="name"/>
+                                                <field name="cst_doc_lines_ids"
+                                                       widget="many2many_tags"/>
+                                            </group>
+                                            <group>
+                                                <field name="stage"/>
+                                            </group>
+                                        </group>
+                                    </form>
+                                </field>
+                            </page>
+                            <page name="collateral_details" string="Collateral"
+                                  invisible="not is_collateral or status == 'draft'">
+                                <button name="%(req_collateral_form_customer_wizard_action)d"
+                                        string="Request Collateral"
+                                        invisible="not user_id or status not in ['draft','confirm','dept_approval']"
+                                        class="oe_highlight" type="action"/>
+                                <field name="collateral_ids"
+                                       readonly="status not in ('confirm','dept_approval')">
+                                    <list create="0" edit="0" delete="0">
+                                        <field name="customer_loan_id" column_invisible="1"/>
+                                        <field name="status" column_invisible="1"/>
+                                        <field name="collateral_type_id"
+                                               options="{'no_create':True}"/>
+                                        <field name="file_name" column_invisible="1"/>
+                                        <field name="document" filename="file_name"
+                                               widget="binary"/>
+                                        <field name="description"/>
+                                        <field name="customer_note"/>
+                                    </list>
+                                    <form edit="1">
+                                        <field name="customer_loan_id" invisible="1"/>
+                                        <field name="status" invisible="1"/>
+                                        <sheet>
+                                            <group>
+                                                <group>
+                                                    <field name="collateral_type_id"
+                                                           options="{'no_create':True}"
+                                                           readonly="1"/>
+                                                </group>
+                                                <group>
+                                                    <field name="file_name" invisible="1"/>
+                                                    <field name="document" filename="file_name"
+                                                           widget="binary"
+                                                           readonly="1"/>
+                                                </group>
+                                            </group>
+                                            <group string="Description" col="12">
+                                                <field name="description"
+                                                       placeholder="Please write a detailed description of the collateral."
+                                                       nolabel="1" colspan="12"/>
+                                            </group>
+
+                                            <group string="Customer Note" col="12">
+                                                <field name="customer_note" readonly="1"
+                                                       placeholder="Please write a detailed description of the collateral."
+                                                       nolabel="1" colspan="12"/>
+                                            </group>
+                                        </sheet>
+                                    </form>
+                                </field>
+
+                                <group string="Requested Collateral"
+                                       invisible="not req_collateral_ids">
+                                </group>
+
+                                <field name="req_collateral_ids" readonly="1" force_save="1"
+                                       invisible="not req_collateral_ids"
+                                       string="Requested Collateral">
+                                    <list>
+                                        <field name="name"/>
+                                        <field name="cst_collateral_doc_lines_ids"
+                                               widget="many2many_tags"
+                                               column_invisible="1" force_save="1"/>
+
+                                        <field name="req_collateral_ids" widget="many2many_tags"/>
+
+                                        <field name="stage" widget="badge"
+                                               decoration-success="stage == 'submitted'"
+                                               decoration-warning="stage == 'pending'"
+                                               decoration-danger="stage == 'rejected'"/>
+                                    </list>
+                                    <form>
+                                        <group>
+                                            <group>
+                                                <field name="name"/>
+                                                <field name="cst_collateral_doc_lines_ids"
+                                                       widget="many2many_tags"
+                                                       invisible="1"/>
+                                                <field name="req_collateral_ids"
+                                                       widget="many2many_tags"/>
+                                            </group>
+                                            <group>
+                                                <field name="stage"/>
+                                            </group>
+                                        </group>
+                                    </form>
+                                </field>
+                            </page>
+
+                            <page name="loan_evaluation" string="Loan Evaluation"
+                                  invisible="status in ['draft','confirm'] or (status in ['rejected','cancel'] and not loan_lines_ids)">
+                                <group>
+                                    <group>
+                                        <label for="interest_rate"/>
+                                        <div name="interest_rate">
+                                            <field name="interest_rate" class="oe_inline me-1"
+                                                   readonly="1"
+                                                   force_save="1"/>
+                                            <strong>%</strong>
+                                        </div>
+                                        <field name="interest_amount" readonly="1" force_save="1"/>
+                                        <field name="remaining_loan_principle_amount" readonly="1"
+                                               force_save="1"/>
+                                    </group>
+                                    <group>
+                                        <field name="total_amount" readonly="1" force_save="1"/>
+                                        <field name="remaining_amount" readonly="1" force_save="1"/>
+
+                                        <label for="credit_balance"
+                                               invisible="credit_balance &lt;= 0"/>
+                                        <div name="credit_balance"
+                                             invisible="credit_balance &lt;= 0">
+                                            <field name="credit_balance"
+                                                   class="oe_inline me-1"
+                                                   readonly="1" force_save="1"/>
+                                            <button name="action_recalculate_installment"
+                                                    type="object"
+                                                    invisible="remain_installment_count &lt; 2"
+                                                    string="Recalculate Installments"
+                                                    class="btn btn-sm btn-primary ms-2 py-0"
+                                                    help="Adjust remain principal amount and recalculate the instalments"/>
+                                        </div>
+                                    </group>
+                                </group>
+                                <button name="compute_installment" string="Create Installments"
+                                        class="oe_highlight text-end"
+                                        type="object"
+                                        invisible="loan_lines_ids or status not in ['dept_approval','confirmation']"/>
+
+                                <button name="reset_installments" string="Reset Installments"
+                                        class="oe_highlight text-end"
+                                        type="object"
+                                        invisible="not loan_lines_ids or status in ['rejected','cancel', 'disbursement', 'in_progress', 'pre_closure', 'settlement', 'closure']"/>
+
+                                <field name="loan_lines_ids" widget="section_and_note_one2many"
+                                       invisible="not loan_lines_ids">
+                                    <list editable="bottom" create="0" delete="0">
+                                        <field name="display_type" column_invisible="1"/>
+                                        <field name="company_id" column_invisible="1"/>
+                                        <field name="currency_id" column_invisible="1"/>
+
+                                        <field name="installments_no" readonly="1" force_save="1"/>
+                                        <field name="name" nolabel="1"
+                                               widget="section_and_note_text"
+                                               invisible="display_type != 'line_section'"/>
+                                        <field name="emi_date" string="Installment Date"/>
+
+                                        <field name="invoice_paid_date" column_invisible="1"
+                                               readonly="1"
+                                               force_save="1"/>
+                                        <field name="installment_amount" sum="Total"
+                                               string="Principle"/>
+                                        <field name="interest_amount" sum="Total"/>
+                                        <field name="penalty_interest"
+                                               column_invisible="not parent.is_overdue_penalty_interest"/>
+                                        <field name="overdue_days"
+                                               column_invisible="not parent.is_overdue_penalty_interest"/>
+
+                                        <field name="fee_amount" sum="Total"
+                                               options="{'currency_field': 'currency_id'}"
+                                               widget="monetary"/>
+
+                                        <field name="total_installment_amount" sum="Total"/>
+
+                                        <field name="paid_interest" optional="hide" sum="Total"/>
+                                        <field name="paid_penalty_interest" optional="hide"
+                                               sum="Total"/>
+                                        <field name="paid_principal" optional="hide" sum="Total"/>
+                                        <field name="paid_fee" optional="hide" sum="Total"/>
+
+                                        <field name="remaining_interest" optional="hide"
+                                               sum="Total"/>
+                                        <field name="remaining_penalty_interest" optional="hide"
+                                               sum="Total"/>
+                                        <field name="remaining_principal" optional="hide"
+                                               sum="Total"/>
+                                        <field name="remaining_fee" optional="hide" sum="Total"/>
+
+                                        <field name="penalty_journal_entry_id"
+                                               column_invisible="1"/>
+                                        <field name="installment_od_count" column_invisible="1"/>
+                                        <field name="set_od_count" column_invisible="1"/>
+                                        <field name="is_count_set" column_invisible="1"/>
+
+                                        <field name="remaining_amount"/>
+                                        <field name="principal_balance" string="Balance"/>
+                                        <field name="status" widget="badge"
+                                               decoration-danger="status == 'unpaid'"
+                                               decoration-warning="status == 'partial'"
+                                               decoration-success="status == 'paid'"/>
+                                        <field name="total_paid_amount" column_invisible="1"/>
+                                        <field name="paid_amount" column_invisible="1"/>
+                                        <field name="journal_entry_ids" column_invisible="1"/>
+                                        <button name="action_view_journals" type="object"
+                                                icon="fa-money"
+                                                class="btn btn-primary"
+                                                string="View Payment Journals"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page name="disbursement" string="Disbursement"
+                                  invisible="status not in ('disbursement','in_progress','closure','pre_closure','settlement')">
+                                <group string="Disbursement Details">
+                                    <group>
+                                        <field name="disbursement_payment_type"
+                                               readonly="journal_entry_id or invoice_id"
+                                               required="status == 'disbursement'"
+                                               options="{'horizontal': True}" widget="radio"/>
+                                        <field name="is_processing_fee"
+                                               readonly="journal_entry_id or invoice_id"/>
+                                        <field name="disbursement_date" readonly="1"
+                                               force_save="1"/>
+                                        <field name="installment_start_date"
+                                               readonly="journal_entry_id"
+                                               force_save="1"/>
+                                        <field name="end_date" string="Installment End Date"/>
+                                    </group>
+                                    <group string="Processing Fee Details"
+                                           invisible="not is_processing_fee">
+                                        <field name="processing_fee_type" string="Type"
+                                               widget="radio"
+                                               options="{'horizontal':True}"
+                                               readonly="invoice_id or journal_entry_id"/>
+                                        <field name="processing_fee_deduct_from" widget="radio"
+                                               options="{'horizontal':True}"
+                                               readonly="invoice_id or journal_entry_id"/>
+
+                                        <label for="processing_fee_percentage"
+                                               invisible="processing_fee_type != 'percentage'"/>
+                                        <div name="processing_fee_percentage"
+                                             invisible="processing_fee_type != 'percentage'">
+                                            <field name="processing_fee_percentage"
+                                                   class="oe_inline me-1"
+                                                   readonly="invoice_id or journal_entry_id"/>
+                                            <strong>%</strong>
+                                        </div>
+
+                                        <field name="processing_fee_amount" string="Fee"
+                                               readonly="invoice_id or journal_entry_id"/>
+                                        <field name="processing_fee_tax_ids" widget="many2many_tags"
+                                               options="{'no_create':True}"
+                                               readonly="invoice_id or journal_entry_id"
+                                               invisible="(invoice_id and not processing_fee_tax_ids) or (journal_entry_id and not processing_fee_tax_ids)"/>
+                                        <label for="invoice_id" class="mt-1"
+                                               invisible="not invoice_id"/>
+                                        <div name="invoice_id">
+                                            <field name="invoice_id" readonly="1" class="oe_inline"
+                                                   force_save="1"
+                                                   style="width: auto;" invisible="not invoice_id"/>
+                                            <field name="invoice_state" widget="badge"
+                                                   invisible="not invoice_id"
+                                                   decoration-success="invoice_state == 'posted'"
+                                                   decoration-danger="invoice_state == 'cancel'"
+                                                   decoration-secondary="invoice_state == 'draft'"
+                                                   style="margin-left: 10px; width: auto;"/>
+                                        </div>
+                                    </group>
+                                </group>
+                            </page>
+
+                            <page name="penalty" string="Penalty"
+                                  invisible="not is_penalty">
+                                <group string="Penalty Details">
+                                    <group>
+                                        <field name="penalty_type" widget="radio"
+                                               options="{'horizontal':True}"
+                                               string="Type"
+                                               readonly="status in ('disbursement','in_progress','closure','pre_closure','settlement')"/>
+                                        <label for="penalty_percentage"
+                                               invisible="penalty_type != 'percentage'"/>
+                                        <div name="penalty_percentage"
+                                             invisible="penalty_type != 'percentage'">
+                                            <field name="penalty_percentage" class="oe_inline me-1"
+                                                   string="Penalty"
+                                                   readonly="status in ('disbursement','in_progress','closure','pre_closure','settlement')"/>
+                                            <strong>%</strong>
+                                        </div>
+                                        <field name="penalty_tooltip" string=""
+                                               class="fst-italic text-muted"
+                                               invisible="penalty_type != 'fixed'" readonly="1"
+                                               force_save="1"/>
+                                        <field name="penalty_amount"
+                                               invisible="penalty_type != 'fixed'"
+                                               readonly="status in ('disbursement','in_progress','closure','pre_closure','settlement')"/>
+                                    </group>
+                                    <group>
+                                        <field name="penalty_tax_ids" options="{'no_create':True}"
+                                               readonly="status in ('disbursement','in_progress','closure','pre_closure','settlement')"/>
+                                        <field name="outstanding_penalty"/>
+                                        <field name="total_penalty" invisible="1" force_save="1"/>
+                                    </group>
+                                </group>
+                                <field name="penalty_lines_ids" invisible="not penalty_lines_ids">
+                                    <list create="0" edit="0" delete="0">
+                                        <field name="penalty"/>
+                                        <field name="customer_loan_id" column_invisible="1"/>
+                                        <field name="company_id" column_invisible="1"/>
+                                        <field name="currency_id" column_invisible="1"/>
+                                        <field name="invoice_paid_date" column_invisible="1"/>
+                                        <field name="installment_amount" column_invisible="1"/>
+                                        <field name="penalty_amount"/>
+                                        <field name="journal_entry_id" widget="many2one"/>
+                                    </list>
+                                    <form create="0" edit="0" delete="0">
+                                        <field name="customer_loan_id" invisible="1"/>
+                                        <field name="company_id" invisible="1"/>
+                                        <field name="currency_id" invisible="1"/>
+                                        <field name="invoice_paid_date" invisible="1"/>
+                                        <sheet>
+                                            <group>
+                                                <group>
+                                                    <field name="penalty"/>
+                                                    <field name="installment_amount"/>
+                                                </group>
+                                                <group>
+                                                    <field name="penalty_amount"/>
+                                                    <field name="journal_entry_id"
+                                                           widget="many2one"/>
+                                                </group>
+                                            </group>
+                                        </sheet>
+                                    </form>
+                                </field>
+                            </page>
+
+                            <page name="settlement" string="Settlement"
+                                  invisible="status != 'settlement'">
+                                <group string="Settlement Details">
+                                    <group>
+                                        <field name="settlement_date" readonly="1" force_save="1"/>
+                                        <field name="settlement_journal_entry_id" readonly="1"/>
+
+                                    </group>
+                                    <group>
+                                        <field name="settlement_amount" readonly="1"
+                                               force_save="1"/>
+                                        <field name="forgiven_debt" readonly="1" force_save="1"/>
+                                    </group>
+                                </group>
+                            </page>
+
+                            <page name="terms_and_conditions" string="Terms &amp; Conditions"
+                                  invisible="status == 'draft'">
+                                <group>
+                                    <group>
+                                        <field name="terms_and_conditions_template_id"
+                                               options="{'no_create':True}"
+                                               readonly="status not in ('draft', 'confirm')"/>
+                                    </group>
+                                </group>
+                                <field name="terms_and_conditions"
+                                       placeholder="Terms and conditions."
+                                       required="status != 'draft'"
+                                       readonly="status not in ('draft', 'confirm')"/>
+                            </page>
+                            <page name="repayment_terms" string="Repayment Terms"
+                                  invisible="status == 'draft'">
+                                <group>
+                                    <group>
+                                        <field name="repayment_terms_template_id"
+                                               options="{'no_create':True}"
+                                               readonly="status not in ('draft', 'confirm')"/>
+                                    </group>
+                                </group>
+                                <field name="repayment_terms" placeholder="Repayment Terms."
+                                       required="status != 'draft'"
+                                       readonly="status not in ('draft', 'confirm')"/>
+                            </page>
+                            <page name="reject_reason" string="Reject"
+                                  invisible="status != 'rejected'">
+                                <field name="reject_reason"
+                                       placeholder="Write down reason for loan rejection."/>
+                            </page>
+                            <page name="cancel_reason" string="Cancel"
+                                  invisible="status != 'cancel'">
+                                <field name="cancel_reason"
+                                       placeholder="Write down reason for loan cancellation."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="customer_loan_search_view" model="ir.ui.view">
+            <field name="name">customer.loan.search.view</field>
+            <field name="model">customer.loan</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="customer_id"/>
+                    <field name="responsible_id"/>
+
+                    <filter name="filter_confirmation" string="Confirmation"
+                            domain="[('status','=','confirmation')]"/>
+                    <filter name="filter_disbursement" string="Disbursement"
+                            domain="[('status','=','disbursement')]"/>
+                    <filter name="filter_in_progress" string="In Progress"
+                            domain="[('status','=','in_progress')]"/>
+
+                    <group>
+                        <filter name="group_by_status" string="Status"
+                                context="{'group_by':'status'}"/>
+                        <separator/>
+                        <filter name="group_by_loan_type" string="Loan Type"
+                                context="{'group_by':'approved_loan_type_id'}"/>
+                        <separator/>
+                        <filter name="group_by_customer" string="Customer"
+                                context="{'group_by':'customer_id'}"/>
+                        <filter name="group_by_responsible" string="Responsible"
+                                context="{'group_by':'responsible_id'}"/>
+                    </group>
+                    <searchpanel>
+                        <field name="installment_type" select="multi" enable_counters="1"/>
+                    </searchpanel>
+                </search>
+            </field>
+        </record>
+
+
+        <record id="customer_loan_calendar_view" model="ir.ui.view">
+            <field name="name">customer.loan.calendar.view</field>
+            <field name="model">customer.loan</field>
+            <field name="arch" type="xml">
+                <calendar string="Loans" date_start="app_date" color="status"
+                          mode="month" event_open_popup="True" create="0">
+                    <field name="customer_id"/>
+                    <field name="responsible_id"/>
+                    <field name="approved_loan_type_id" string="Loan Type"/>
+                    <field name="loan_amount"/>
+                    <field name="status" invisible="1" filters="1"/>
+                </calendar>
+            </field>
+        </record>
+
+        <record id="customer_loan_pivot_view" model="ir.ui.view">
+            <field name="name">customer.loan.pivot.view</field>
+            <field name="model">customer.loan</field>
+            <field name="arch" type="xml">
+                <pivot string="Loans" sample="1">
+                    <field name="app_date" interval="month" type="col"/>
+                    <field name="approved_loan_type_id" type="row"/>
+                    <field name="status" type="row"/>
+                    <field name="installment_type" type="row"/>
+                    <field name="loan_amount" type="measure"/>
+                </pivot>
+            </field>
+        </record>
+
+        <record id="customer_loan_graph_view" model="ir.ui.view">
+            <field name="name">customer.loan.graph.view</field>
+            <field name="model">customer.loan</field>
+            <field name="arch" type="xml">
+                <graph string="Loans" sample="1">
+                    <field name="app_date"/>
+                    <field name="status"/>
+                    <field name="installment_type"/>
+                    <field name="loan_amount" type="measure"/>
+                    <field name="current_installment_amount" type="measure" invisible="1"/>
+                    <field name="requested_term" type="measure" invisible="1"/>
+                    <field name="term" type="measure" invisible="1"/>
+                    <field name="penalty_percentage" type="measure" invisible="1"/>
+                    <field name="interest_rate" type="measure" invisible="1"/>
+                </graph>
+            </field>
+        </record>
+
+        <record id="customer_loan_kanban_view" model="ir.ui.view">
+            <field name="name">customer.loan.kanban.view</field>
+            <field name="model">customer.loan</field>
+            <field name="priority">1</field>
+            <field name="arch" type="xml">
+                <kanban sample="1"
+                        records_draggable="0"
+                        groups_draggable="0"
+                        quick_create="0"
+                        group_create="0"
+                        group_edit="0">
+                    <field name="customer_id"/>
+                    <field name="app_date"/>
+                    <field name="activity_ids"/>
+                    <field name="phone"/>
+                    <field name="email"/>
+                    <field name="approved_loan_type_id"/>
+                    <field name="requested_loan_amount"/>
+                    <field name="loan_amount"/>
+                    <templates>
+                        <t t-name="card">
+                            <div>
+                                <div class="row mb4">
+                                    <div class="col-6">
+                                        <strong>
+                                            <span>
+                                                #
+                                                <field name="name"/>
+                                            </span>
+                                        </strong>
+                                    </div>
+                                    <div class="col-6 text-end pe-4">
+                                        <field name="status" widget="label_selection"
+                                               options="{'classes': {'draft': 'default', 'closure': 'success', 'pre_closure': 'success', 'settlement': 'success', 'rejected': 'danger', 'cancel': 'danger'}}"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <span>
+                                            <i class="fa fa-user-o me-1" aria-hidden="true"
+                                               title="Customer"/>
+                                            <field name="customer_id"/>
+                                        </span>
+                                    </div>
+                                    <div t-if="record.phone.raw_value">
+                                        <i class="fa fa-phone me-1" aria-hidden="true"
+                                           title="Phone"/>
+                                        <field name="phone"/>
+                                    </div>
+                                    <div t-if="record.email.raw_value">
+                                        <i class="fa fa-envelope-o me-1" aria-hidden="true"
+                                           title="Mail"/>
+                                        <field name="email"/>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span>
+                                            <i class="fa fa-info-circle me-1" aria-hidden="true"
+                                               title="Loan Type"/>
+                                            <field name="approved_loan_type_id"/>
+                                        </span>
+                                        <span>
+                                            <field name="app_date"/>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <span>
+                                            <t t-if="record.loan_amount.raw_value &lt;= 0">
+                                                <field name="requested_loan_amount"/>
+                                            </t>
+                                            <t t-else="">
+                                                <field name="loan_amount"/>
+                                            </t>
+                                            <field name="currency_id" invisible="1"/>
+                                        </span>
+                                    </div>
+                                    <div class="col-6 pe-4">
+                                        <span class="float-end d-flex align-items-center gap-1">
+                                            <field name="activity_ids" widget="kanban_activity"
+                                                   class="mt-1"/>
+                                            <field name="responsible_id"
+                                                   widget="many2one_avatar_user"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="customer_loan_tree_view" model="ir.ui.view">
+            <field name="name">customer.loan.tree.view</field>
+            <field name="model">customer.loan</field>
+            <field name="arch" type="xml">
+                <list string="Customer loan" sample="1" duplicate="0">
+                    <field name="name" string="Reference No."/>
+                    <field name="customer_id" widget="many2one_avatar"/>
+                    <field name="responsible_id" widget="many2one_avatar_user" optional="show"/>
+                    <field name="approved_loan_type_id" string="Loan Type" optional="show"/>
+                    <field name="installment_type" optional="show"/>
+                    <field name="term" optional="show"/>
+                    <field name="total_amount" optional="show"/>
+                    <field name="remaining_amount" optional="show"/>
+                    <field name="outstanding_penalty" optional="show"/>
+                    <field name="app_date" optional="hide"/>
+                    <field name="disbursement_date" optional="show"/>
+                    <field name="installment_start_date" optional="hide"/>
+                    <field name="end_date" optional="show"/>
+                    <field name="activity_ids" widget="list_activity"/>
+                    <field name="status" widget="badge"
+                           decoration-info="status in ('confirm','dept_approval')"
+                           decoration-primary="status in ('confirmation','disbursement','in_progress')"
+                           decoration-success="status in ('closure','pre_closure','settlement')"
+                           decoration-danger="status in ['rejected','cancel']"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="customer_loan_action" model="ir.actions.act_window">
+            <field name="name">Customer Loan</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">customer.loan</field>
+            <field name="view_mode">list,kanban,form,calendar,graph,pivot,activity</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no examples click here to add new customer loan.
+                </p>
+            </field>
+        </record>
+    </data>
+</odoo>

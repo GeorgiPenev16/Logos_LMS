@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="loan_payment_view_form" model="ir.ui.view">
+        <field name="name">loan.payment.view.form</field>
+        <field name="model">loan.payment</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <field name="is_initial_fee_paid" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+                    <group>
+                        <group>
+                            <field name="amount" readonly="is_initial_fee_payment" force_save="1"
+                                   options="{'currency_field': 'currency_id'}"/>
+                            <field name="date" readonly="1" force_save="1"/>
+                        </group>
+                        <group>
+                            <label for="remain_amount" class="fw-bold text-dark"
+                                   invisible="is_initial_fee_payment"/>
+                            <div name="remain_amount_details" invisible="is_initial_fee_payment">
+                                <field name="remain_amount" class="oe_inline me-2"/>
+                                <strong>
+                                    Till Today (Exc. Initial fee)
+                                </strong>
+                            </div>
+                            <field name="credit_balance" options="{'currency_field': 'currency_id'}"
+                                   readonly="1" force_save="1"/>
+                            <field name="is_initial_fee_payment" invisible="is_initial_fee_paid"/>
+                            <field name="initial_fee" invisible="not is_initial_fee_payment"
+                                   options="{'currency_field': 'currency_id'}"/>
+                        </group>
+                        <footer>
+                            <button name="action_register_payment" string="Register Payment"
+                                    type="object"
+                                    class="oe_highlight"
+                                    confirm="Are you sure you want to register payment?"/>
+                            <button special="cancel" string="Cancel"/>
+                        </footer>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_loan_payment" model="ir.actions.act_window">
+        <field name="name">Payment</field>
+        <field name="res_model">loan.payment</field>
+        <field name="view_mode">form</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

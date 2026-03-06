@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="tk_loan_management.customer_loan_dashboard" owl="1">
+        <section class="section customer_loan_dashboard">
+            <div class="container">
+            <div class="row">
+                    <div class="col-md-12 mt-4">
+                        <div class="row">
+                            <h4 class="tk-primary">Loans statistics</h4>
+                            <hr class="border-primary"/>
+
+                            <div class="col-md-3 mb-4 mt8 mb16"
+                                     t-on-click="() => this.viewCustomerLoans('draft')">
+                                <div class="card secondary-bg p-32">
+                                    <div class="card-body secondary-bg tk-card-body">
+                                        <img alt="users" width="40"
+                                             src="/tk_loan_management/static/src/img/dashboard/loan-paper.png"/>
+                                        <h4 class="tk-st-1 secondary-bg">Draft</h4>
+                                        <h6 class="tk-st-2 secondary-bg">
+                                            <t t-esc="state.customerLoanStatus['draft_loans']"/>
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3 mb-4 mt8 mb16"
+                                     t-on-click="() => this.viewCustomerLoans('dept_approval')">
+                                <div class="card primary-bg p-32"
+                                     style="padding-right: 4px !important; padding-left: 4px !important;">
+                                    <div class="card-body primary-bg tk-card-body px-1">
+                                        <img alt="users" width="40"
+                                             src="/tk_loan_management/static/src/img/dashboard/ready.png"/>
+                                        <h4 class="tk-st-1 primary-bg">Department Approval</h4>
+                                        <h6 class="tk-st-2 primary-bg">
+                                            <t t-esc="state.customerLoanStatus['dept_approval_loans']"/>
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3 mb-4 mt8 mb16"
+                                     t-on-click="() => this.viewCustomerLoans('confirmation')">
+                                <div class="card purple-bg p-32">
+                                    <div class="card-body purple-bg tk-card-body">
+                                        <img alt="users" width="40"
+                                             src="/tk_loan_management/static/src/img/dashboard/check.png"/>
+                                        <h4 class="tk-st-1 purple-bg">Confirmation</h4>
+                                        <h6 class="tk-st-2 purple-bg">
+                                            <t t-esc="state.customerLoanStatus['confirmation_loans']"/>
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3 mb-4 mt8 mb16"
+                                     t-on-click="() => this.viewCustomerLoans('disbursement')">
+                                <div class="card warn-bg p-32">
+                                    <div class="card-body warn-bg tk-card-body px-1">
+                                        <img alt="users" width="40"
+                                             src="/tk_loan_management/static/src/img/dashboard/loan_disburse.png"/>
+                                        <h4 class="tk-st-1 warn-bg">Disbursement</h4>
+                                        <h6 class="tk-st-2 warn-bg">
+                                            <t t-esc="state.customerLoanStatus['disbursement_loans']"/>
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-2 mb-4 mt8 mb16"
+                                     t-on-click="() => this.viewCustomerLoans('in_progress')">
+                                <div class="card info-bg p-32">
+                                    <div class="card-body info-bg tk-card-body">
+                                        <img alt="users" width="40"
+                                             src="/tk_loan_management/static/src/img/dashboard/debt.png"/>
+                                        <h4 class="tk-st-1 info-bg">In-Progress</h4>
+                                        <h6 class="tk-st-2 info-bg">
+                                            <t t-esc="state.customerLoanStatus['in_progress_loans']"/>
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-2 mb-4 mt8 mb16"
+                                     t-on-click="() => this.viewCustomerLoans('closure')">
+                                <div class="card active-bg p-32">
+                                    <div class="card-body active-bg tk-card-body">
+                                        <img alt="users" width="40"
+                                             src="/tk_loan_management/static/src/img/dashboard/agreement.png"/>
+                                        <h4 class="tk-st-1 active-bg">Closure</h4>
+                                        <h6 class="tk-st-2 active-bg">
+                                            <t t-esc="state.customerLoanStatus['closure_loans']"/>
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-2 mb-4 mt8 mb16"
+                                     t-on-click="() => this.viewCustomerLoans('pre_closure')">
+                                <div class="card success-bg p-32">
+                                    <div class="card-body success-bg tk-card-body">
+                                        <img alt="users" width="40"
+                                             src="/tk_loan_management/static/src/img/dashboard/closure.png"/>
+                                        <h4 class="tk-st-1 success-bg">Pre-Closure</h4>
+                                        <h6 class="tk-st-2 success-bg">
+                                            <t t-esc="state.customerLoanStatus['pre_closure_loans']"/>
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-2 mb-4 mt8 mb16"
+                                     t-on-click="() => this.viewCustomerLoans('settlement')">
+                                <div class="card active-bg p-32">
+                                    <div class="card-body active-bg tk-card-body">
+                                        <img alt="users" width="40"
+                                             src="/tk_loan_management/static/src/img/dashboard/settlement.png"/>
+                                        <h4 class="tk-st-1 active-bg">Settlement</h4>
+                                        <h6 class="tk-st-2 active-bg">
+                                            <t t-esc="state.customerLoanStatus['settlement_loans']"/>
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-2 mb-4 mt8 mb16"
+                                     t-on-click="() => this.viewCustomerLoans('rejected')">
+                                <div class="card terminate-bg p-32">
+                                    <div class="card-body terminate-bg tk-card-body">
+                                        <img alt="users" width="40"
+                                             src="/tk_loan_management/static/src/img/dashboard/rejected_1.png"/>
+                                        <h4 class="tk-st-1 terminate-bg">Rejected</h4>
+                                        <h6 class="tk-st-2 terminate-bg">
+                                            <t t-esc="state.customerLoanStatus['rejected_loans']"/>
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-2 mb-4 mt8 mb16"
+                                     t-on-click="() => this.viewCustomerLoans('cancel')">
+                                <div class="card danger-bg p-32">
+                                    <div class="card-body danger-bg tk-card-body">
+                                        <img alt="users" width="40"
+                                             src="/tk_loan_management/static/src/img/dashboard/cancelled.png"/>
+                                        <h4 class="tk-st-1 danger-bg">Cancelled</h4>
+                                        <h6 class="tk-st-2 danger-bg">
+                                            <t t-esc="state.customerLoanStatus['cancelled_loans']"/>
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-4 mb-4 mt32">
+                                <h4 class="tk-primary">Charges statistics</h4>
+                                <hr class="border-primary"/>
+                                <div class="row">
+                                    <div class="col-md-12 mb-4 mt8 mb16"
+                                         t-on-click="() => this.viewOverdueInstallmentLoans()">
+                                        <div class="card warn-bg p-32">
+                                            <div class="card-body warn-bg tk-card-body">
+                                                <img alt="users" width="40"
+                                                     src="/tk_loan_management/static/src/img/dashboard/overdue.png"/>
+                                                <h4 class="tk-st-1 warn-bg">Overdue Installments</h4>
+                                                <h6 class="tk-st-2 warn-bg">
+                                                    <t t-esc="state.customerLoanStatus['overdue_installments_loans_counts']"/>
+                                                </h6>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 mb-4 mt8 mb16"
+                                         t-on-click="() => this.viewUnpaidPenaltiesLoans()">
+                                        <div class="card info-bg p-32">
+                                            <div class="card-body info-bg tk-card-body">
+                                                <img alt="users" width="40"
+                                                     src="/tk_loan_management/static/src/img/dashboard/penalty.png"/>
+                                                <h4 class="tk-st-1 info-bg">Unpaid Penalties</h4>
+                                                <h6 class="tk-st-2 info-bg">
+                                                    <t t-esc="state.customerLoanStatus['unpaid_penalties_loans_counts']"/>
+                                                </h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4 mb-4 mt32 loan-chart">
+                                <h4 class="tk-primary">Best-selling loan</h4>
+                                <hr class="border-primary"/>
+                                <div class="tk-os-chart mb-4" t-ref="most_selling_loans"/>
+                            </div>
+
+                            <div class="col-md-4 mb-4 mt32 loan-chart">
+                                <h4 class="tk-primary">Loan distribution and recovery statistics</h4>
+                                <hr class="border-primary"/>
+                                <div class="tk-os-chart" t-ref="loan_details"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-8 mb-4 mt32">
+                                <h4 class="tk-primary">Disbursed loan amount by months</h4>
+                                <hr class="border-primary"/>
+                                <div class="tk-os-chart" t-ref="disbursed_loan_by_month"/>
+                            </div>
+                            <div class="col-md-4 mb-4 mt32 loan-chart-end">
+                                <h4 class="tk-primary">Received charge statistics</h4>
+                                <hr class="border-primary"/>
+                                <div class="tk-os-chart" t-ref="received_charge_graph"/>
+                            </div>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+        </section>
+    </t>
+</templates>

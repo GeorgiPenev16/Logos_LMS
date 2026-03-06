@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="cst_sent_payment_due_mail_create_invoice" model="ir.cron">
+            <field name="name">Customer Loan Management : Sent Payment Due Reminder and Create Entry</field>
+            <field name="model_id" ref="tk_loan_management.model_customer_loan"/>
+            <field name="state" eval="'code'"/>
+            <field name="code" eval="'model._cron_send_installment_reminder_create_invoice()'"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <record id="customer_installment_penalty_invoice" model="ir.cron">
+            <field name="name">Customer Loan Management : Create Installment Penalty Entry</field>
+            <field name="model_id" ref="tk_loan_management.model_customer_loan"/>
+            <field name="state" eval="'code'"/>
+            <field name="code" eval="'model._cron_installment_due_penalty()'"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <record id="customer_loan_od_penalty_invoice" model="ir.cron">
+            <field name="name">Customer Loan Management : Loan Overdue Penalty Entry</field>
+            <field name="model_id" ref="tk_loan_management.model_customer_loan"/>
+            <field name="state" eval="'code'"/>
+            <field name="code" eval="'model._cron_loan_overdue_penalty()'"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <record id="customer_loan_od_interest" model="ir.cron">
+            <field name="name">Customer Loan Management : Loan Overdue Interest</field>
+            <field name="model_id" ref="tk_loan_management.model_customer_loan"/>
+            <field name="state" eval="'code'"/>
+            <field name="code" eval="'model._cron_add_overdue_interest()'"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+        </record>
+    </data>
+</odoo>

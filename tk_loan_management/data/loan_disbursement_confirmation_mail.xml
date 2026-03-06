@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data noupdate="0">
+        <record id="loan_disbursement_confirmation_mail_template" model="mail.template">
+            <field name="name">Loan Disbursement Confirmation Email Template</field>
+            <field name="model_id" ref="tk_loan_management.model_customer_loan"/>
+            <field name="subject">Loan Disbursement Confirmation and Installment Breakdown</field>
+            <field name="email_from">{{ object.company_id.email_formatted or '' }}</field>
+            <field name="email_to">{{ object.email or '' }}</field>
+            <field name="body_html" type="html">
+                <style>
+                    .text-right {
+                    text-align: right;
+                    }
+                    .text-center {
+                    text-align: left;
+                    }
+                    tr:nth-child(even) {background-color: #f2f2f2;}
+                    .center {
+                    margin-left: 3rem;
+                    margin-right: 3rem;
+                    padding-left: 3rem;
+                    padding-right:3rem;
+                    }
+                </style>
+                <p>Dear
+                    <t t-out="object.customer_id.name"/>,
+                </p>
+                <p>I hope this message finds you well.</p>
+                <p>We are pleased to confirm that your loan of
+                    <t t-out="object.loan_amount"
+                       t-options='{"widget": "monetary", "display_currency": object.company_id.currency_id}'/>
+                    has been successfully disbursed to your
+                    account on
+                    <span t-field="object.disbursement_date"/>. Below is the detailed
+                    breakdown
+                    of your loan
+                    installments and
+                    repayment schedule:
+                </p>
+                <p>
+                    <strong>Loan Details:</strong>
+                </p>
+                <ul>
+                    <li>
+                        <strong>Loan Amount:</strong>
+                        <t t-out="object.loan_amount"
+                           t-options='{"widget": "monetary", "display_currency": object.company_id.currency_id}'/>
+                    </li>
+                    <li>
+                        <strong>Interest Rate:</strong>
+                        <t t-out="object.interest_rate"/>
+                        <span>%</span>
+                    </li>
+                    <li>
+                        <strong>Loan Term:</strong>
+                        <t t-out="object.term"/>
+                        <t t-if="object.installment_type == 'monthly'">
+                            Months
+                        </t>
+                        <t t-if="object.installment_type == 'quarterly'">
+                            Quarters
+                        </t>
+                        <t t-if="object.installment_type == 'yearly'">
+                            Years
+                        </t>
+                    </li>
+                    <li>
+                        <strong>Disbursement Date:</strong>
+                        <span t-field="object.disbursement_date"/>
+                    </li>
+                    <li>
+                        <strong>Loan Reference Number:</strong>
+                        <t t-out="object.name"/>
+                    </li>
+                </ul>
+                <table t-if="object.loan_lines_ids"
+                       style="border:1px solid; border-collapse: collapse; width:90%;">
+                    <tr style="border:1px solid; padding:0.625rem;background-color: #86cffc;">
+                        <th colspan="5"
+                            style="border:1px solid; padding:0.625rem; text-align:center;">
+                            Installment
+                            Breakdown
+                        </th>
+                    </tr>
+                    <tr style="border:1px solid; padding:0.625rem;background-color: #a9ddfc;">
+                        <th style="border:1px solid; padding:0.625rem;text-align:right;">Installment
+                            No.
+                        </th>
+                        <th style="border:1px solid; padding:0.625rem;text-align:right;">Installment
+                            Date.
+                        </th>
+                        <th style="border:1px solid; padding:0.625rem;text-align:right;">Installment
+                            Amount without
+                            Interest
+                        </th>
+                        <th style="border:1px solid; padding:0.625rem;text-align:right;">Interest
+                        </th>
+                        <th style="border:1px solid; padding:0.625rem;text-align:right;">Total
+                            Installment Amount
+                        </th>
+                    </tr>
+
+                    <t t-set="count" t-value="0"/>
+                    <t t-foreach="object.loan_lines_ids" t-as="ld">
+                        <t t-if="not ld.display_type">
+                            <tr t-attf-style="border:1px solid; padding:0.625rem;{{'background-color: #f2f2f2;' if count % 2 != 0 else 'background-color: #FFFFFF;'}}">
+                                <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                                    <t t-esc="ld.installments_no"/>
+                                </td>
+                                <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                                    <span t-field="ld.emi_date"/>
+                                </td>
+                                <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                                    <t t-esc="ld.installment_amount"
+                                       t-options='{"widget": "monetary", "display_currency": object.company_id.currency_id}'/>
+                                </td>
+                                <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                                    <t t-esc="ld.interest_amount"
+                                       t-options='{"widget": "monetary", "display_currency": object.company_id.currency_id}'/>
+                                </td>
+                                <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                                    <t t-esc="ld.total_installment_amount"
+                                       t-options='{"widget": "monetary", "display_currency": object.company_id.currency_id}'/>
+                                </td>
+                            </tr>
+                            <t t-set="count" t-value="count + 1"/>
+                        </t>
+                    </t>
+                    <tr t-attf-style="{{'background-color: #f2f2f2;' if count % 2 != 0 else 'background-color: #FFFFFF;'}}">
+                        <td style="border:1px solid; padding:0.625rem;text-align:right;"
+                            colspan="2">
+                            <strong>Total</strong>
+                        </td>
+                        <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                            <strong t-field="object.loan_amount"/>
+                        </td>
+                        <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                            <strong t-field="object.interest_amount"/>
+                        </td>
+                        <td style="border:1px solid; padding:0.625rem;text-align:right;">
+                            <strong t-field="object.total_amount"/>
+                        </td>
+                    </tr>
+                </table>
+
+                <p>Important Notes:</p>
+                <ul>
+                    <li>
+                        Your first installment is due on
+                        <span t-field="object.installment_start_date"/>.
+                    </li>
+                    <li>
+                        Please ensure that your payments are made on or before the due date to avoid
+                        any penalties.
+                    </li>
+                </ul>
+                <p>
+                    If you have any questions or require further assistance regarding your loan or
+                    payment schedule,
+                    please feel free to reach out to us.
+                </p>
+                <p>Best regards,
+                    <br/>
+                    <t t-out="object.company_id.name"/>
+                    <br/>
+                    <t t-if="object.company_id.phone">
+                        <span>
+                            Phone :
+                            <t t-out="object.company_id.phone"/>
+                        </span>
+                        <br/>
+                    </t>
+                    <t t-if="object.company_id.email">
+                        <span>
+                            Email :
+                            <t t-out="object.company_id.email"/>
+                        </span>
+                        <br/>
+                    </t>
+                    <t t-if="object.company_id.website">
+                        <span>
+                            Website :
+                            <t t-out="object.company_id.website"/>
+                        </span>
+                    </t>
+                </p>
+            </field>
+            <field name="auto_delete" eval="False"/>
+        </record>
+    </data>
+</odoo>

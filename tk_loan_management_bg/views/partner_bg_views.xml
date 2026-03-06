@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <!--
+            Разширение на формата за партньор.
+            Наследява изгледа на tk_loan_management (не на base),
+            за да добави/скрие полета спрямо is_company.
+        -->
+        <record id="partner_bg_inherit_view_form" model="ir.ui.view">
+            <field name="name">partner.bg.inherit.view.form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id"
+                   ref="tk_loan_management.customer_load_inherit_res_partner_view_form"/>
+            <field name="arch" type="xml">
+
+                <!-- ═══ ФИРМЕНИ ПОЛЕТА: ЕИК, БУЛСТАТ, МОЛ ═══ -->
+                <!-- Вмъкваме нова група преди "Personal Information" -->
+                <xpath expr="//group[@string='Personal Information']" position="before">
+                    <group string="Company Information (Фирмени данни)"
+                           invisible="not is_company">
+                        <group>
+                            <field name="company_id_bg"/>
+                            <field name="bulstat"/>
+                        </group>
+                        <group>
+                            <field name="manager_id"
+                                   options="{'no_create_edit': True, 'no_create': True}"/>
+                        </group>
+                    </group>
+                </xpath>
+
+                <!-- ═══ СКРИВАНЕ НА ЛИЧНИ ДАННИ ЗА ФИРМИ ═══ -->
+                <!-- ЕГН — скриваме за фирми, задължително само за физически лица -->
+                <xpath expr="//field[@name='personal_number']" position="attributes">
+                    <attribute name="invisible">is_company</attribute>
+                    <attribute name="required">not is_company</attribute>
+                </xpath>
+
+                <!-- Дата на издаване — скриваме за фирми -->
+                <xpath expr="//field[@name='date_of_issuing']" position="attributes">
+                    <attribute name="invisible">is_company</attribute>
+                    <attribute name="required">not is_company</attribute>
+                </xpath>
+
+                <!-- Издаден от — скриваме за фирми -->
+                <xpath expr="//field[@name='issued_by']" position="attributes">
+                    <attribute name="invisible">is_company</attribute>
+                </xpath>
+
+                <!-- Лична карта — скриваме за фирми -->
+                <xpath expr="//field[@name='id_card']" position="attributes">
+                    <attribute name="invisible">is_company</attribute>
+                    <attribute name="required">not is_company</attribute>
+                </xpath>
+
+                <!-- Вид валидност — скриваме за фирми -->
+                <xpath expr="//field[@name='validity_type']" position="attributes">
+                    <attribute name="invisible">is_company</attribute>
+                </xpath>
+
+                <!-- Дата на валидност — скриваме за фирми -->
+                <xpath expr="//field[@name='date_of_validity']" position="attributes">
+                    <attribute name="invisible">is_company</attribute>
+                </xpath>
+
+                <!-- ═══ РОЛЯ „ПОРЪЧИТЕЛ" В СЕКЦИЯ ROLES ═══ -->
+                <!-- Добавяме след is_codebtor -->
+                <xpath expr="//field[@name='is_codebtor']" position="after">
+                    <field name="is_guarantor"/>
+                    <label for="is_guarantor"/>
+                </xpath>
+
+                <!-- ═══ СКРИВАНЕ НА СЕКЦИИ ЗА ФИЗИЧЕСКИ ЛИЦА КОГАТО Е ФИРМА ═══ -->
+                <!-- Семейни данни — скриваме за фирми -->
+                <xpath expr="//group[@string='Family Details']" position="attributes">
+                    <attribute name="invisible">is_company</attribute>
+                </xpath>
+
+                <!-- Трудова информация — скриваме за фирми -->
+                <xpath expr="//group[@string='Labour Information']" position="attributes">
+                    <attribute name="invisible">is_company</attribute>
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,298 @@
+<!--
+    Copyright (C) 2024-TODAY TechKhedut (<https://www.techkhedut.com>)
+    Part of TechKhedut. See LICENSE file for full copyright and licensing details.
+-->
+<odoo>
+    <!-- Requested document list view template-->
+    <template id="customer_loans_portal_requested_collateral_list_template" name="Customer Loans">
+        <t t-call="portal.portal_layout">
+            <t t-if="not customer_loans or is_req_col_pending">
+                <p>There are no collateral pending for upload.</p>
+            </t>
+            <t t-call="portal.portal_table" t-else="">
+                <thead>
+                    <tr class="active">
+                        <th class="text-start">Request Reference No.</th>
+                        <th class="text-start">Loan Reference No.</th>
+                        <th class="text-start">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="customer_loans" t-as="loans">
+                        <t t-foreach="loans.req_collateral_ids" t-as="req_col_line">
+                            <tr t-if="req_col_line.stage == 'pending'">
+                                <td class="text-start">
+                                    <a t-attf-href="/customer-req-collateral-form/#{req_col_line.access_token}">
+                                        <t t-out="req_col_line.name"/>
+                                    </a>
+                                </td>
+                                <td class="text-start">
+                                    <t t-out="req_col_line.customer_loan_id.name"/>
+                                </td>
+                                <td class="text-start">
+                                    <span class="badge text-bg-warning px-2 py-1"
+                                          t-if="req_col_line.stage == 'pending'">
+                                        <i class="fa fa-clock-o" title="pending"/>
+                                        Pending
+                                    </span>
+                                </td>
+                            </tr>
+                        </t>
+                    </t>
+                </tbody>
+            </t>
+        </t>
+    </template>
+
+    <!--     Requested document form view-->
+    <template inherit_id="portal.portal_sidebar" id="customer_loan_portal_requested_collateral_form_view"
+              name="Booking Order Details">
+        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
+            <t t-if="page_name == 'portal_customer_loan_req_collateral_form_view'">
+                <div class="container bg-white mt-1">
+
+                    <div class="alert alert-danger mt-3 fw-bold text-danger text-center" id="validation-error"
+                         role="alert" t-if="not_uploaded == False">
+                        <i class="fa fa-info-circle" title="info"/>
+                        Please upload document before submit!
+                    </div>
+
+                    <div class="alert alert-success alert-dismissible fade show text-center fw-bold" role="alert"
+                         t-if="req_collateral_line.stage == 'submitted'">
+                        <i class="fa fa-info-circle" title="info"/>
+                        <span>All collateral uploaded successfully.</span>
+                    </div>
+                    <div class="alert alert-danger alert-dismissible fade show text-center fw-bold" role="alert"
+                         t-if="req_collateral_line.stage == 'rejected'">
+                        <i class="fa fa-info-circle" title="info"/>
+                        <span>You cancelled collateral request.</span>
+                    </div>
+
+                    <div class="row px-2 align-items-center mt-3">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="row align-items-center">
+                                <div class="col-md-12 col-sm-12 text-start d-flex gap-3 align-items-center justify-content-between">
+                                    <h3 class="mb0">
+                                        <span class="text-center text-primary"
+                                              t-field="req_collateral_line.customer_loan_id.name"/>
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr class="bgc-primary"/>
+
+                    <div class="row p-2">
+                        <div class="col-md-12 col-sm-12">
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 mb-4">
+                                    <div class="border-bottom border-primary mb-2 pb-2">
+                                        <h5 class="d-inline text-primary">
+                                            <i class="fa fa-user me-1" aria-hidden="true"></i>
+                                            Customer Details
+                                        </h5>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-3 col-sm-12 c-field" t-if="loan_record.customer_id.name">
+                                            <span class="c-label text-muted">Customer</span>
+                                            <span class="c-value" t-field="loan_record.customer_id.name"/>
+                                        </div>
+                                        <div class="col-md-3 col-sm-12 c-field" t-if="loan_record.phone">
+                                            <span class="c-label text-muted">Phone</span>
+                                            <span class="c-value" t-field="loan_record.phone"/>
+                                        </div>
+                                        <div class="col-md-3 col-sm-12 c-field" t-if="loan_record.email">
+                                            <span class="c-label text-muted">Email</span>
+                                            <span class="c-value" style="word-wrap: break-word;"
+                                                  t-field="loan_record.email"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 col-sm-12" t-if="req_collateral_line.stage != 'rejected'">
+                        <div class="border-bottom border-primary mb-2 pb-2">
+                            <h5 class="d-inline text-primary">
+                                <i class="fa fa-upload me-1" aria-hidden="true"></i>
+                                Add Collateral
+                            </h5>
+                        </div>
+                    </div>
+                    <form t-attf-action="/upload-req-collateral/#{loan_record.access_token}/#{req_collateral_line.access_token}"
+                          method="post" t-if="req_collateral_line.stage != 'rejected'"
+                          id="uploadCollateral" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <t t-call="portal.portal_table">
+                            <thead>
+                                <tr class="active">
+                                    <th class="p-bold">
+                                        Collateral Type
+                                    </th>
+                                    <th class="p-bold">
+                                        Collateral
+                                    </th>
+                                    <th class="p-bold">
+                                        Customer Note
+                                    </th>
+                                    <th>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="req_collateral_line.cst_collateral_doc_lines_ids" t-as="collateral">
+                                    <tr>
+                                        <td class="cus-value" style="font-size: 0.9rem;">
+                                            <span t-field="collateral.collateral_type_id.name"/>
+                                        </td>
+                                        <td t-if="collateral.uploaded_status == 'pending'">
+                                            <span class="badge text-bg-warning py-1 loan-badge px-2"
+                                                  t-if="req_collateral_line.stage == 'pending'">
+                                                <i class="fa fa-clock-o" title="pending"/>
+                                                <span t-field="collateral.uploaded_status"/>
+                                            </span>
+
+                                            <span class="badge text-bg-danger py-1 loan-badge px-2"
+                                                  t-if="req_collateral_line.stage == 'rejected'">
+                                                <i class="fa fa-ban" title="rejected"/>
+                                                <span t-field="req_collateral_line.stage"/>
+                                            </span>
+                                        </td>
+
+                                        <td t-if="collateral.uploaded_status == 'uploaded'">
+                                            <a t-attf-href="/web/content?model=customer.collateral.lines&amp;id=#{collateral.id}&amp;field=document&amp;filename_field=file_name&amp;download=true"
+                                               target='_blank' t-if="collateral.document">
+                                                <span t-field="collateral.file_name"/>
+                                            </a>
+                                        </td>
+
+                                        <td>
+                                            <span t-if="collateral.customer_note"
+                                                  t-field="collateral.customer_note"/>
+                                        </td>
+
+                                        <td>
+                                            <a data-bs-toggle="modal" class="btn btn-primary btn-sm"
+                                               style="font-size: 0.9rem;"
+                                               t-attf-href="#collateralUploadModalToggle{{collateral.access_token}}"
+                                               role="button"
+                                               t-if="collateral.uploaded_status == 'pending' and req_collateral_line.stage == 'pending'">
+                                                <i class="fa fa-upload me-2"></i>
+                                                Upload Collateral
+                                            </a>
+
+                                            <a data-bs-toggle="modal" class="btn btn-outline-success px-1 py-0"
+                                               t-attf-href="#collateralUploadModalToggle{{collateral.access_token}}"
+                                               role="button"
+                                               t-if="collateral.uploaded_status == 'uploaded' and req_collateral_line.stage == 'pending'">
+                                                <i class="fa fa-pencil-square-o ps-1"
+                                                   aria-hidden="true"></i>
+                                            </a>
+                                            <a t-attf-href="/delete-req-col-line/#{collateral.access_token}/#{req_collateral_line.access_token}"
+                                               class="btn btn-outline-danger px-2 py-0 ms-1"
+                                               t-if="collateral.uploaded_status == 'uploaded' and req_collateral_line.stage == 'pending'">
+                                                <i class="fa fa-trash-o"
+                                                   aria-hidden="true"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </t>
+                        <div class="text-start mt-4 me-2" t-if="not loan_record.is_collateral_added">
+                            <button type="submit" class="btn btn-primary mb-1" form="uploadCollateral"
+                                    t-if="req_collateral_line.stage == 'pending'">Submit Collateral
+                            </button>
+
+                            <a t-attf-href="/cancel-col-request/#{req_collateral_line.customer_loan_id.access_token}/#{req_collateral_line.access_token}"
+                               class="btn btn-danger mb-1"
+                               t-if="req_collateral_line.stage == 'pending'">
+                                Cancel Request
+                            </a>
+                        </div>
+                    </form>
+
+                    <t t-foreach="req_collateral_line.cst_collateral_doc_lines_ids" t-as="collateral">
+                        <form t-attf-action="/upload-req-col-line/#{collateral.access_token}/#{req_collateral_line.access_token}"
+                              method="post"
+                              t-attf-id="uploadCollateralLineDocument{{collateral.access_token}}"
+                              enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <div class="modal fade" t-attf-id="collateralUploadModalToggle{{collateral.access_token}}"
+                                 aria-hidden="true"
+                                 t-attf-aria-labelledby="collateralUploadModalToggle{{collateral.access_token}}ToggleLabel"
+                                 tabindex="-1">
+                                <div class="modal-dialog modal-xl">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="modal-title"
+                                                id="collateralUploadModal{{collateral.access_token}}ToggleLabel">
+                                                Upload Collateral
+                                            </h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"/>
+                                        </div>
+                                        <div class="modal-body">
+
+                                            <div class="mb-2">
+                                                <label t-attf-for="#{collateral.access_token}">
+                                                    Collateral
+                                                </label>
+                                                <input type="file" class="form-control"
+                                                       t-attf-name="#{collateral.access_token}"
+                                                       t-attf-id="#{collateral.access_token}"
+                                                       aria-describedby="collateralHelp"
+                                                       accept="image/*,.pdf"/>
+                                            </div>
+                                            <div>
+                                                <label t-attf-for="#{collateral.access_token}/description">
+                                                    Customer Note
+                                                </label>
+                                                <textarea t-attf-name="#{collateral.access_token}/description"
+                                                          t-attf-id="#{collateral.access_token}/description"
+                                                          class="ps-1 w-100"><t t-esc="collateral.customer_note"/></textarea>
+                                            </div>
+                                            <div id="collateralHelp" class="form-text text-primary">
+                                                <i class="fa fa-lock"></i>
+                                                Your document is securely protected by us. Rest assured, your
+                                                information is in safe hands.
+                                                <br/>
+                                                <i class="fa fa-check"></i>
+                                                We accept documents in both image and PDF formats (JPEG, PNG, GIF,
+                                                BMP, TIFF, SVG) for your convenience.
+                                            </div>
+
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="submit" t-attf-id="upload{collateral.access_token}"
+                                                    class="btn btn-primary"
+                                                    t-attf-form="uploadCollateralLineDocument{{collateral.access_token}}">
+                                                <i class="fa fa-upload me-2"></i>
+                                                Upload
+                                            </button>
+                                            <button type="button" class="btn btn-danger me-auto"
+                                                    data-bs-dismiss="modal">
+                                                Close
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </t>
+
+
+                </div>
+                <div class="container py-5">
+                    <h1>History</h1>
+                    <t t-call="portal.message_thread">
+                        <t t-set="object" t-value="loan_record"/>
+                    </t>
+                </div>
+            </t>
+        </xpath>
+    </template>
+</odoo>
