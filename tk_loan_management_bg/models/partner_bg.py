@@ -22,7 +22,7 @@ class ResPartnerBG(models.Model):
 
     bulstat = fields.Char(
         string="BULSTAT / БУЛСТАТ",
-        help="BULSTAT number — 9 or 13 digits with checksum",
+        help="BULSTAT number — 9 digits with checksum",
     )
 
     manager_id = fields.Many2one(
@@ -77,36 +77,18 @@ class ResPartnerBG(models.Model):
 
     @api.constrains('bulstat')
     def _check_bulstat(self):
-        """Validate BULSTAT — 9 or 13 digits with checksum."""
+        """Validate BULSTAT — 9 digits with checksum (same algorithm as EIK)."""
         for rec in self:
             bulstat = rec.bulstat
             if not bulstat:
                 continue
             bulstat = bulstat.strip()
-            if not bulstat.isdigit() or len(bulstat) not in (9, 13):
+            if not bulstat.isdigit() or len(bulstat) != 9:
                 raise ValidationError(
-                    _("BULSTAT must be 9 or 13 digits. Got: '%s'") % bulstat)
-            # First 9 digits — same checksum as EIK
-            if not self._validate_eik_9(bulstat[:9]):
+                    _("BULSTAT must be exactly 9 digits. Got: '%s'") % bulstat)
+            if not self._validate_eik_9(bulstat):
                 raise ValidationError(
-                    _("Invalid BULSTAT: first 9 digits checksum mismatch: '%s'") % bulstat)
-            # 13-digit BULSTAT — additional checksum for 13th digit
-            if len(bulstat) == 13:
-                # Weights [2,7,3,5] on digits at positions 8,9,10,11
-                weights_1 = [2, 7, 3, 5]
-                total = sum(int(bulstat[i + 8]) * weights_1[i] for i in range(4))
-                remainder = total % 11
-                if remainder < 10:
-                    check_13 = remainder
-                else:
-                    # Fallback weights [4,9,5,7]
-                    weights_2 = [4, 9, 5, 7]
-                    total = sum(int(bulstat[i + 8]) * weights_2[i] for i in range(4))
-                    remainder = total % 11
-                    check_13 = remainder if remainder < 10 else 0
-                if check_13 != int(bulstat[12]):
-                    raise ValidationError(
-                        _("Invalid BULSTAT: 13th digit checksum mismatch: '%s'") % bulstat)
+                    _("Invalid BULSTAT: checksum mismatch. Check number: '%s'") % bulstat)
 
     # ── Skip EGN and ID card validation for companies ──
 
