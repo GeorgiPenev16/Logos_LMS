@@ -37,26 +37,52 @@
                     </group>
                 </xpath>
 
-                <!-- ═══ BUG 1+2+3 FIX: СКРИВАНЕ НА ЛИЧНИ ДАННИ ЗА ФИРМИ ═══ -->
+                <!-- ═══ FIX: СКРИВАНЕ НА ЛИЧНИ ДАННИ ЗА ФИРМИ ═══ -->
                 <!-- Скриваме ЦЯЛАТА група "Personal Information" за фирми -->
                 <xpath expr="//page[@name='other_info']/group[@string='Personal Information']"
                        position="attributes">
                     <attribute name="invisible">is_company</attribute>
                 </xpath>
 
-                <!-- ЕГН — required само за физически лица (премахва required="1" от base) -->
-                <xpath expr="//field[@name='personal_number']" position="attributes">
-                    <attribute name="required">not is_company</attribute>
+                <!-- ЕГН — replace field: invisible + required only for individuals -->
+                <xpath expr="//field[@name='personal_number']" position="replace">
+                    <field name="personal_number"
+                           required="not is_company"
+                           invisible="is_company"/>
                 </xpath>
 
-                <!-- Дата на издаване — required само за физически лица -->
-                <xpath expr="//field[@name='date_of_issuing']" position="attributes">
-                    <attribute name="required">not is_company</attribute>
+                <!-- Дата на издаване — replace field: invisible + required only for individuals -->
+                <xpath expr="//field[@name='date_of_issuing']" position="replace">
+                    <field name="date_of_issuing"
+                           required="not is_company"
+                           invisible="is_company"/>
                 </xpath>
 
-                <!-- Лична карта — required само за физически лица -->
-                <xpath expr="//field[@name='id_card']" position="attributes">
-                    <attribute name="required">not is_company</attribute>
+                <!-- Издаден от — hide for companies -->
+                <xpath expr="//field[@name='issued_by']" position="replace">
+                    <field name="issued_by"
+                           invisible="is_company"/>
+                </xpath>
+
+                <!-- Лична карта — replace field: invisible + required only for individuals -->
+                <xpath expr="//field[@name='id_card']" position="replace">
+                    <field name="id_card"
+                           required="not is_company"
+                           invisible="is_company"/>
+                </xpath>
+
+                <!-- Вид валидност — hide for companies -->
+                <xpath expr="//field[@name='validity_type']" position="replace">
+                    <field name="validity_type" widget="radio"
+                           options="{'horizontal': True}"
+                           invisible="is_company"/>
+                </xpath>
+
+                <!-- Дата на валидност — hide for companies -->
+                <xpath expr="//field[@name='date_of_validity']" position="replace">
+                    <field name="date_of_validity"
+                           readonly="validity_type == '10_years'" force_save="1"
+                           invisible="is_company"/>
                 </xpath>
 
                 <!-- ═══ РОЛЯ „ПОРЪЧИТЕЛ" В СЕКЦИЯ ROLES ═══ -->
