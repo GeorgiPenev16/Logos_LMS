@@ -141,13 +141,17 @@ class ResPartnerBG(models.Model):
             if id_card and not self.is_valid_id_card(id_card):
                 raise ValidationError(_("Invalid id card number."))
 
-    # ── Показване на ЕГН в name_get за по-лесно разпознаване ──
+    # ── Search by name, search name (ref) and EGN in dropdowns ──
+
+    _rec_names_search = ['name', 'ref', 'personal_number']
+
+    # ── Display EGN in dropdowns for easier identification ──
 
     def _compute_display_name(self):
         """
-        Показва ЕГН след името в падащи менюта.
-        Пример: "Иван Иванов - 7601121234"
-        Помага при избор на правилния човек когато има еднакви имена.
+        Shows EGN after the name in dropdowns.
+        Example: "Ivan Ivanov - 7601121234"
+        Helps pick the right person when names are similar.
         """
         super()._compute_display_name()
         for rec in self:

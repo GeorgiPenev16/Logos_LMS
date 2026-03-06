@@ -31,7 +31,7 @@
                         </group>
                         <group>
                             <field name="manager_id"
-                                   domain="[('parent_id', '=', id), ('is_company', '=', False)]"
+                                   domain="[('is_company', '=', False)]"
                                    options="{'no_create_edit': True, 'no_create': True}"/>
                         </group>
                     </group>
