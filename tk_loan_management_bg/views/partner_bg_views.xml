@@ -2,25 +2,19 @@
 <odoo>
     <data>
         <!--
-            Разширение на формата за партньор.
-            Наследява изгледа на tk_loan_management (не на base),
-            за да добави/скрие полета спрямо is_company.
-
-            Fixes applied:
-            - BUG 1+2+3: Hide entire "Personal Information" group for companies
-              AND override required on each field (belt + suspenders)
-            - BUG 4+5: Move manager_id dynamic domain to XML view,
-              remove from Python field definition to avoid JS eval errors
+            Bulgarian partner form extension.
+            Inherits base.view_partner_form DIRECTLY (not tk_loan_management view)
+            with priority 99 to ensure it applies AFTER all other views.
+            This avoids 3rd-level inheritance issues in Odoo 19.
         -->
         <record id="partner_bg_inherit_view_form" model="ir.ui.view">
             <field name="name">partner.bg.inherit.view.form</field>
             <field name="model">res.partner</field>
-            <field name="inherit_id"
-                   ref="tk_loan_management.customer_load_inherit_res_partner_view_form"/>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="priority">99</field>
             <field name="arch" type="xml">
 
-                <!-- ═══ ФИРМЕНИ ПОЛЕТА: ЕИК, БУЛСТАТ, МОЛ ═══ -->
-                <!-- Вмъкваме нова група преди "Personal Information" -->
+                <!-- ═══ COMPANY FIELDS: EIK, BULSTAT, Manager ═══ -->
                 <xpath expr="//page[@name='other_info']/group[@string='Personal Information']"
                        position="before">
                     <group string="Company Information / Фирмени данни"
@@ -37,72 +31,59 @@
                     </group>
                 </xpath>
 
-                <!-- ═══ FIX: СКРИВАНЕ НА ЛИЧНИ ДАННИ ЗА ФИРМИ ═══ -->
-                <!-- Скриваме ЦЯЛАТА група "Personal Information" за фирми -->
+                <!-- ═══ HIDE Personal Information group for companies ═══ -->
                 <xpath expr="//page[@name='other_info']/group[@string='Personal Information']"
                        position="attributes">
                     <attribute name="invisible">is_company</attribute>
                 </xpath>
 
-                <!-- ЕГН — replace field: invisible + required only for individuals -->
-                <xpath expr="//field[@name='personal_number']" position="replace">
-                    <field name="personal_number"
-                           required="not is_company"
-                           invisible="is_company"/>
+                <!-- EGN — required only for individuals -->
+                <xpath expr="//field[@name='personal_number']" position="attributes">
+                    <attribute name="invisible">is_company</attribute>
+                    <attribute name="required">not is_company</attribute>
                 </xpath>
 
-                <!-- Дата на издаване — replace field: invisible + required only for individuals -->
-                <xpath expr="//field[@name='date_of_issuing']" position="replace">
-                    <field name="date_of_issuing"
-                           required="not is_company"
-                           invisible="is_company"/>
+                <!-- Date of Issuing — required only for individuals -->
+                <xpath expr="//field[@name='date_of_issuing']" position="attributes">
+                    <attribute name="invisible">is_company</attribute>
+                    <attribute name="required">not is_company</attribute>
                 </xpath>
 
-                <!-- Издаден от — hide for companies -->
-                <xpath expr="//field[@name='issued_by']" position="replace">
-                    <field name="issued_by"
-                           invisible="is_company"/>
+                <!-- Issued by — hide for companies -->
+                <xpath expr="//field[@name='issued_by']" position="attributes">
+                    <attribute name="invisible">is_company</attribute>
                 </xpath>
 
-                <!-- Лична карта — replace field: invisible + required only for individuals -->
-                <xpath expr="//field[@name='id_card']" position="replace">
-                    <field name="id_card"
-                           required="not is_company"
-                           invisible="is_company"/>
+                <!-- ID Card — required only for individuals -->
+                <xpath expr="//field[@name='id_card']" position="attributes">
+                    <attribute name="invisible">is_company</attribute>
+                    <attribute name="required">not is_company</attribute>
                 </xpath>
 
-                <!-- Вид валидност — hide for companies -->
-                <xpath expr="//field[@name='validity_type']" position="replace">
-                    <field name="validity_type" widget="radio"
-                           options="{'horizontal': True}"
-                           invisible="is_company"/>
+                <!-- Validity type — hide for companies -->
+                <xpath expr="//field[@name='validity_type']" position="attributes">
+                    <attribute name="invisible">is_company</attribute>
                 </xpath>
 
-                <!-- Дата на валидност — hide for companies -->
-                <xpath expr="//field[@name='date_of_validity']" position="replace">
-                    <field name="date_of_validity"
-                           readonly="validity_type == '10_years'" force_save="1"
-                           invisible="is_company"/>
+                <!-- Date of validity — hide for companies -->
+                <xpath expr="//field[@name='date_of_validity']" position="attributes">
+                    <attribute name="invisible">is_company</attribute>
                 </xpath>
 
-                <!-- ═══ РОЛЯ „ПОРЪЧИТЕЛ" В СЕКЦИЯ ROLES ═══ -->
-                <!-- Добавяме след is_codebtor -->
+                <!-- ═══ GUARANTOR ROLE in Roles section ═══ -->
                 <xpath expr="//field[@name='is_codebtor']" position="after">
                     <field name="is_guarantor"/>
                     <label for="is_guarantor"/>
                 </xpath>
 
-                <!-- ═══ СКРИВАНЕ НА СЕКЦИИ ЗА ФИЗИЧЕСКИ ЛИЦА КОГАТО Е ФИРМА ═══ -->
-                <!-- Семейни данни — скриваме за фирми -->
+                <!-- ═══ HIDE individual-only sections for companies ═══ -->
                 <xpath expr="//group[@string='Family Details']" position="attributes">
                     <attribute name="invisible">is_company</attribute>
                 </xpath>
 
-                <!-- Трудова информация — скриваме за фирми -->
                 <xpath expr="//group[@string='Labour Information']" position="attributes">
                     <attribute name="invisible">is_company</attribute>
                 </xpath>
-
 
             </field>
         </record>
