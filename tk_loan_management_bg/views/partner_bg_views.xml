@@ -3,9 +3,10 @@
     <data>
         <!--
             Bulgarian partner form extension.
-            Inherits base.view_partner_form DIRECTLY (not tk_loan_management view)
-            with priority 99 to ensure it applies AFTER all other views.
-            This avoids 3rd-level inheritance issues in Odoo 19.
+            Inherits base.view_partner_form with priority 99.
+
+            IMPORTANT: Odoo 19 does NOT allow @string as xpath selector.
+            Use field-based selectors instead: group[.//field[@name='...']]
         -->
         <record id="partner_bg_inherit_view_form" model="ir.ui.view">
             <field name="name">partner.bg.inherit.view.form</field>
@@ -15,7 +16,8 @@
             <field name="arch" type="xml">
 
                 <!-- ═══ COMPANY FIELDS: EIK, BULSTAT, Manager ═══ -->
-                <xpath expr="//page[@name='other_info']/group[@string='Personal Information']"
+                <!-- Insert before the group that contains personal_number -->
+                <xpath expr="//page[@name='other_info']/group[.//field[@name='personal_number']]"
                        position="before">
                     <group string="Company Information / Фирмени данни"
                            invisible="not is_company">
@@ -32,7 +34,7 @@
                 </xpath>
 
                 <!-- ═══ HIDE Personal Information group for companies ═══ -->
-                <xpath expr="//page[@name='other_info']/group[@string='Personal Information']"
+                <xpath expr="//page[@name='other_info']/group[.//field[@name='personal_number']]"
                        position="attributes">
                     <attribute name="invisible">is_company</attribute>
                 </xpath>
@@ -77,11 +79,13 @@
                 </xpath>
 
                 <!-- ═══ HIDE individual-only sections for companies ═══ -->
-                <xpath expr="//group[@string='Family Details']" position="attributes">
+                <!-- Labour Information — group containing labour_relation_id -->
+                <xpath expr="//group[field[@name='labour_relation_id']]" position="attributes">
                     <attribute name="invisible">is_company</attribute>
                 </xpath>
 
-                <xpath expr="//group[@string='Labour Information']" position="attributes">
+                <!-- Family Details — group containing family_info_id -->
+                <xpath expr="//group[field[@name='family_info_id']]" position="attributes">
                     <attribute name="invisible">is_company</attribute>
                 </xpath>
 
