@@ -18,31 +18,31 @@ class CustomerLoanBG(models.Model):
 
     represented_by = fields.Many2one(
         comodel_name='res.partner',
-        string="Represented By (Представляван от)",
-        help="Физическо лице, представляващо фирмата-кредитополучател",
+        string="Represented By / Представляван от",
+        help="Individual representing the company borrower",
         domain="[('parent_id', '=', customer_id)]",
     )
 
-    # ── Съдлъжници — свързани с конкретен кредит ──
+    # ── Co-debtors — linked to specific loan ──
 
     codebtor_loan_ids = fields.Many2many(
         comodel_name='res.partner',
         relation='customer_loan_codebtor_rel',
         column1='loan_id',
         column2='partner_id',
-        string="Co-debtors (Съдлъжници)",
+        string="Co-debtors / Съдлъжници",
         domain="[('is_codebtor', '=', True)]",
-        help="Съдлъжници по този кредит — само партньори с роля 'Съдлъжник'",
+        help="Co-debtors on this loan — only partners with Co-debtor role",
     )
 
-    # ── Поръчители — свързани с конкретен кредит ──
+    # ── Guarantors — linked to specific loan ──
 
     guarantor_ids = fields.Many2many(
         comodel_name='res.partner',
         relation='customer_loan_guarantor_rel',
         column1='loan_id',
         column2='partner_id',
-        string="Guarantors (Поръчители)",
+        string="Guarantors / Поръчители",
         domain="[('is_guarantor', '=', True)]",
-        help="Поръчители по този кредит — само партньори с роля 'Поръчител'",
+        help="Guarantors on this loan — only partners with Guarantor role",
     )

@@ -5,6 +5,12 @@
             Разширение на формата за партньор.
             Наследява изгледа на tk_loan_management (не на base),
             за да добави/скрие полета спрямо is_company.
+
+            Fixes applied:
+            - BUG 1+2+3: Hide entire "Personal Information" group for companies
+              AND override required on each field (belt + suspenders)
+            - BUG 4+5: Move manager_id dynamic domain to XML view,
+              remove from Python field definition to avoid JS eval errors
         -->
         <record id="partner_bg_inherit_view_form" model="ir.ui.view">
             <field name="name">partner.bg.inherit.view.form</field>
@@ -15,8 +21,9 @@
 
                 <!-- ═══ ФИРМЕНИ ПОЛЕТА: ЕИК, БУЛСТАТ, МОЛ ═══ -->
                 <!-- Вмъкваме нова група преди "Personal Information" -->
-                <xpath expr="//group[@string='Personal Information']" position="before">
-                    <group string="Company Information (Фирмени данни)"
+                <xpath expr="//page[@name='other_info']/group[@string='Personal Information']"
+                       position="before">
+                    <group string="Company Information / Фирмени данни"
                            invisible="not is_company">
                         <group>
                             <field name="company_id_bg"/>
@@ -24,43 +31,32 @@
                         </group>
                         <group>
                             <field name="manager_id"
+                                   domain="[('parent_id', '=', id), ('is_company', '=', False)]"
                                    options="{'no_create_edit': True, 'no_create': True}"/>
                         </group>
                     </group>
                 </xpath>
 
-                <!-- ═══ СКРИВАНЕ НА ЛИЧНИ ДАННИ ЗА ФИРМИ ═══ -->
-                <!-- ЕГН — скриваме за фирми, задължително само за физически лица -->
+                <!-- ═══ BUG 1+2+3 FIX: СКРИВАНЕ НА ЛИЧНИ ДАННИ ЗА ФИРМИ ═══ -->
+                <!-- Скриваме ЦЯЛАТА група "Personal Information" за фирми -->
+                <xpath expr="//page[@name='other_info']/group[@string='Personal Information']"
+                       position="attributes">
+                    <attribute name="invisible">is_company</attribute>
+                </xpath>
+
+                <!-- ЕГН — required само за физически лица (премахва required="1" от base) -->
                 <xpath expr="//field[@name='personal_number']" position="attributes">
-                    <attribute name="invisible">is_company</attribute>
                     <attribute name="required">not is_company</attribute>
                 </xpath>
 
-                <!-- Дата на издаване — скриваме за фирми -->
+                <!-- Дата на издаване — required само за физически лица -->
                 <xpath expr="//field[@name='date_of_issuing']" position="attributes">
-                    <attribute name="invisible">is_company</attribute>
                     <attribute name="required">not is_company</attribute>
                 </xpath>
 
-                <!-- Издаден от — скриваме за фирми -->
-                <xpath expr="//field[@name='issued_by']" position="attributes">
-                    <attribute name="invisible">is_company</attribute>
-                </xpath>
-
-                <!-- Лична карта — скриваме за фирми -->
+                <!-- Лична карта — required само за физически лица -->
                 <xpath expr="//field[@name='id_card']" position="attributes">
-                    <attribute name="invisible">is_company</attribute>
                     <attribute name="required">not is_company</attribute>
-                </xpath>
-
-                <!-- Вид валидност — скриваме за фирми -->
-                <xpath expr="//field[@name='validity_type']" position="attributes">
-                    <attribute name="invisible">is_company</attribute>
-                </xpath>
-
-                <!-- Дата на валидност — скриваме за фирми -->
-                <xpath expr="//field[@name='date_of_validity']" position="attributes">
-                    <attribute name="invisible">is_company</attribute>
                 </xpath>
 
                 <!-- ═══ РОЛЯ „ПОРЪЧИТЕЛ" В СЕКЦИЯ ROLES ═══ -->
@@ -80,6 +76,7 @@
                 <xpath expr="//group[@string='Labour Information']" position="attributes">
                     <attribute name="invisible">is_company</attribute>
                 </xpath>
+
 
             </field>
         </record>

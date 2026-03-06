@@ -21,27 +21,28 @@ class ResPartnerBG(models.Model):
     # ── Полета за юридически лица (фирми) ──
 
     company_id_bg = fields.Char(
-        string="Company ID (ЕИК)",
+        string="Company ID / ЕИК",
         help="Единен идентификационен код — 9 цифри с контролна сума",
     )
 
     bulstat = fields.Char(
-        string="Company ID B (БУЛСТАТ)",
+        string="BULSTAT / БУЛСТАТ",
         help="БУЛСТАТ за нетърговски субекти — 13 цифри",
     )
 
     manager_id = fields.Many2one(
         comodel_name='res.partner',
-        string="Manager (МОЛ)",
+        string="Manager / МОЛ",
         help="Материално Отговорно Лице — управител на фирмата",
-        domain="[('parent_id', '=', id), ('is_company', '=', False)]",
+        # Domain moved to XML view — 'id' in Python domain causes JS eval
+        # errors on unsaved records, which can break the entire group render.
     )
 
-    # ── Роля „Поръчител" — за физически и юридически лица ──
+    # ── Guarantor role — for individuals and companies ──
 
     is_guarantor = fields.Boolean(
-        string="Поръчител (Guarantor)",
-        help="Отбележете ако лицето може да бъде поръчител по кредит",
+        string="Guarantor / Поръчител",
+        help="Check if this partner can be a guarantor on a loan",
     )
 
     # ── Валидация на ЕИК (9 цифри с контролна сума) ──
