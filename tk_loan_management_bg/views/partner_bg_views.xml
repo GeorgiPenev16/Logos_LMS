@@ -22,7 +22,8 @@
                     <group string="Company Information / Фирмени данни"
                            invisible="not is_company">
                         <group>
-                            <field name="company_id_bg"/>
+                            <field name="company_registry"
+                                   string="Company ID / ЕИК"/>
                             <field name="bulstat"/>
                         </group>
                         <group>
