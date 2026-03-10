@@ -6,91 +6,27 @@ Workflow:
   1. User sets interest_rate (= APR / ANNLSD_AGRD_RT) on the loan.
   2. compute_installment() generates the amortisation schedule.
   3. This module computes from that schedule:
-       - EIR_IFRS  : Effective Interest Rate per IFRS 9 (periodic IRR → annual)
-       - ГПР / APRC: Annual Percentage Rate of Charge via XIRR on all cash flows
+       - EIR_IFRS  : Effective Interest Rate per IFRS 9
+                     = Excel IRR(cash_flows) per period → annualised
+       - ГПР / APRC: Annual Percentage Rate of Charge
+                     = Excel XIRR(amounts, dates) on all cash flows incl. fees
        - total_cost_of_credit
        - total_amount_payable
   4. A constraint blocks confirmation if ГПР > 50 % (ZPK чл. 19, ал. 4).
+
+Requires: pyxirr  (pip install pyxirr)
+          Replicates Excel IRR() and XIRR() exactly.
 """
 
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
+try:
+    from pyxirr import irr as excel_irr, xirr as excel_xirr
+    _PYXIRR_AVAILABLE = True
+except ImportError:
+    _PYXIRR_AVAILABLE = False
 
-# ── Pure-Python financial math (no external libraries) ──────────────────────
-
-def _irr_newton(cashflows):
-    """
-    Periodic IRR via Newton-Raphson for equally-spaced cash flows.
-
-    cashflows : [CF0, CF1, CF2, …]  (CF0 is negative = disbursement)
-    Returns   : periodic rate (float) or None on failure.
-    """
-    rate = 0.01
-    for _ in range(500):
-        try:
-            f  = sum(cf / (1.0 + rate) ** i for i, cf in enumerate(cashflows))
-            df = sum(-i * cf / (1.0 + rate) ** (i + 1) for i, cf in enumerate(cashflows))
-        except (OverflowError, ZeroDivisionError):
-            return None
-        if abs(df) < 1e-12:
-            break
-        new_rate = rate - f / df
-        if new_rate <= -1.0:
-            new_rate = -0.9999
-        if abs(new_rate - rate) < 1e-10:
-            return new_rate
-        rate = new_rate
-    return rate
-
-
-def _xirr_newton(cashflows):
-    """
-    XIRR via Newton-Raphson for date-stamped cash flows.
-
-    cashflows : [(date, amount), …]
-                First entry must be the disbursement (positive).
-                Subsequent entries are repayments (negative).
-    Returns   : annual rate (float) or None on failure.
-    """
-    if not cashflows or len(cashflows) < 2:
-        return None
-
-    t0 = cashflows[0][0]
-
-    def years(d):
-        return (d - t0).days / 365.0
-
-    for initial_guess in (0.10, 0.05, 0.20, 0.01, 0.30):
-        rate = initial_guess
-        for _ in range(500):
-            try:
-                f  = sum(cf / (1.0 + rate) ** years(d) for d, cf in cashflows)
-                df = sum(
-                    -years(d) * cf / (1.0 + rate) ** (years(d) + 1)
-                    for d, cf in cashflows
-                )
-            except (OverflowError, ZeroDivisionError):
-                break
-            if abs(df) < 1e-12:
-                break
-            new_rate = rate - f / df
-            if new_rate <= -1.0:
-                new_rate = -0.9999
-            if abs(new_rate - rate) < 1e-10:
-                return new_rate
-            rate = new_rate
-        # Accept if residual is close enough relative to loan size
-        try:
-            residual = abs(sum(cf / (1.0 + rate) ** years(d) for d, cf in cashflows))
-            if residual < 1.0:
-                return rate
-        except (OverflowError, ZeroDivisionError):
-            continue
-    return None
-
-
-# ── Model ────────────────────────────────────────────────────────────────────
 
 class CustomerLoanFinancial(models.Model):
     """Financial parameters — Phase 4."""
@@ -107,9 +43,10 @@ class CustomerLoanFinancial(models.Model):
         store=True,
         digits=(10, 4),
         help=(
-            "Effective Interest Rate per IFRS 9 — the periodic IRR of the "
-            "principal+interest cash flows, annualised. "
-            "Equals APR for a standard annuity with no upfront fees."
+            "Effective Interest Rate per IFRS 9.\n"
+            "= Excel IRR(P+I cash flows) per period, annualised.\n"
+            "Equals APR for a standard annuity with no upfront fees; "
+            "rises when upfront fees are present."
         ),
     )
 
@@ -119,9 +56,9 @@ class CustomerLoanFinancial(models.Model):
         store=True,
         digits=(10, 4),
         help=(
-            "Годишен Процент на Разходите (Annual Percentage Rate of Charge). "
-            "XIRR of all cash flows: disbursement net of upfront fees, "
-            "all instalments including per-instalment fees. "
+            "Годишен Процент на Разходите (Annual Percentage Rate of Charge).\n"
+            "= Excel XIRR(all cash flows, actual dates), "
+            "including per-instalment fees and upfront fees.\n"
             "Maximum 50 % per ZPK чл. 19, ал. 4."
         ),
     )
@@ -166,43 +103,74 @@ class CustomerLoanFinancial(models.Model):
                 loan.total_amount_payable = 0.0
                 continue
 
-            upfront = loan._upfront_fees_amount()
-            total_pni      = sum(l.total_installment_amount or 0.0 for l in lines)
-            total_line_fee = sum(l.fee_amount or 0.0 for l in lines)
+            upfront       = loan._upfront_fees_amount()
+            total_pni     = sum(l.total_installment_amount or 0.0 for l in lines)
+            total_ln_fee  = sum(l.fee_amount or 0.0 for l in lines)
 
-            loan.total_amount_payable  = total_pni + total_line_fee + upfront
-            loan.total_cost_of_credit  = loan.total_amount_payable - loan.loan_amount
+            loan.total_amount_payable = total_pni + total_ln_fee + upfront
+            loan.total_cost_of_credit = loan.total_amount_payable - loan.loan_amount
 
-            # ── EIR IFRS 9 ──
-            # Net disbursement = loan_amount minus upfront fees already deducted.
-            # Cash flows: P+I instalments only (per-instalment fees excluded per IFRS 9).
-            net = loan.loan_amount - upfront
-            eir_flows = [-net] + [l.total_installment_amount or 0.0 for l in lines]
-            r_periodic = _irr_newton(eir_flows)
-            if r_periodic is not None and r_periodic > -1.0:
-                n = {'monthly': 12, 'quarterly': 4, 'yearly': 1}.get(
-                    loan.installment_type, 12)
-                loan.eir_ifrs = round(((1.0 + r_periodic) ** n - 1.0) * 100.0, 4)
-            else:
-                loan.eir_ifrs = 0.0
+            net = loan.loan_amount - upfront   # net amount received by borrower
 
-            # ── ГПР / APRC (XIRR) ──
-            # All cash flows on actual dates, including per-instalment fees.
+            # ── EIR IFRS 9  =  Excel IRR  ────────────────────────────────
+            # Cash flows: −net on day 0, then each P+I instalment (no fees,
+            # per IFRS 9 amortised-cost definition).
+            eir_cashflows = [-net] + [l.total_installment_amount or 0.0 for l in lines]
+            loan.eir_ifrs = loan._calc_eir(eir_cashflows)
+
+            # ── ГПР / APRC  =  Excel XIRR  ───────────────────────────────
+            # All cash flows on actual calendar dates, incl. per-line fees.
             disburse_date = loan.start_date or lines[0].emi_date
-            xirr_flows = [(disburse_date, net)]
-            for line in lines:
-                payment = (line.total_installment_amount or 0.0) + (line.fee_amount or 0.0)
-                xirr_flows.append((line.emi_date, -payment))
+            xirr_dates   = [disburse_date]  + [l.emi_date for l in lines]
+            xirr_amounts = [net] + [
+                -((l.total_installment_amount or 0.0) + (l.fee_amount or 0.0))
+                for l in lines
+            ]
+            loan.gpr = loan._calc_gpr(xirr_dates, xirr_amounts)
 
-            r_annual = _xirr_newton(xirr_flows)
-            loan.gpr = round(r_annual * 100.0, 4) if r_annual is not None else 0.0
+    def _calc_eir(self, cashflows):
+        """
+        EIR = Excel IRR(cashflows) per period, annualised.
+
+        cashflows : [−net_disbursed, instalment_1, instalment_2, …]
+        """
+        self.ensure_one()
+        if not _PYXIRR_AVAILABLE:
+            return 0.0
+        try:
+            r_period = excel_irr(cashflows)
+            if r_period is None or r_period <= -1.0:
+                return 0.0
+            n = {'monthly': 12, 'quarterly': 4, 'yearly': 1}.get(
+                self.installment_type, 12)
+            return round(((1.0 + r_period) ** n - 1.0) * 100.0, 4)
+        except Exception:
+            return 0.0
+
+    def _calc_gpr(self, dates, amounts):
+        """
+        ГПР = Excel XIRR(amounts, dates) × 100.
+
+        dates   : [disbursement_date, emi_date_1, emi_date_2, …]
+        amounts : [+net_disbursed,   −payment_1, −payment_2, …]
+        """
+        self.ensure_one()
+        if not _PYXIRR_AVAILABLE:
+            return 0.0
+        try:
+            r = excel_xirr(amounts, dates)
+            if r is None:
+                return 0.0
+            return round(r * 100.0, 4)
+        except Exception:
+            return 0.0
 
     def _upfront_fees_amount(self):
         """
-        Return the total upfront fee amount (monetary) for this loan.
+        Total upfront fees (monetary).
 
-        - initial_fee_amount  : percentage of loan_amount (shown as % in view)
-        - processing_fee      : fixed amount OR percentage of loan_amount
+        - initial_fee_amount  : stored as % of loan_amount in the base module
+        - processing_fee      : fixed monetary OR % of loan_amount
         """
         self.ensure_one()
         amount = 0.0
