@@ -41,7 +41,7 @@ class CustomerLoanFinancial(models.Model):
         string="EIR IFRS 9 (%)",
         compute='_compute_financial_rates',
         store=True,
-        digits=(10, 4),
+        digits=(10, 6),
         help=(
             "Effective Interest Rate per IFRS 9.\n"
             "= Excel IRR(P+I cash flows) per period, annualised.\n"
@@ -54,7 +54,7 @@ class CustomerLoanFinancial(models.Model):
         string="ГПР / APRC (%)",
         compute='_compute_financial_rates',
         store=True,
-        digits=(10, 4),
+        digits=(10, 6),
         help=(
             "Годишен Процент на Разходите (Annual Percentage Rate of Charge).\n"
             "= Excel XIRR(all cash flows, actual dates), "
@@ -143,13 +143,13 @@ class CustomerLoanFinancial(models.Model):
                 return 0.0
             n = {'monthly': 12, 'quarterly': 4, 'yearly': 1}.get(
                 self.installment_type, 12)
-            return round(((1.0 + r_period) ** n - 1.0) * 100.0, 4)
+            return round(((1.0 + r_period) ** n - 1.0) * 100.0, 6)
         except Exception:
             return 0.0
 
     def _calc_gpr(self, dates, amounts):
         """
-        ГПР = Excel XIRR(amounts, dates) × 100.
+        ГПР = Excel XIRR(dates, amounts) × 100.
 
         dates   : [disbursement_date, emi_date_1, emi_date_2, …]
         amounts : [+net_disbursed,   −payment_1, −payment_2, …]
@@ -158,10 +158,10 @@ class CustomerLoanFinancial(models.Model):
         if not _PYXIRR_AVAILABLE:
             return 0.0
         try:
-            r = excel_xirr(amounts, dates)
+            r = excel_xirr(dates, amounts)
             if r is None:
                 return 0.0
-            return round(r * 100.0, 4)
+            return round(r * 100.0, 6)
         except Exception:
             return 0.0
 
