@@ -58,7 +58,7 @@
             <field name="arch" type="xml">
 
                 <!-- Add "Generate Document" button next to existing "Request Document" -->
-                <xpath expr="//page[@name='customer_loan_documents']//header"
+                <xpath expr="//page[@name='customer_loan_documents']/header"
                        position="inside">
                     <button name="action_open_generate_wizard"
                             string="Generate Document / Генерирай документ"
