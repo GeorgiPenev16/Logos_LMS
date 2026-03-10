@@ -110,5 +110,13 @@
             </field>
         </record>
 
+        <!-- ═══ Suppress base module "Loan Contract" from gear/print menu ═══
+             The hardcoded contract has wrong company info. Document generation
+             (Phase 5) replaces it. Setting binding_model_id=False removes it
+             from the print menu without modifying tk_loan_management files.   -->
+        <record id="tk_loan_management.loan_contract_report" model="ir.actions.report">
+            <field name="binding_model_id" eval="False"/>
+        </record>
+
     </data>
 </odoo>
