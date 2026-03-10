@@ -29,19 +29,21 @@
 - [x] `views/partner_bg_views.xml` — conditional visibility (`invisible="is_company"` / `invisible="not is_company"`)
 - [x] Domain on codebtor/guarantor handled at loan level (see Phase 3)
 
-## Phase 3: Loan Model Fixes (PARTIAL)
+## Phase 3: Loan Model Fixes ✅ COMPLETE (tested 2026-03-10, installment grid postponed)
 - [x] `models/loan_bg.py` — inherit `customer.loan`
-- [x] `guarantor_ids` Many2many field on loan (domain: `is_guarantor=True`)
-- [x] `codebtor_loan_ids` Many2many field on loan (domain: `is_codebtor=True`)
-- [x] `represented_by` Many2one field (company representative on the loan)
-- [x] `views/loan_bg_views.xml` — show guarantors/codebtors/represented_by on loan form
-- [ ] Editable installment grid (override readonly on `loan_lines_ids`)
+- [x] `represented_by` Many2one field (auto-fills from company МОЛ, hidden for individuals)
+- [x] `customer.loan.codebtor.line` model — `partner_id` + `guarantee_percentage`
+- [x] `customer.loan.guarantor.line` model — `partner_id` + `guarantee_percentage`
+- [x] `codebtor_line_ids` One2many on loan (replaced M2M, unlimited rows)
+- [x] `guarantor_line_ids` One2many on loan (replaced M2M, unlimited rows)
+- [x] `views/loan_bg_views.xml` — represented_by field, editable list tabs with % column
+- [x] `security/ir.model.access.csv` — access rules for both new line models
+- [ ] ~~Editable installment grid~~ — **POSTPONED** (v1.0.8 prepayment wizard covers main use case)
 
 > **v1.0.8 note:** Payment wizard (`loan.payment`) already exists for registering payments
 > with allocation logic (interest → penalty → fee → principal) and prepayment with
 > automatic installment recalculation (`action_recalculate_installment()`).
-> What is still needed: making individual installment line fields editable for manual
-> corrections (e.g. adjusting dates, amounts after schedule generation).
+> Manual line editing is deprioritised — will revisit if a concrete client need arises.
 
 ## Phase 4: Financial Compliance (ГПР)
 - [ ] `models/loan_gpr.py` — pure Python XIRR implementation (Newton-Raphson)

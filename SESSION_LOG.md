@@ -1501,4 +1501,65 @@ Phase 4: ГПР/XIRR calculation (Bulgarian legal requirement, max 50% per ZPK)
 
 ---
 
+## Session: Phase 3 Complete — 2026-03-10
+
+### Bug Fix: represented_by field
+
+**Problem:** Domain `[('parent_id', '=', customer_id)]` searched for Odoo child-contacts of
+the company. МОЛ is a standalone partner with no `parent_id` link → empty dropdown always.
+
+**Fix (`models/loan_bg.py`):**
+- Domain changed to `[('is_company', '=', False)]` — any individual selectable
+- Added `@api.onchange('customer_id')` → auto-fills `represented_by` from `customer_id.manager_id`
+- Field clears when borrower switches to individual
+
+**Fix (`views/loan_bg_views.xml`):**
+- Added `invisible="not customer_id.is_company"` — field hidden for individual borrowers
+
+---
+
+### Feature: Guarantor and Co-debtor line tables
+
+**Replaced** Many2many tag widgets with proper One2many line models so each row can carry
+a percentage field and unlimited rows can be added.
+
+**New models (`models/loan_bg.py`):**
+
+| Model | Fields |
+|-------|--------|
+| `customer.loan.codebtor.line` | `loan_id` (cascade), `partner_id` (domain: `is_codebtor=True`), `guarantee_percentage` Float |
+| `customer.loan.guarantor.line` | `loan_id` (cascade), `partner_id` (domain: `is_guarantor=True`), `guarantee_percentage` Float |
+
+**Replaced fields on `customer.loan`:**
+- `codebtor_loan_ids` (M2M) → `codebtor_line_ids` (O2M to `customer.loan.codebtor.line`)
+- `guarantor_ids` (M2M) → `guarantor_line_ids` (O2M to `customer.loan.guarantor.line`)
+
+**View (`views/loan_bg_views.xml`):**
+- Tab "Съдлъжници": editable list with Partner + Share % columns
+- Tab "Поръчители": editable list with Partner + Guarantee % columns
+- Both tabs locked (`readonly`) after `confirm` status
+
+**Security (`security/ir.model.access.csv`):**
+- Full access (no group restriction) for both new models
+
+**Upgrade issue fixed:** `options=` kwarg was mistakenly placed in Python field definitions
+(it is a view XML attribute only). This caused a silent module load failure in Odoo 19,
+leaving the old view with the removed `codebtor_loan_ids` field in the DB → frontend crash.
+Removed the invalid kwarg and bumped version to `1.0.1` to force a clean re-upgrade.
+
+---
+
+### Phase 3 status
+- All items complete and tested ✅
+- Editable installment grid **postponed** — v1.0.8 prepayment wizard covers the main use case
+
+### Next: Phase 4 — ГПР/XIRR
+Legal requirement per ZPK чл. 19, ал. 4 (max 50%). Must appear on every contract.
+- Pure Python Newton-Raphson XIRR in `models/loan_gpr.py`
+- `gpr`, `total_cost_of_credit`, `total_amount_payable` computed fields on `customer.loan`
+- Hard constraint: ValidationError if ГПР > 50%
+- Display on loan form and contract report
+
+---
+
 *End of session log.*
