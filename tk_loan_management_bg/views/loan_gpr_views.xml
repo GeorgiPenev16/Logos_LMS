@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <!--
+            Phase 4 — Financial parameters on the loan form.
+
+            Adds below the instalment schedule (loan_evaluation page):
+              - APR label on interest_rate
+              - EIR IFRS 9, ГПР/APRC, total cost, total payable
+              - Legal warning if ГПР > 50 %
+        -->
+        <record id="customer_loan_bg_financial_view" model="ir.ui.view">
+            <field name="name">customer.loan.bg.financial.view</field>
+            <field name="model">customer.loan</field>
+            <field name="inherit_id"
+                   ref="tk_loan_management.customer_loan_form_view"/>
+            <field name="arch" type="xml">
+
+                <!-- ═══ Relabel interest_rate → APR on the loan_evaluation page ═══ -->
+                <xpath expr="//page[@name='loan_evaluation']//label[@for='interest_rate']"
+                       position="replace">
+                    <label for="interest_rate"
+                           string="APR / Лихвен процент (%) — ANNLSD_AGRD_RT"/>
+                </xpath>
+
+                <!-- ═══ Financial Parameters group — after instalment schedule ═══ -->
+                <xpath expr="//page[@name='loan_evaluation']//field[@name='loan_lines_ids']"
+                       position="after">
+
+                    <group string="Financial Parameters / Финансови параметри"
+                           invisible="not loan_lines_ids">
+                        <group>
+                            <!-- APR = interest_rate (agreed nominal rate, read-only here) -->
+                            <field name="interest_rate"
+                                   string="APR / Лихвен процент (%)"
+                                   readonly="1"/>
+                            <field name="eir_ifrs" readonly="1"/>
+                            <field name="total_cost_of_credit" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="gpr" readonly="1"/>
+                            <field name="total_amount_payable" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- ГПР over-limit warning -->
+                    <div class="alert alert-warning mt-2" role="alert"
+                         invisible="not loan_lines_ids or gpr &lt;= 50 or gpr == 0">
+                        <strong>Внимание / Warning:</strong>
+                        ГПР надвишава законовия максимум от 50 %
+                        (ЗПК чл. 19, ал. 4). Намалете лихвения процент или таксите.
+                    </div>
+
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</odoo>
