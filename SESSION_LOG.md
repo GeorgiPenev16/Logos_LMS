@@ -1562,4 +1562,69 @@ Legal requirement per ZPK чл. 19, ал. 4 (max 50%). Must appear on every cont
 
 ---
 
+## Session: Phase 4 Complete — 2026-03-10
+
+### Feature: Financial Parameters
+
+**New file: `tk_loan_management_bg/models/loan_gpr.py`**
+
+New computed fields on `customer.loan`:
+
+| Field | Type | Value (test loan 24% APR, 10 months) |
+|-------|------|---------------------------------------|
+| `eir_ifrs` | Float (10,6) | 2.012660 % — periodic EIR per IFRS 9 |
+| `gpr` | Float (10,6) | 26.850392 % — annual ГПР/APRC |
+| `total_cost_of_credit` | Monetary | total interest + all fees |
+| `total_amount_payable` | Monetary | principal + total cost |
+
+**Calculation logic (identical to Excel):**
+
+```
+EIR_IFRS = excel_irr(cashflows)  where:
+    cashflows[0]   = −net_disbursed      (lender outflow, period 0)
+    cashflows[1…n] = +total_instalment_i (lender inflow, equal periods)
+    Result: PERIODIC rate (not annualised)
+
+ГПР/APRC = excel_xirr(dates, amounts)  where:
+    dates[0]   = disbursement_date,  amounts[0]   = −net_disbursed
+    dates[1…n] = emi_date_i,         amounts[1…n] = +payment_i (P+I + fee)
+    Result: ANNUAL rate, day fractions = (date − t₀).days / 365
+```
+
+Both use lender perspective (outflow negative, inflow positive).
+`pyxirr` library used — matches Excel IRR() and XIRR() exactly.
+
+**Disbursement date for XIRR t₀:**
+`disbursement_date or approval_date or lines[0].emi_date`
+(Using `start_date` = `installment_start_date` = first instalment date was the original bug causing inflated ГПР of 34.18% instead of 26.85%)
+
+**New file: `tk_loan_management_bg/views/loan_gpr_views.xml`**
+- "Financial Parameters" group added to Loan Evaluation tab, visible only when instalments exist
+- `interest_rate` relabelled as "APR / Лихвен процент (%) — ANNLSD_AGRD_RT"
+- Warning banner shown when ГПР > 50 %
+- All four computed fields shown readonly
+
+**Constraint:** `_check_gpr_max` — `ValidationError` if `gpr > 50` at status `confirmation` and beyond
+
+**`requirements.txt`:** added `pyxirr`
+
+---
+
+### Bugs fixed during Phase 4 testing
+
+| Bug | Cause | Fix |
+|-----|-------|-----|
+| ГПР = 0.0000 | `excel_xirr(amounts, dates)` — args swapped | `excel_xirr(dates, amounts)` |
+| EIR = 27.013% instead of 2.012660% | Annualisation `(1+r)^n−1` applied — wrong for IFRS 9 periodic rate | Return `r_period * 100` directly |
+| ГПР = 34.18% instead of 26.85% | `start_date` = first instalment date used as disbursement t₀; placed disbursement and instalment 1 on same date | Use `disbursement_date` as t₀ |
+| 4 decimal places | `digits=(10,4)` | `digits=(10,6)` — reporting standard |
+
+---
+
+### Next: Phase 5 — Contract Template System
+Go-live blocker: contract has hardcoded company info (wrong name, wrong EIK).
+Must be dynamic before any Logos loan can be signed.
+
+---
+
 *End of session log.*

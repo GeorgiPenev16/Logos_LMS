@@ -45,19 +45,25 @@
 > automatic installment recalculation (`action_recalculate_installment()`).
 > Manual line editing is deprioritised — will revisit if a concrete client need arises.
 
-## Phase 4: Financial Compliance (ГПР)
-- [ ] `models/loan_gpr.py` — pure Python XIRR implementation (Newton-Raphson)
-- [ ] `gpr` computed field on `customer.loan` (Годишен Процент на Разходите)
-- [ ] `total_cost_of_credit` computed field
-- [ ] `total_amount_payable` computed field
-- [ ] `max_gpr_check` constraint — max 50% per Bulgarian ZPK (Закон за потребителския кредит, чл. 19, ал. 4)
-- [ ] `models/loan_type_bg.py` — min/max loan amounts and terms per type
-- [ ] ГПР display on loan form and contract report
+## Phase 4: Financial Parameters ✅ COMPLETE (tested 2026-03-10)
+- [x] `models/loan_gpr.py` — pyxirr-based IRR and XIRR (identical to Excel functions)
+- [x] `eir_ifrs` computed field — EIR per IFRS 9, periodic rate (e.g. 2.012660 %/month)
+- [x] `gpr` computed field — ГПР/APRC annual rate via XIRR on actual dates (e.g. 26.850392 %)
+- [x] `total_cost_of_credit` computed monetary field
+- [x] `total_amount_payable` computed monetary field
+- [x] `_check_gpr_max` constraint — blocks confirmation if ГПР > 50 % (ZPK чл. 19, ал. 4)
+- [x] `views/loan_gpr_views.xml` — Financial Parameters group on Loan Evaluation tab
+- [x] APR label on `interest_rate` field (ANNLSD_AGRD_RT)
+- [x] Warning banner when ГПР > 50 %
+- [x] 6 decimal places on both EIR and ГПР (reporting standard)
+- [ ] `models/loan_type_bg.py` — min/max loan amounts and terms per type (low priority, postponed)
 
-> **v1.0.8 note:** `account.move.line` already has `is_interest`, `is_principal`, `is_fee`,
-> and `is_overdue_interest` Boolean flags. These categorize each journal entry line by type,
-> which will be directly useful for AnaCredit reporting (Phase 8) — interest income vs
-> principal repayment breakdown is already tracked at the JE line level.
+> **Implementation notes:**
+> - `pyxirr` added to `requirements.txt` — Odoo.sh installs it automatically
+> - EIR = `excel_irr([-disbursed, +pmt1, …])` — periodic rate, NOT annualised
+> - ГПР = `excel_xirr(dates, [-disbursed, +pmt1, …])` — annual, actual day fractions
+> - Disbursement t₀ uses `disbursement_date` → `approval_date` → first line date
+> - `account.move.line` `is_interest`/`is_principal`/`is_fee` flags available for AnaCredit (Phase 8)
 
 ## Phase 5: Contract Template System
 - [ ] `models/contract_template.py` — new model `loan.contract.template`
