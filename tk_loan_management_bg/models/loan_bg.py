@@ -26,7 +26,6 @@ class CustomerLoanCodbtorLine(models.Model):
         string="Co-debtor / Съдлъжник",
         required=True,
         domain="[('is_codebtor', '=', True)]",
-        options="{'no_create_edit': True, 'no_create': True}",
     )
     guarantee_percentage = fields.Float(
         string="Share % / % Съдлъжничество",
@@ -52,7 +51,6 @@ class CustomerLoanGuarantorLine(models.Model):
         string="Guarantor / Поръчител",
         required=True,
         domain="[('is_guarantor', '=', True)]",
-        options="{'no_create_edit': True, 'no_create': True}",
     )
     guarantee_percentage = fields.Float(
         string="Guarantee % / % Поръчителство",
