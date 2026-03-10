@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<odoo noupdate="1">
-    <data>
+<odoo>
+    <data noupdate="1">
         <!--
             Phase 5 — Default document templates.
             noupdate="1" — these records are created once on install and
@@ -11,8 +11,8 @@
         <record id="template_contract" model="loan.document.template">
             <field name="name">Договор за кредит</field>
             <field name="document_type">contract</field>
-            <field name="is_active">True</field>
-            <field name="content" type="html">
+            <field name="is_active" eval="True"/>
+            <field name="content">
 <![CDATA[
 <div style="font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.6;">
 
@@ -161,8 +161,8 @@
         <record id="template_aml" model="loan.document.template">
             <field name="name">Декларация по ЗМИП/AML</field>
             <field name="document_type">aml</field>
-            <field name="is_active">True</field>
-            <field name="content" type="html">
+            <field name="is_active" eval="True"/>
+            <field name="content">
 <![CDATA[
 <div style="font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.6;">
 
@@ -234,8 +234,8 @@
         <record id="template_promissory" model="loan.document.template">
             <field name="name">Запис на заповед</field>
             <field name="document_type">promissory</field>
-            <field name="is_active">True</field>
-            <field name="content" type="html">
+            <field name="is_active" eval="True"/>
+            <field name="content">
 <![CDATA[
 <div style="font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.8;">
 
