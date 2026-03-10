@@ -65,7 +65,7 @@
 > - Disbursement t₀ uses `disbursement_date` → `approval_date` → first line date
 > - `account.move.line` `is_interest`/`is_principal`/`is_fee` flags available for AnaCredit (Phase 8)
 
-## Phase 5: Document System ✅ COMPLETE (implemented 2026-03-10)
+## Phase 5: Document System ✅ COMPLETE (implemented 2026-03-10, build passing 2026-03-10)
 - [x] `models/document_template.py` — `loan.document.template` with 7 document types and {placeholder} system
 - [x] `models/loan_document.py` — `loan.generated.document` + `loan.document.generate.wizard`
 - [x] Bulgarian number-to-words (`_number_to_bg_words`) for `{loan_amount_words}`
