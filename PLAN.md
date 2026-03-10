@@ -65,18 +65,31 @@
 > - Disbursement t₀ uses `disbursement_date` → `approval_date` → first line date
 > - `account.move.line` `is_interest`/`is_principal`/`is_fee` flags available for AnaCredit (Phase 8)
 
-## Phase 5: Contract Template System
-- [ ] `models/contract_template.py` — new model `loan.contract.template`
-- [ ] Editable HTML fields per contract article (Чл. 1 through Чл. 30)
-- [ ] Company info fields pulled dynamically from `res.company`
-- [ ] Borrower/guarantor info populated from loan record
-- [ ] `views/contract_template_views.xml` — admin UI for editing templates
-- [ ] Override `reports/loan_contract.xml` to use dynamic data instead of hardcoded text
-- [ ] Placeholder system: `{company_name}`, `{company_eik}`, `{borrower_name}`, `{borrower_egn}`, etc.
+## Phase 5: Document System ✅ COMPLETE (implemented 2026-03-10)
+- [x] `models/document_template.py` — `loan.document.template` with 7 document types and {placeholder} system
+- [x] `models/loan_document.py` — `loan.generated.document` + `loan.document.generate.wizard`
+- [x] Bulgarian number-to-words (`_number_to_bg_words`) for `{loan_amount_words}`
+- [x] 26 placeholders: loan fields, borrower, guarantor/codebtor, company
+- [x] PDF generation via QWeb (`loan_document_report.xml`)
+- [x] DOCX generation via `python-docx` (optional, graceful fallback)
+- [x] "Generate Document" button in existing Documents tab header (no new tab)
+- [x] Generated docs list in Documents tab (separator + list, hidden when empty)
+- [x] `views/document_template_views.xml` — form/list views + wizard form
+- [x] Menu: Loans → Configuration → Document Templates
+- [x] `data/document_templates_data.xml` — 3 default templates (noupdate=1):
+  - Договор за кредит (full contract with signature lines)
+  - Декларация ЗМИП/AML (AML declaration with checkboxes)
+  - Запис на заповед (promissory note with amount in words)
+- [x] `security/ir.model.access.csv` — access for new models
+- [x] `python-docx` added to `requirements.txt`
 
-> **GO-LIVE BLOCKER:** Contract must be signed before the first Logos loan can be issued.
-> The current contract template has hardcoded company info (wrong company name, wrong EIK).
-> This phase must be completed before any production loan is created.
+> **Implementation notes:**
+> - Templates are fully editable by admin via Loans → Configuration → Document Templates
+> - `noupdate="1"` on data file — admin edits to default templates are preserved on upgrade
+> - PDF generation uses `self.env.ref('tk_loan_management_bg.loan_document_report_action')`
+> - DOCX is generated if `python-docx` is installed, silently skipped otherwise
+> - The old hardcoded base module contract (Finance Hold) is not suppressed — use these templates instead
+> - `{loan_amount_words}` uses Bulgarian number-to-words (e.g. "хиляда и двеста лева и 00 стотинки")
 
 ## Phase 6: Configuration Scripts
 - [ ] `scripts/setup_generic.py` — create journals, accounts, document types, holidays, system params
