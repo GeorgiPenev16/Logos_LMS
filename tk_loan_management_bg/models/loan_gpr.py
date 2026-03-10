@@ -6,13 +6,30 @@ Workflow:
   1. User sets interest_rate (= APR / ANNLSD_AGRD_RT) on the loan.
   2. compute_installment() generates the amortisation schedule.
   3. This module computes from that schedule:
-       - EIR_IFRS  : Effective Interest Rate per IFRS 9
-                     = Excel IRR(cash_flows) per period → annualised
-       - ГПР / APRC: Annual Percentage Rate of Charge
-                     = Excel XIRR(amounts, dates) on all cash flows incl. fees
-       - total_cost_of_credit
-       - total_amount_payable
-  4. A constraint blocks confirmation if ГПР > 50 % (ZPK чл. 19, ал. 4).
+
+       EIR_IFRS  (= Excel IRR)
+       ─────────────────────────────────────────────────────────────────
+       Cash flows (lender perspective, equal periods):
+           period 0 : −disbursement_amount   (bank pays out)
+           period 1…n: +total_instalment_i    (bank receives P+I, fees excluded per IFRS 9)
+       Result: PERIODIC effective interest rate (e.g. 2.012660 % / month).
+       No annualisation — IFRS 9 EIR is the per-period rate.
+
+       ГПР / APRC  (= Excel XIRR)
+       ─────────────────────────────────────────────────────────────────
+       Cash flows (lender perspective, actual calendar dates):
+           disbursement_date : −net_disbursed        (bank pays out, net of upfront fees)
+           each emi_date     : +total_instalment_i   (bank receives P+I + per-line fee)
+       Result: ANNUAL rate based on actual day fractions (days / 365).
+       Maximum 50 % per Bulgarian ZPK чл. 19, ал. 4.
+
+       Relationship:
+           IRR gives the PERIODIC rate → compare to APR / number_of_periods.
+           XIRR gives the ANNUAL rate  → compare to ГПР legal limit.
+           Both use the same cash-flow sign convention; XIRR additionally
+           uses real dates instead of period numbers.
+
+  4. A constraint blocks confirmation if ГПР > 50 %.
 
 Requires: pyxirr  (pip install pyxirr)
           Replicates Excel IRR() and XIRR() exactly.
@@ -43,10 +60,13 @@ class CustomerLoanFinancial(models.Model):
         store=True,
         digits=(10, 6),
         help=(
-            "Effective Interest Rate per IFRS 9.\n"
-            "= Excel IRR(P+I cash flows) per period, annualised.\n"
-            "Equals APR for a standard annuity with no upfront fees; "
-            "rises when upfront fees are present."
+            "Effective Interest Rate per IFRS 9 — periodic rate per instalment period.\n"
+            "= Excel IRR(cash flows) where:\n"
+            "  period 0 : −disbursement (lender outflow)\n"
+            "  period 1…n: +total_instalment (P+I, fees excluded per IFRS 9)\n\n"
+            "For monthly instalments this is the monthly rate (e.g. 2.012660 %).\n"
+            "For quarterly: quarterly rate.  For yearly: annual rate.\n"
+            "Not annualised — this is the per-period EIR as defined in IFRS 9."
         ),
     )
 
@@ -57,8 +77,11 @@ class CustomerLoanFinancial(models.Model):
         digits=(10, 6),
         help=(
             "Годишен Процент на Разходите (Annual Percentage Rate of Charge).\n"
-            "= Excel XIRR(all cash flows, actual dates), "
-            "including per-instalment fees and upfront fees.\n"
+            "= Excel XIRR(cash flows, actual dates) where:\n"
+            "  disbursement_date : −net_disbursed (lender outflow, net of upfront fees)\n"
+            "  each emi_date     : +payment (P+I + per-instalment fee)\n\n"
+            "Always annual, based on actual day fractions (days / 365).\n"
+            "Identical logic to EIR but uses real dates instead of period numbers.\n"
             "Maximum 50 % per ZPK чл. 19, ал. 4."
         ),
     )
@@ -104,38 +127,46 @@ class CustomerLoanFinancial(models.Model):
                 loan.total_amount_payable = 0.0
                 continue
 
-            upfront       = loan._upfront_fees_amount()
-            total_pni     = sum(l.total_installment_amount or 0.0 for l in lines)
-            total_ln_fee  = sum(l.fee_amount or 0.0 for l in lines)
+            upfront      = loan._upfront_fees_amount()
+            total_pni    = sum(l.total_installment_amount or 0.0 for l in lines)
+            total_ln_fee = sum(l.fee_amount or 0.0 for l in lines)
 
             loan.total_amount_payable = total_pni + total_ln_fee + upfront
             loan.total_cost_of_credit = loan.total_amount_payable - loan.loan_amount
 
-            net = loan.loan_amount - upfront   # net amount received by borrower
+            # net = amount actually received by borrower (after upfront fees deducted)
+            net = loan.loan_amount - upfront
 
             # ── EIR IFRS 9  =  Excel IRR  ────────────────────────────────
-            # Cash flows: −net on day 0, then each P+I instalment (no fees,
-            # per IFRS 9 amortised-cost definition).
+            # Lender perspective, equal periods (1, 2, 3 …):
+            #   period 0   : −net  (bank pays out)
+            #   period 1…n : +total_installment_amount  (bank receives P+I)
+            #                fees excluded per IFRS 9 amortised-cost definition
+            # Result: periodic rate (e.g. 2.012660 %/month for 24 % APR monthly)
             eir_cashflows = [-net] + [l.total_installment_amount or 0.0 for l in lines]
             loan.eir_ifrs = loan._calc_eir(eir_cashflows)
 
             # ── ГПР / APRC  =  Excel XIRR  ───────────────────────────────
-            # All cash flows on actual calendar dates, incl. per-line fees.
-            # disbursement_date = when money was actually transferred to borrower.
+            # Lender perspective, actual calendar dates:
+            #   disbursement_date : −net  (bank pays out)
+            #   each emi_date     : +payment  (bank receives P+I + per-line fee)
+            # disbursement_date is the actual date money was transferred.
             # Fallback: approval_date (when interest starts accruing per schedule).
             disburse_date = loan.disbursement_date or loan.approval_date or lines[0].emi_date
-            xirr_dates   = [disburse_date]  + [l.emi_date for l in lines]
-            xirr_amounts = [net] + [
-                -((l.total_installment_amount or 0.0) + (l.fee_amount or 0.0))
+            xirr_dates   = [disburse_date] + [l.emi_date for l in lines]
+            xirr_amounts = [-net] + [
+                (l.total_installment_amount or 0.0) + (l.fee_amount or 0.0)
                 for l in lines
             ]
             loan.gpr = loan._calc_gpr(xirr_dates, xirr_amounts)
 
     def _calc_eir(self, cashflows):
         """
-        EIR = Excel IRR(cashflows) per period, annualised.
+        EIR = Excel IRR(cashflows) — periodic rate, NOT annualised.
 
         cashflows : [−net_disbursed, instalment_1, instalment_2, …]
+                    Lender perspective: outflow negative, inflows positive.
+        Returns   : periodic rate as percentage (e.g. 2.012660 for 2.012660 %).
         """
         self.ensure_one()
         if not _PYXIRR_AVAILABLE:
@@ -144,18 +175,20 @@ class CustomerLoanFinancial(models.Model):
             r_period = excel_irr(cashflows)
             if r_period is None or r_period <= -1.0:
                 return 0.0
-            n = {'monthly': 12, 'quarterly': 4, 'yearly': 1}.get(
-                self.installment_type, 12)
-            return round(((1.0 + r_period) ** n - 1.0) * 100.0, 6)
+            return round(r_period * 100.0, 6)
         except Exception:
             return 0.0
 
     def _calc_gpr(self, dates, amounts):
         """
-        ГПР = Excel XIRR(dates, amounts) × 100.
+        ГПР = Excel XIRR(dates, amounts) × 100 — annual rate.
 
         dates   : [disbursement_date, emi_date_1, emi_date_2, …]
-        amounts : [+net_disbursed,   −payment_1, −payment_2, …]
+        amounts : [−net_disbursed,   +payment_1, +payment_2, …]
+                  Lender perspective: outflow negative, inflows positive.
+                  Uses actual day fractions (days / 365) — identical logic
+                  to IRR but with real dates instead of period numbers.
+        Returns : annual rate as percentage (e.g. 26.850392 for 26.850392 %).
         """
         self.ensure_one()
         if not _PYXIRR_AVAILABLE:
@@ -170,7 +203,7 @@ class CustomerLoanFinancial(models.Model):
 
     def _upfront_fees_amount(self):
         """
-        Total upfront fees (monetary).
+        Total upfront fees in monetary amount.
 
         - initial_fee_amount  : stored as % of loan_amount in the base module
         - processing_fee      : fixed monetary OR % of loan_amount
@@ -196,7 +229,7 @@ class CustomerLoanFinancial(models.Model):
         for loan in self:
             if loan.status in blocked and loan.gpr > 50.0:
                 raise ValidationError(_(
-                    "ГПР %(rate).2f %% exceeds the legal maximum of 50 %% "
+                    "ГПР %(rate).6f %% exceeds the legal maximum of 50 %% "
                     "(ZPK чл. 19, ал. 4).\n"
                     "Please reduce the interest rate or fees before confirming the loan."
                 ) % {'rate': loan.gpr})
