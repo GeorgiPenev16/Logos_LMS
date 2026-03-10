@@ -197,7 +197,7 @@ class LoanGeneratedDocument(models.Model):
         readonly=True,
     )
 
-    @api.depends('template_id', 'loan_id')
+    @api.depends('template_id', 'template_id.name', 'loan_id', 'loan_id.name')
     def _compute_name(self):
         for rec in self:
             t = rec.template_id.name if rec.template_id else ''
@@ -407,7 +407,6 @@ class LoanDocumentGenerateWizard(models.TransientModel):
         comodel_name='customer.loan',
         string="Loan / Кредит",
         required=True,
-        readonly=True,
     )
     template_id = fields.Many2one(
         comodel_name='loan.document.template',
