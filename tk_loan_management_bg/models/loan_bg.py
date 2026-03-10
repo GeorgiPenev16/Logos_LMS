@@ -4,10 +4,62 @@
 
 Добавя:
 - Представляван от (represented_by) — за фирмени кредитополучатели
-- Съдлъжници (codebtor_loan_ids) — Many2many с домейн is_codebtor=True
-- Поръчители (guarantor_ids) — Many2many с домейн is_guarantor=True
+- Редове на съдлъжници (codebtor_line_ids) — с % на съдлъжничество
+- Редове на поръчители (guarantor_line_ids) — с % на поръчителство
 """
 from odoo import fields, models, api
+
+
+class CustomerLoanCodbtorLine(models.Model):
+    """Ред на съдлъжник към кредит"""
+    _name = 'customer.loan.codebtor.line'
+    _description = 'Loan Co-debtor Line / Ред на съдлъжник'
+
+    loan_id = fields.Many2one(
+        comodel_name='customer.loan',
+        string="Loan / Кредит",
+        required=True,
+        ondelete='cascade',
+    )
+    partner_id = fields.Many2one(
+        comodel_name='res.partner',
+        string="Co-debtor / Съдлъжник",
+        required=True,
+        domain="[('is_codebtor', '=', True)]",
+        options="{'no_create_edit': True, 'no_create': True}",
+    )
+    guarantee_percentage = fields.Float(
+        string="Share % / % Съдлъжничество",
+        default=100.0,
+        digits=(5, 2),
+        help="Percentage of the loan this co-debtor is responsible for",
+    )
+
+
+class CustomerLoanGuarantorLine(models.Model):
+    """Ред на поръчител към кредит"""
+    _name = 'customer.loan.guarantor.line'
+    _description = 'Loan Guarantor Line / Ред на поръчител'
+
+    loan_id = fields.Many2one(
+        comodel_name='customer.loan',
+        string="Loan / Кредит",
+        required=True,
+        ondelete='cascade',
+    )
+    partner_id = fields.Many2one(
+        comodel_name='res.partner',
+        string="Guarantor / Поръчител",
+        required=True,
+        domain="[('is_guarantor', '=', True)]",
+        options="{'no_create_edit': True, 'no_create': True}",
+    )
+    guarantee_percentage = fields.Float(
+        string="Guarantee % / % Поръчителство",
+        default=100.0,
+        digits=(5, 2),
+        help="Percentage of the loan covered by this guarantor",
+    )
 
 
 class CustomerLoanBG(models.Model):
@@ -31,26 +83,18 @@ class CustomerLoanBG(models.Model):
         else:
             self.represented_by = False
 
-    # ── Co-debtors — linked to specific loan ──
+    # ── Co-debtor lines — one row per co-debtor with percentage ──
 
-    codebtor_loan_ids = fields.Many2many(
-        comodel_name='res.partner',
-        relation='customer_loan_codebtor_rel',
-        column1='loan_id',
-        column2='partner_id',
+    codebtor_line_ids = fields.One2many(
+        comodel_name='customer.loan.codebtor.line',
+        inverse_name='loan_id',
         string="Co-debtors / Съдлъжници",
-        domain="[('is_codebtor', '=', True)]",
-        help="Co-debtors on this loan — only partners with Co-debtor role",
     )
 
-    # ── Guarantors — linked to specific loan ──
+    # ── Guarantor lines — one row per guarantor with percentage ──
 
-    guarantor_ids = fields.Many2many(
-        comodel_name='res.partner',
-        relation='customer_loan_guarantor_rel',
-        column1='loan_id',
-        column2='partner_id',
+    guarantor_line_ids = fields.One2many(
+        comodel_name='customer.loan.guarantor.line',
+        inverse_name='loan_id',
         string="Guarantors / Поръчители",
-        domain="[('is_guarantor', '=', True)]",
-        help="Guarantors on this loan — only partners with Guarantor role",
     )

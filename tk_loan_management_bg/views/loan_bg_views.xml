@@ -23,28 +23,26 @@
                 <!-- ═══ ТАБ „СЪДЛЪЖНИЦИ" ═══ -->
                 <xpath expr="//page[@name='repayment_terms']" position="after">
                     <page name="codebtors_bg" string="Съдлъжници / Co-debtors">
-                        <field name="codebtor_loan_ids" nolabel="1"
-                               widget="many2many_tags"
-                               options="{'no_create_edit': True, 'no_create': True}"
-                               readonly="status not in ('draft', 'confirm')"/>
-                        <group>
-                            <div class="text-muted fst-italic">
-                                Само партньори с роля „Съдлъжник" могат да бъдат добавени.
-                            </div>
-                        </group>
+                        <field name="codebtor_line_ids" nolabel="1"
+                               readonly="status not in ('draft', 'confirm')">
+                            <list editable="bottom">
+                                <field name="partner_id"
+                                       options="{'no_create_edit': True, 'no_create': True}"/>
+                                <field name="guarantee_percentage" string="Share % / % Съдлъжничество"/>
+                            </list>
+                        </field>
                     </page>
 
                     <!-- ═══ ТАБ „ПОРЪЧИТЕЛИ" ═══ -->
                     <page name="guarantors_bg" string="Поръчители / Guarantors">
-                        <field name="guarantor_ids" nolabel="1"
-                               widget="many2many_tags"
-                               options="{'no_create_edit': True, 'no_create': True}"
-                               readonly="status not in ('draft', 'confirm')"/>
-                        <group>
-                            <div class="text-muted fst-italic">
-                                Само партньори с роля „Поръчител" могат да бъдат добавени.
-                            </div>
-                        </group>
+                        <field name="guarantor_line_ids" nolabel="1"
+                               readonly="status not in ('draft', 'confirm')">
+                            <list editable="bottom">
+                                <field name="partner_id"
+                                       options="{'no_create_edit': True, 'no_create': True}"/>
+                                <field name="guarantee_percentage" string="Guarantee % / % Поръчителство"/>
+                            </list>
+                        </field>
                     </page>
                 </xpath>
 
