@@ -76,12 +76,25 @@ class CustomerLoanFinancial(models.Model):
         store=True,
         digits=(10, 6),
         help=(
-            "Годишен Процент на Разходите (Annual Percentage Rate of Charge).\n"
+            "Годишен Процент на Разходите — метод 1: Excel XIRR с реални дати.\n"
             "= Excel XIRR(cash flows, actual dates) where:\n"
             "  disbursement_date : −net_disbursed (lender outflow, net of upfront fees)\n"
             "  each emi_date     : +payment (P+I + per-instalment fee)\n\n"
-            "Always annual, based on actual day fractions (days / 365).\n"
-            "Identical logic to EIR but uses real dates instead of period numbers.\n"
+            "Annual rate based on actual day fractions (days / 365).\n"
+            "Maximum 50 % per ZPK чл. 19, ал. 4."
+        ),
+    )
+
+    gpr2 = fields.Float(
+        string="ГПР2 / APRC2 (%)",
+        compute='_compute_financial_rates',
+        store=True,
+        digits=(10, 6),
+        help=(
+            "Годишен Процент на Разходите — метод 2: анюализиран периодичен EIR.\n"
+            "= (1 + EIR_period/100)^n − 1  where n = periods per year.\n\n"
+            "For monthly instalments: (1 + 2.012660/100)^12 − 1 = 27.013 %\n"
+            "Uses equal-period assumption (no actual date drift).\n"
             "Maximum 50 % per ZPK чл. 19, ал. 4."
         ),
     )
@@ -123,6 +136,7 @@ class CustomerLoanFinancial(models.Model):
             if not lines or not loan.loan_amount:
                 loan.eir_ifrs = 0.0
                 loan.gpr = 0.0
+                loan.gpr2 = 0.0
                 loan.total_cost_of_credit = 0.0
                 loan.total_amount_payable = 0.0
                 continue
@@ -145,6 +159,13 @@ class CustomerLoanFinancial(models.Model):
             # Result: periodic rate (e.g. 2.012660 %/month for 24 % APR monthly)
             eir_cashflows = [-net] + [l.total_installment_amount or 0.0 for l in lines]
             loan.eir_ifrs = loan._calc_eir(eir_cashflows)
+
+            # ── ГПР2 — annualised EIR: (1 + r_period)^n − 1  ────────────
+            # Same cash flows as EIR but result expressed as annual rate.
+            # Uses equal-period assumption (no actual date drift).
+            n = {'monthly': 12, 'quarterly': 4, 'yearly': 1}.get(loan.installment_type, 12)
+            r = loan.eir_ifrs / 100.0
+            loan.gpr2 = round(((1.0 + r) ** n - 1.0) * 100.0, 6) if r > 0.0 else 0.0
 
             # ── ГПР / APRC  =  Excel XIRR  ───────────────────────────────
             # Lender perspective, actual calendar dates:
@@ -221,15 +242,23 @@ class CustomerLoanFinancial(models.Model):
 
     # ── Legal constraint ─────────────────────────────────────────────────────
 
-    @api.constrains('gpr', 'status')
+    @api.constrains('gpr', 'gpr2', 'status')
     def _check_gpr_max(self):
-        """Block progression past dept_approval if ГПР > 50 % (ZPK чл. 19, ал. 4)."""
+        """Block progression past dept_approval if either ГПР > 50 % (ZPK чл. 19, ал. 4)."""
         blocked = {'confirmation', 'disbursement', 'in_progress',
                    'pre_closure', 'settlement', 'closure'}
         for loan in self:
-            if loan.status in blocked and loan.gpr > 50.0:
+            if loan.status not in blocked:
+                continue
+            if loan.gpr > 50.0:
                 raise ValidationError(_(
-                    "ГПР %(rate).6f %% exceeds the legal maximum of 50 %% "
+                    "ГПР (XIRR) %(rate).6f %% exceeds the legal maximum of 50 %% "
                     "(ZPK чл. 19, ал. 4).\n"
                     "Please reduce the interest rate or fees before confirming the loan."
                 ) % {'rate': loan.gpr})
+            if loan.gpr2 > 50.0:
+                raise ValidationError(_(
+                    "ГПР2 (annualised EIR) %(rate).6f %% exceeds the legal maximum of 50 %% "
+                    "(ZPK чл. 19, ал. 4).\n"
+                    "Please reduce the interest rate or fees before confirming the loan."
+                ) % {'rate': loan.gpr2})

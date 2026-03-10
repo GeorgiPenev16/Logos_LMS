@@ -39,13 +39,14 @@
                         </group>
                         <group>
                             <field name="gpr" readonly="1"/>
+                            <field name="gpr2" readonly="1"/>
                             <field name="total_amount_payable" readonly="1"/>
                         </group>
                     </group>
 
                     <!-- ГПР over-limit warning -->
                     <div class="alert alert-warning mt-2" role="alert"
-                         invisible="not loan_lines_ids or gpr &lt;= 50 or gpr == 0">
+                         invisible="not loan_lines_ids or (gpr &lt;= 50 and gpr2 &lt;= 50) or (gpr == 0 and gpr2 == 0)">
                         <strong>Внимание / Warning:</strong>
                         ГПР надвишава законовия максимум от 50 %
                         (ЗПК чл. 19, ал. 4). Намалете лихвения процент или таксите.
