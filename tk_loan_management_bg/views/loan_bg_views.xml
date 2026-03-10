@@ -48,5 +48,50 @@
 
             </field>
         </record>
+
+        <!-- ═══ Phase 5: Generate Document button + generated list in Documents tab ═══ -->
+        <record id="customer_loan_bg_documents_view" model="ir.ui.view">
+            <field name="name">customer.loan.bg.documents.view</field>
+            <field name="model">customer.loan</field>
+            <field name="inherit_id"
+                   ref="tk_loan_management.customer_loan_form_view"/>
+            <field name="arch" type="xml">
+
+                <!-- Add "Generate Document" button next to existing "Request Document" -->
+                <xpath expr="//page[@name='customer_loan_documents']//header"
+                       position="inside">
+                    <button name="action_open_generate_wizard"
+                            string="Generate Document / Генерирай документ"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="not id"/>
+                </xpath>
+
+                <!-- Generated documents list — after the existing customer_loan_doc_ids field -->
+                <xpath expr="//page[@name='customer_loan_documents']//field[@name='customer_loan_doc_ids']"
+                       position="after">
+                    <separator string="Generated Documents / Генерирани документи"
+                               invisible="not generated_document_ids"/>
+                    <field name="generated_document_ids" nolabel="1"
+                           invisible="not generated_document_ids">
+                        <list create="0" delete="1" edit="0">
+                            <field name="name"/>
+                            <field name="template_id" optional="show"/>
+                            <field name="generated_date"/>
+                            <field name="state" widget="badge"
+                                   decoration-success="state == 'signed'"
+                                   decoration-info="state == 'generated'"
+                                   decoration-muted="state == 'draft'"/>
+                            <field name="attachment_pdf_id" widget="many2one"
+                                   string="PDF" optional="show"/>
+                            <field name="attachment_docx_id" widget="many2one"
+                                   string="DOCX" optional="show"/>
+                        </list>
+                    </field>
+                </xpath>
+
+            </field>
+        </record>
+
     </data>
 </odoo>

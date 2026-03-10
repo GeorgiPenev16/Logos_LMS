@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <!--
+            Phase 5 — Loan Document Templates configuration views.
+            Menu: Loans → Configuration → Document Templates
+        -->
+
+        <!-- ═══ Loan Document Template — Form View ═══ -->
+        <record id="loan_document_template_form_view" model="ir.ui.view">
+            <field name="name">loan.document.template.form</field>
+            <field name="model">loan.document.template</field>
+            <field name="arch" type="xml">
+                <form string="Document Template / Шаблон за документ">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" placeholder="Template name..."/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="document_type"/>
+                                <field name="company_id" groups="base.group_multi_company"/>
+                            </group>
+                            <group>
+                                <field name="is_active"/>
+                            </group>
+                        </group>
+
+                        <!-- Placeholder reference box -->
+                        <div class="alert alert-info" role="alert">
+                            <strong>Available placeholders / Налични пласхолдъри:</strong><br/>
+                            <code>{loan_ref}</code> · <code>{loan_date}</code> ·
+                            <code>{loan_amount}</code> · <code>{loan_amount_words}</code> ·
+                            <code>{interest_rate}</code> · <code>{gpr}</code> ·
+                            <code>{term}</code> · <code>{monthly_payment}</code> ·
+                            <code>{total_payable}</code> · <code>{total_cost}</code> ·
+                            <code>{start_date}</code><br/>
+                            <code>{borrower_name}</code> · <code>{borrower_egn}</code> ·
+                            <code>{borrower_eik}</code> · <code>{borrower_address}</code> ·
+                            <code>{represented_by}</code> · <code>{represented_egn}</code><br/>
+                            <code>{guarantor_1_name}</code> · <code>{guarantor_1_egn}</code> ·
+                            <code>{codebtor_1_name}</code> · <code>{codebtor_1_egn}</code><br/>
+                            <code>{company_name}</code> · <code>{company_eik}</code> ·
+                            <code>{company_address}</code> · <code>{company_mol}</code> ·
+                            <code>{city}</code> · <code>{today_date}</code>
+                        </div>
+
+                        <notebook>
+                            <page string="Content / Съдържание" name="content">
+                                <field name="content" widget="html" nolabel="1"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- ═══ Loan Document Template — List View ═══ -->
+        <record id="loan_document_template_list_view" model="ir.ui.view">
+            <field name="name">loan.document.template.list</field>
+            <field name="model">loan.document.template</field>
+            <field name="arch" type="xml">
+                <list string="Document Templates / Шаблони за документи">
+                    <field name="name"/>
+                    <field name="document_type"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="is_active"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- ═══ Loan Document Template — Action ═══ -->
+        <record id="loan_document_template_action" model="ir.actions.act_window">
+            <field name="name">Document Templates / Шаблони за документи</field>
+            <field name="res_model">loan.document.template</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{'default_is_active': True}</field>
+        </record>
+
+        <!-- ═══ Menu: Loans → Configuration → Document Templates ═══ -->
+        <menuitem id="menu_loan_document_templates"
+                  name="Document Templates / Шаблони"
+                  parent="tk_loan_management.customer_loan_configuration"
+                  action="loan_document_template_action"
+                  sequence="20"/>
+
+        <!-- ═══ Generate Document Wizard — Form View ═══ -->
+        <record id="loan_document_generate_wizard_form" model="ir.ui.view">
+            <field name="name">loan.document.generate.wizard.form</field>
+            <field name="model">loan.document.generate.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Generate Document / Генериране на документ">
+                    <group>
+                        <field name="loan_id" readonly="1"/>
+                        <field name="template_id"
+                               options="{'no_create': True, 'no_create_edit': True}"/>
+                    </group>
+                    <footer>
+                        <button name="action_generate"
+                                string="Generate / Генерирай"
+                                type="object"
+                                class="btn-primary"/>
+                        <button string="Cancel / Отказ"
+                                class="btn-secondary"
+                                special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

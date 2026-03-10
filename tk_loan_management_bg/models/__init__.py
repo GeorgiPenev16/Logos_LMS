@@ -3,6 +3,8 @@
 from . import partner_bg
 from . import loan_bg
 from . import loan_gpr
+# Phase 5: Document System
+from . import document_template
+from . import loan_document
 # from . import loan_type_bg      # Фаза 4
-# from . import contract_template # Фаза 5
 # from . import anacredit_fields  # Фаза 8

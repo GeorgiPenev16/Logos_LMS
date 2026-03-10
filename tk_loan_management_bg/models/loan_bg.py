@@ -7,7 +7,7 @@
 - Редове на съдлъжници (codebtor_line_ids) — с % на съдлъжничество
 - Редове на поръчители (guarantor_line_ids) — с % на поръчителство
 """
-from odoo import fields, models, api
+from odoo import fields, models, api, _
 
 
 class CustomerLoanCodbtorLine(models.Model):
@@ -96,3 +96,25 @@ class CustomerLoanBG(models.Model):
         inverse_name='loan_id',
         string="Guarantors / Поръчители",
     )
+
+    # ── Generated documents (Phase 5) ────────────────────────────────────────
+
+    generated_document_ids = fields.One2many(
+        comodel_name='loan.generated.document',
+        inverse_name='loan_id',
+        string="Generated Documents / Генерирани документи",
+    )
+
+    def action_open_generate_wizard(self):
+        """Open the document generation wizard."""
+        self.ensure_one()
+        return {
+            'type':      'ir.actions.act_window',
+            'name':      _('Generate Document / Генериране на документ'),
+            'res_model': 'loan.document.generate.wizard',
+            'view_mode': 'form',
+            'target':    'new',
+            'context': {
+                'default_loan_id': self.id,
+            },
+        }

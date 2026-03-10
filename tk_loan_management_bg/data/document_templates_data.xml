@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+    <data>
+        <!--
+            Phase 5 — Default document templates.
+            noupdate="1" — these records are created once on install and
+            not overwritten on module upgrade, so admin edits are preserved.
+        -->
+
+        <!-- ═══ Template 1: Договор за кредит ═══ -->
+        <record id="template_contract" model="loan.document.template">
+            <field name="name">Договор за кредит</field>
+            <field name="document_type">contract</field>
+            <field name="is_active">True</field>
+            <field name="content" type="html">
+<![CDATA[
+<div style="font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.6;">
+
+<h2 style="text-align:center;">ДОГОВОР ЗА ПОТРЕБИТЕЛСКИ КРЕДИТ</h2>
+<h3 style="text-align:center;">№ {loan_ref} / {loan_date}</h3>
+
+<p style="text-align:center;">гр. {city}</p>
+
+<p>Днес, <strong>{today_date}</strong>, между:</p>
+
+<p><strong>КРЕДИТОР:</strong> <strong>{company_name}</strong>, ЕИК {company_eik},
+със седалище и адрес на управление: {company_address},
+представлявано от {company_mol},
+наричано по-долу <em>„Кредитор"</em>,</p>
+
+<p>и</p>
+
+<p><strong>КРЕДИТОПОЛУЧАТЕЛ:</strong> <strong>{borrower_name}</strong>,
+ЕГН/ЕИК: {borrower_egn}{borrower_eik},
+адрес: {borrower_address},
+представляван от: {represented_by} (ЕГН: {represented_egn}),
+наричан по-долу <em>„Кредитополучател"</em>,</p>
+
+<p>и</p>
+
+<p><strong>ПОРЪЧИТЕЛ:</strong> <strong>{guarantor_1_name}</strong>,
+ЕГН: {guarantor_1_egn},
+(ако е приложимо),
+наричан по-долу <em>„Поръчител"</em>,</p>
+
+<p>се сключи настоящият договор за потребителски кредит при следните условия:</p>
+
+<hr/>
+<h3>ЧЛ. 1. ПРЕДМЕТ НА ДОГОВОРА</h3>
+<p>Кредиторът предоставя на Кредитополучателя сума в размер на
+<strong>{loan_amount}</strong> (<em>{loan_amount_words}</em>),
+при условията, посочени в настоящия договор.</p>
+
+<hr/>
+<h3>ЧЛ. 2. ПАРАМЕТРИ НА КРЕДИТА</h3>
+<table style="width:100%; border-collapse: collapse;">
+  <tr style="background:#f0f0f0;">
+    <th style="border:1px solid #ccc; padding:6px; text-align:left;">Параметър</th>
+    <th style="border:1px solid #ccc; padding:6px; text-align:left;">Стойност</th>
+  </tr>
+  <tr>
+    <td style="border:1px solid #ccc; padding:6px;">Размер на кредита</td>
+    <td style="border:1px solid #ccc; padding:6px;"><strong>{loan_amount}</strong></td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #ccc; padding:6px;">Лихвен процент (APR)</td>
+    <td style="border:1px solid #ccc; padding:6px;">{interest_rate} %</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #ccc; padding:6px;">ГПР (APRC)</td>
+    <td style="border:1px solid #ccc; padding:6px;">{gpr} %</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #ccc; padding:6px;">Срок</td>
+    <td style="border:1px solid #ccc; padding:6px;">{term} месеца</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #ccc; padding:6px;">Месечна вноска</td>
+    <td style="border:1px solid #ccc; padding:6px;">{monthly_payment}</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #ccc; padding:6px;">Дата на първа вноска</td>
+    <td style="border:1px solid #ccc; padding:6px;">{start_date}</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #ccc; padding:6px;">Обща дължима сума</td>
+    <td style="border:1px solid #ccc; padding:6px;"><strong>{total_payable}</strong></td>
+  </tr>
+  <tr>
+    <td style="border:1px solid #ccc; padding:6px;">Обща цена на кредита</td>
+    <td style="border:1px solid #ccc; padding:6px;">{total_cost}</td>
+  </tr>
+</table>
+
+<hr/>
+<h3>ЧЛ. 3. УСЛОВИЯ ЗА УСВОЯВАНЕ</h3>
+<p>Сумата по кредита се усвоява по банков път на посочената от Кредитополучателя банкова сметка след подписване на настоящия договор и представяне на всички необходими документи.</p>
+
+<hr/>
+<h3>ЧЛ. 4. ПОГАСЯВАНЕ</h3>
+<p>Кредитополучателят се задължава да погасява кредита на равни месечни вноски в размер на
+<strong>{monthly_payment}</strong>, считано от <strong>{start_date}</strong>.
+Погасяването се извършва чрез банков превод или на касата на Кредитора.</p>
+
+<hr/>
+<h3>ЧЛ. 5. ПРЕДСРОЧНО ПОГАСЯВАНЕ</h3>
+<p>Кредитополучателят има право да погаси изцяло или частично кредита преди крайния срок, като уведоми Кредитора писмено най-малко 14 дни предварително.</p>
+
+<hr/>
+<h3>ЧЛ. 6. САНКЦИИ ПРИ ПРОСРОЧИЕ</h3>
+<p>При неплащане в срок Кредитополучателят дължи наказателна лихва в размер, определен съгласно действащите тарифи на Кредитора.</p>
+
+<hr/>
+<h3>ЧЛ. 7. ПОРЪЧИТЕЛСТВО</h3>
+<p>{guarantor_1_name} (ЕГН: {guarantor_1_egn}) се задължава солидарно с Кредитополучателя за изплащане на всички суми по настоящия договор.</p>
+
+<hr/>
+<h3>ЧЛ. 8. ПРИЛОЖИМО ПРАВО</h3>
+<p>Настоящият договор се регулира от законодателството на Република България, включително Закона за потребителския кредит (ЗПК).</p>
+
+<hr/>
+<br/>
+<br/>
+
+<table style="width:100%;">
+  <tr>
+    <td style="width:48%; vertical-align:top;">
+      <p><strong>КРЕДИТОР:</strong></p>
+      <p>{company_name}</p>
+      <p>Подпис: __________________________</p>
+      <p>Дата: {today_date}</p>
+    </td>
+    <td style="width:4%;"></td>
+    <td style="width:48%; vertical-align:top;">
+      <p><strong>КРЕДИТОПОЛУЧАТЕЛ:</strong></p>
+      <p>{borrower_name}</p>
+      <p>Подпис: __________________________</p>
+      <p>Дата: {today_date}</p>
+    </td>
+  </tr>
+</table>
+
+<br/>
+<table style="width:100%;">
+  <tr>
+    <td style="width:48%; vertical-align:top;">
+      <p><strong>ПОРЪЧИТЕЛ:</strong></p>
+      <p>{guarantor_1_name}</p>
+      <p>Подпис: __________________________</p>
+      <p>Дата: {today_date}</p>
+    </td>
+  </tr>
+</table>
+
+</div>
+]]>
+            </field>
+        </record>
+
+        <!-- ═══ Template 2: Декларация по ЗМИП (AML) ═══ -->
+        <record id="template_aml" model="loan.document.template">
+            <field name="name">Декларация по ЗМИП/AML</field>
+            <field name="document_type">aml</field>
+            <field name="is_active">True</field>
+            <field name="content" type="html">
+<![CDATA[
+<div style="font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.6;">
+
+<h2 style="text-align:center;">ДЕКЛАРАЦИЯ</h2>
+<h3 style="text-align:center;">по чл. 59, ал. 1, т. 3 от Закона за мерките срещу изпирането на пари (ЗМИП)</h3>
+
+<p style="text-align:center;">гр. {city}, {today_date}</p>
+
+<p>Долуподписаният/ата <strong>{borrower_name}</strong>,
+ЕГН: <strong>{borrower_egn}</strong>,
+адрес: {borrower_address},</p>
+
+<p>във връзка с договор за кредит № <strong>{loan_ref}</strong> от <strong>{loan_date}</strong>,
+сключен с <strong>{company_name}</strong>,
+<strong>ДЕКЛАРИРАМ:</strong></p>
+
+<h3>I. ПРОИЗХОД НА СРЕДСТВАТА</h3>
+<p>Средствата, предназначени за погасяване на кредита, произхождат от (моля, отбележете):</p>
+
+<p>☐ Трудово възнаграждение / заплата<br/>
+☐ Доходи от стопанска дейност<br/>
+☐ Наеми от недвижими имоти<br/>
+☐ Лихви и дивиденти<br/>
+☐ Спестявания<br/>
+☐ Дарение / наследство<br/>
+☐ Друго: ___________________________________</p>
+
+<h3>II. ДЕЙСТВИТЕЛЕН СОБСТВЕНИК</h3>
+<p>Декларирам, че действам от свое собствено име и за своя собствена сметка и не съм
+действителен собственик по смисъла на ЗМИП на друго лице.</p>
+
+<p>☐ Действам от свое собствено име и за своя сметка.<br/>
+☐ Действам от името на (посочете): ___________________________________</p>
+
+<h3>III. ПОЛИТИЧЕСКИ СВЪРЗАНО ЛИЦЕ</h3>
+<p>Декларирам, че (моля, отбележете):</p>
+<p>☐ Не съм политически свързано лице (ПСЛ) по смисъла на ЗМИП.<br/>
+☐ Съм ПСЛ. Заемана длъжност: ___________________________________</p>
+
+<h3>IV. ДОСТОВЕРНОСТ НА ИНФОРМАЦИЯТА</h3>
+<p>Декларирам, че всички предоставени от мен данни са верни и пълни.
+Известно ми е, че за деклариране на неверни данни нося наказателна отговорност по НК.</p>
+
+<br/>
+<br/>
+
+<table style="width:100%;">
+  <tr>
+    <td style="width:48%;">
+      <p>Декларатор: __________________________</p>
+      <p>({borrower_name})</p>
+      <p>Дата: {today_date}</p>
+    </td>
+    <td style="width:4%;"></td>
+    <td style="width:48%;">
+      <p>Прието от: __________________________</p>
+      <p>({company_name})</p>
+      <p>Дата: {today_date}</p>
+    </td>
+  </tr>
+</table>
+
+</div>
+]]>
+            </field>
+        </record>
+
+        <!-- ═══ Template 3: Запис на заповед ═══ -->
+        <record id="template_promissory" model="loan.document.template">
+            <field name="name">Запис на заповед</field>
+            <field name="document_type">promissory</field>
+            <field name="is_active">True</field>
+            <field name="content" type="html">
+<![CDATA[
+<div style="font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.8;">
+
+<h2 style="text-align:center;">ЗАПИС НА ЗАПОВЕД</h2>
+<p style="text-align:center;"><em>(Promissory Note)</em></p>
+
+<br/>
+
+<p style="text-align:right;">гр. {city}, {today_date}</p>
+
+<br/>
+
+<p>Аз, долуподписаният/ата <strong>{borrower_name}</strong>,
+ЕГН: <strong>{borrower_egn}{borrower_eik}</strong>,
+адрес: <strong>{borrower_address}</strong>,</p>
+
+<p>се задължавам безусловно да заплатя на</p>
+
+<p><strong>{company_name}</strong>, ЕИК {company_eik},
+адрес: {company_address},</p>
+
+<p>или на негова заповед, сумата от:</p>
+
+<p style="font-size:14pt; text-align:center;">
+<strong>{loan_amount}</strong><br/>
+<em>({loan_amount_words})</em>
+</p>
+
+<p>представляваща главница и всички дължими суми по Договор за кредит
+№ <strong>{loan_ref}</strong> от <strong>{loan_date}</strong>.</p>
+
+<p>Записът на заповед е платим на предявяване или при настъпване на
+падежа на кредита, не по-рано от <strong>{start_date}</strong>.</p>
+
+<p>Платимо в гр. {city}.</p>
+
+<br/>
+<br/>
+<br/>
+
+<table style="width:100%;">
+  <tr>
+    <td style="width:48%; vertical-align:top;">
+      <p><strong>ИЗДАТЕЛ / Issuer:</strong></p>
+      <p>{borrower_name}</p>
+      <p>ЕГН/ЕИК: {borrower_egn}{borrower_eik}</p>
+      <p>Подпис: __________________________</p>
+      <p>Дата: {today_date}</p>
+    </td>
+    <td style="width:4%;"></td>
+    <td style="width:48%; vertical-align:top;">
+      <p><strong>ПОЕМАТЕЛ / Payee:</strong></p>
+      <p>{company_name}</p>
+      <p>ЕИК: {company_eik}</p>
+      <p>Подпис: __________________________</p>
+      <p>Дата: {today_date}</p>
+    </td>
+  </tr>
+</table>
+
+<br/>
+
+<p><em>Поръчител (ако е приложимо):</em></p>
+<p>{guarantor_1_name}, ЕГН: {guarantor_1_egn}</p>
+<p>Подпис: __________________________</p>
+
+</div>
+]]>
+            </field>
+        </record>
+
+    </data>
+</odoo>
