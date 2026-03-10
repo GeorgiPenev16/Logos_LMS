@@ -86,7 +86,8 @@ class CustomerLoanFinancial(models.Model):
         'loan_lines_ids.total_installment_amount',
         'loan_lines_ids.fee_amount',
         'loan_amount',
-        'start_date',
+        'disbursement_date',
+        'approval_date',
         'installment_type',
         'is_initial_fee', 'initial_fee_amount',
         'is_processing_fee', 'processing_fee_type',
@@ -120,7 +121,9 @@ class CustomerLoanFinancial(models.Model):
 
             # ── ГПР / APRC  =  Excel XIRR  ───────────────────────────────
             # All cash flows on actual calendar dates, incl. per-line fees.
-            disburse_date = loan.start_date or lines[0].emi_date
+            # disbursement_date = when money was actually transferred to borrower.
+            # Fallback: approval_date (when interest starts accruing per schedule).
+            disburse_date = loan.disbursement_date or loan.approval_date or lines[0].emi_date
             xirr_dates   = [disburse_date]  + [l.emi_date for l in lines]
             xirr_amounts = [net] + [
                 -((l.total_installment_amount or 0.0) + (l.fee_amount or 0.0))
