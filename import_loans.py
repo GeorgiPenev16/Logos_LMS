@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Loan Import Script — Bulk-import historical/backdated loans into Odoo via XML-RPC.
+Loan Import Script — Bulk-import historical/backdated loans into Odoo via JSON-RPC (Odoo 19+).
 
 Usage:
     python import_loans.py                  # Import loans from Excel (TEST_MODE by default)
@@ -12,7 +12,8 @@ with the correct status and journal entries.
 """
 
 import sys
-import xmlrpc.client
+import json
+import requests
 from datetime import date, datetime
 
 try:
@@ -299,53 +300,90 @@ def validate_row(row_data, row_num):
 
 
 # ──────────────────────────────────────────────
-# ODOO XML-RPC HELPERS
+# ODOO JSON-RPC HELPERS (Odoo 19+)
 # ──────────────────────────────────────────────
 
 class OdooRPC:
-    """Simple Odoo XML-RPC wrapper."""
+    """Odoo JSON-RPC wrapper (Odoo 19+).
+
+    Uses session-based authentication via /web/session/authenticate and
+    dispatches model calls to /web/dataset/call_kw.
+    """
 
     def __init__(self, url, db, user, password):
-        self.url = url
+        self.url = url.rstrip("/")
         self.db = db
-        self.common = xmlrpc.client.ServerProxy(f"{url}/xmlrpc/2/common")
-        self.models = xmlrpc.client.ServerProxy(f"{url}/xmlrpc/2/object")
-        self.uid = self.common.authenticate(db, user, password, {})
-        if not self.uid:
+        self.session = requests.Session()
+
+        resp = self.session.post(
+            f"{self.url}/web/session/authenticate",
+            json={
+                "jsonrpc": "2.0",
+                "method": "call",
+                "id": 1,
+                "params": {"db": db, "login": user, "password": password},
+            },
+        )
+        resp.raise_for_status()
+        result = resp.json()
+        if result.get("error"):
+            msg = result["error"].get("data", {}).get("message", str(result["error"]))
+            raise ConnectionError(f"Authentication failed: {msg}")
+        uid = result.get("result", {}).get("uid")
+        if not uid:
             raise ConnectionError(f"Authentication failed for user '{user}' on database '{db}'")
-        self.password = password
-        print(f"Connected to {url} (db={db}) as uid={self.uid}")
+        self.uid = uid
+        print(f"Connected to {self.url} (db={db}) as uid={self.uid}")
+
+    def _call(self, model, method, args, kwargs=None):
+        """Low-level JSON-RPC call to /web/dataset/call_kw."""
+        resp = self.session.post(
+            f"{self.url}/web/dataset/call_kw",
+            json={
+                "jsonrpc": "2.0",
+                "method": "call",
+                "id": 1,
+                "params": {
+                    "model": model,
+                    "method": method,
+                    "args": args,
+                    "kwargs": kwargs or {},
+                },
+            },
+        )
+        resp.raise_for_status()
+        result = resp.json()
+        if result.get("error"):
+            msg = result["error"].get("data", {}).get("message", str(result["error"]))
+            raise RuntimeError(f"Odoo RPC error on {model}.{method}: {msg}")
+        return result["result"]
 
     def execute(self, model, method, *args, **kwargs):
-        """Execute an Odoo model method."""
-        return self.models.execute_kw(
-            self.db, self.uid, self.password, model, method, list(args), kwargs
-        )
+        """Execute an Odoo model method (same signature as before)."""
+        return self._call(model, method, list(args), kwargs)
 
     def search(self, model, domain, **kwargs):
-        return self.execute(model, "search", domain, **kwargs)
+        return self._call(model, "search", [domain], kwargs)
 
     def read(self, model, ids, fields=None):
-        return self.execute(model, "read", ids, {"fields": fields} if fields else {})
+        return self._call(model, "read", [ids], {"fields": fields} if fields else {})
 
     def search_read(self, model, domain, fields=None, **kwargs):
         kw = {}
         if fields:
             kw["fields"] = fields
         kw.update(kwargs)
-        return self.execute(model, "search_read", domain, **kw)
+        return self._call(model, "search_read", [domain], kw)
 
     def create(self, model, vals):
-        return self.execute(model, "create", [vals])
+        return self._call(model, "create", [[vals]])
 
     def write(self, model, ids, vals):
-        return self.execute(model, "write", ids, vals)
+        return self._call(model, "write", [ids, vals])
 
     def call(self, model, method, ids):
         """Call a button/action method on records."""
-        return self.models.execute_kw(
-            self.db, self.uid, self.password, model, method, [ids]
-        )
+        return self._call(model, method, [ids])
 
 
 # ──────────────────────────────────────────────

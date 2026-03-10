@@ -19,21 +19,22 @@
 - [ ] `security/ir.model.access.csv` for new models
 - [ ] Basic `i18n/bg.po` skeleton
 
-## Phase 2: Partner/Contact Fixes
-- [ ] `models/partner_bg.py` — company vs individual field separation
-- [ ] `eik` field with Bulgarian checksum validation (9 or 13 digits)
-- [ ] `mol_name` field (МОЛ — Материално Отговорно Лице) for companies
-- [ ] `bulstat` field for non-commercial entities
-- [ ] `is_guarantor` Boolean role (Поръчител)
-- [ ] Fix EGN/ID card to skip validation when `is_company=True`
-- [ ] `views/partner_bg_views.xml` — conditional visibility (`invisible="is_company"` / `invisible="not is_company"`)
-- [ ] Domain on `codebtor_ids`: `[('is_codebtor', '=', True)]`
+## Phase 2: Partner/Contact Fixes ✅ COMPLETE (tested 2026-03-10)
+- [x] `models/partner_bg.py` — company vs individual field separation
+- [x] EIK validation on Odoo's built-in `company_registry` field (9 digits + checksum)
+- [x] `manager_id` field (МОЛ — Материално Отговорно Лице) for companies
+- [x] `bulstat` field for non-commercial entities (9 digits + checksum)
+- [x] `is_guarantor` Boolean role (Поръчител)
+- [x] Fix EGN/ID card to skip validation when `is_company=True`
+- [x] `views/partner_bg_views.xml` — conditional visibility (`invisible="is_company"` / `invisible="not is_company"`)
+- [x] Domain on codebtor/guarantor handled at loan level (see Phase 3)
 
-## Phase 3: Loan Model Fixes
-- [ ] `models/loan_bg.py` — inherit `customer.loan`
-- [ ] `guarantor_ids` Many2many field on loan (domain: `is_guarantor=True`)
-- [ ] `codebtor_loan_ids` Many2many field on loan (domain: `is_codebtor=True`)
-- [ ] `views/loan_bg_views.xml` — show guarantors/codebtors on loan form
+## Phase 3: Loan Model Fixes (PARTIAL)
+- [x] `models/loan_bg.py` — inherit `customer.loan`
+- [x] `guarantor_ids` Many2many field on loan (domain: `is_guarantor=True`)
+- [x] `codebtor_loan_ids` Many2many field on loan (domain: `is_codebtor=True`)
+- [x] `represented_by` Many2one field (company representative on the loan)
+- [x] `views/loan_bg_views.xml` — show guarantors/codebtors/represented_by on loan form
 - [ ] Editable installment grid (override readonly on `loan_lines_ids`)
 
 > **v1.0.8 note:** Payment wizard (`loan.payment`) already exists for registering payments

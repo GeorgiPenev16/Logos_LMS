@@ -1456,4 +1456,49 @@ Performance optimization for SQL joins through the delegated product.
 
 ---
 
+## Session: Phase 2 Complete — 2026-03-10
+
+### Phase 2 Deliverables (tested and working)
+
+**`tk_loan_management_bg/models/partner_bg.py`**
+- `company_registry` — EIK validation (9-digit Bulgarian checksum, two-pass algorithm)
+- `bulstat` field + validation (same checksum algorithm)
+- `manager_id` (МОЛ) — Many2one to individual partner
+- `is_guarantor` Boolean role (Поръчител)
+- `_check_personal_number` override — skips EGN/ID validation for `is_company=True`
+- `_rec_names_search` extended with `personal_number` for dropdown search
+- `_compute_display_name` override — shows EGN after name for individuals
+
+**`tk_loan_management_bg/views/partner_bg_views.xml`**
+- Company Information group (EIK, BULSTAT, МОЛ) — visible only when `is_company=True`
+- Personal Information group hidden for companies via `invisible="is_company"`
+- EGN, ID card, date_of_issuing — `required="not is_company"` + `invisible="is_company"`
+- Labour Information group hidden for companies
+- Family Details group hidden for companies
+- `is_guarantor` checkbox added after `is_codebtor` in Roles section
+
+**`tk_loan_management_bg/models/loan_bg.py`** (Phase 3 overlap, also complete)
+- `represented_by` — company representative on loan (domain: contacts of customer)
+- `codebtor_loan_ids` — M2M with domain `is_codebtor=True`
+- `guarantor_ids` — M2M with domain `is_guarantor=True`
+
+**`tk_loan_management_bg/views/loan_bg_views.xml`** (Phase 3 overlap, also complete)
+- `represented_by` inserted before `phone` field on loan form
+- New tab "Съдлъжници / Co-debtors" with `codebtor_loan_ids` as many2many_tags
+- New tab "Поръчители / Guarantors" with `guarantor_ids` as many2many_tags
+- Both tabs readonly after `confirm` status
+
+### Remaining Phase 3 Item
+- [ ] Editable installment grid (override readonly on `loan_lines_ids`)
+
+### Next Phase
+Phase 4: ГПР/XIRR calculation (Bulgarian legal requirement, max 50% per ZPK)
+- Pure Python Newton-Raphson XIRR
+- `gpr` computed field on `customer.loan`
+- `total_cost_of_credit` and `total_amount_payable` computed fields
+- Constraint: max 50%
+- Display on loan form and contract report
+
+---
+
 *End of session log.*

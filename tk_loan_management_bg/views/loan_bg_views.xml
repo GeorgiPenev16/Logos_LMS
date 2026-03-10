@@ -12,10 +12,11 @@
                    ref="tk_loan_management.customer_loan_form_view"/>
             <field name="arch" type="xml">
 
-                <!-- ═══ ПРЕДСТАВЛЯВАН ОТ — след полето за клиент ═══ -->
+                <!-- ═══ ПРЕДСТАВЛЯВАН ОТ — само за фирмени клиенти ═══ -->
                 <xpath expr="//field[@name='phone']" position="before">
                     <field name="represented_by"
                            options="{'no_create_edit': True, 'no_create': True}"
+                           invisible="not customer_id.is_company"
                            readonly="status != 'draft'"/>
                 </xpath>
 

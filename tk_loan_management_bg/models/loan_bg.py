@@ -7,7 +7,7 @@
 - Съдлъжници (codebtor_loan_ids) — Many2many с домейн is_codebtor=True
 - Поръчители (guarantor_ids) — Many2many с домейн is_guarantor=True
 """
-from odoo import fields, models
+from odoo import fields, models, api
 
 
 class CustomerLoanBG(models.Model):
@@ -19,9 +19,17 @@ class CustomerLoanBG(models.Model):
     represented_by = fields.Many2one(
         comodel_name='res.partner',
         string="Represented By / Представляван от",
-        help="Individual representing the company borrower",
-        domain="[('parent_id', '=', customer_id)]",
+        help="Individual representing the company borrower (МОЛ)",
+        domain="[('is_company', '=', False)]",
     )
+
+    @api.onchange('customer_id')
+    def _onchange_customer_id_represented_by(self):
+        """Auto-populate represented_by from the company's МОЛ (manager_id)."""
+        if self.customer_id and self.customer_id.is_company:
+            self.represented_by = self.customer_id.manager_id or False
+        else:
+            self.represented_by = False
 
     # ── Co-debtors — linked to specific loan ──
 
