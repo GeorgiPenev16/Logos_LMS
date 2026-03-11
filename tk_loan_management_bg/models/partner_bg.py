@@ -47,17 +47,35 @@ class ResPartnerBG(models.Model):
         ondelete='set null',
     )
 
+    # Computed fields shown OUTSIDE the o_address_format widget — immune to
+    # the address widget re-render that resets Char fields (city, zip).
+    ep_settlement_city = fields.Char(
+        string="Населено място / City",
+        compute='_compute_ep_settlement_address',
+        store=True,
+        readonly=False,
+    )
+    ep_settlement_postcode = fields.Char(
+        string="Пощенски код / Postcode",
+        compute='_compute_ep_settlement_address',
+        store=True,
+        readonly=False,
+    )
+
+    @api.depends('ep_settlement_id')
+    def _compute_ep_settlement_address(self):
+        for rec in self:
+            rec.ep_settlement_city     = rec.ep_settlement_id.name_bg or False
+            rec.ep_settlement_postcode = rec.ep_settlement_id.postcode or False
+
     @api.onchange('ep_settlement_id')
     def _onchange_ep_settlement_id(self):
-        """Auto-fill ep_* address fields from selected Bulgarian settlement."""
+        """Fill ep_state_id and ep_country_id — Many2one fields survive address widget re-render."""
         s = self.ep_settlement_id
         if not s:
             return
-        # Set country first — stabilises address format widget before city/zip
         self.ep_country_id = s.state_id.country_id if s.state_id else False
         self.ep_state_id   = s.state_id
-        self.ep_city       = s.name_bg
-        self.ep_zip        = s.postcode or ''
 
     # ── Company fields ──
 
