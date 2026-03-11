@@ -15,13 +15,12 @@
             <field name="priority">99</field>
             <field name="arch" type="xml">
 
-                <!-- ═══ SETTLEMENT LOOKUP — Bulgarian address autocomplete ═══ -->
-                <!-- Appears before the city field; selecting fills city, zip, state -->
-                <xpath expr="//field[@name='city']" position="before">
+                <!-- ═══ SETTLEMENT LOOKUP — inside Labour Information address block ═══ -->
+                <!-- Placed before ep_city so selecting fills ep_city/ep_zip/ep_state_id -->
+                <xpath expr="//field[@name='ep_city']" position="before">
                     <field name="settlement_id"
                            string="Населено място / Settlement"
-                           options="{'no_create': True, 'no_create_edit': True}"
-                           domain="[('state_id.country_id', '=', country_id)]"/>
+                           options="{'no_create': True, 'no_create_edit': True}"/>
                 </xpath>
 
                 <!-- ═══ COMPANY FIELDS: EIK, BULSTAT, Manager ═══ -->

@@ -29,21 +29,15 @@ class ResPartnerBG(models.Model):
 
     @api.onchange('settlement_id')
     def _onchange_settlement_id(self):
-        """Auto-fill address fields from selected Bulgarian settlement."""
+        """Auto-fill ep_* address fields from selected Bulgarian settlement."""
         s = self.settlement_id
         if not s:
             return
-        country = s.state_id.country_id if s.state_id else False
-        # Standard Odoo address fields
-        self.city       = s.name_bg
-        self.zip        = s.postcode or ''
-        self.state_id   = s.state_id
-        self.country_id = country
-        # tk_loan_management custom address fields (ep_*)
-        self.ep_city       = s.name_bg
-        self.ep_zip        = s.postcode or ''
-        self.ep_state_id   = s.state_id
-        self.ep_country_id = country
+        # ep_* fields (tk_loan_management) — ep_country_id is set via
+        # _onchange_state cascade when ep_state_id changes
+        self.ep_state_id = s.state_id
+        self.ep_city     = s.name_bg
+        self.ep_zip      = s.postcode or ''
 
     # ── Company fields ──
 
