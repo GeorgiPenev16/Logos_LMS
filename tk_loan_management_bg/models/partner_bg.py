@@ -33,11 +33,12 @@ class ResPartnerBG(models.Model):
         s = self.settlement_id
         if not s:
             return
-        # ep_* fields (tk_loan_management) — ep_country_id is set via
-        # _onchange_state cascade when ep_state_id changes
-        self.ep_state_id = s.state_id
-        self.ep_city     = s.name_bg
-        self.ep_zip      = s.postcode or ''
+        # Set country first so the address format widget stabilises,
+        # then city/zip so they are not cleared by the widget re-render.
+        self.ep_country_id = s.state_id.country_id if s.state_id else False
+        self.ep_state_id   = s.state_id
+        self.ep_city       = s.name_bg
+        self.ep_zip        = s.postcode or ''
 
     # ── Company fields ──
 
