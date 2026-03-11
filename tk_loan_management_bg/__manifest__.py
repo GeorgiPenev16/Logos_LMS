@@ -17,7 +17,7 @@
     'author': 'VitoshaBG EOOD',
     'company': 'VitoshaBG EOOD',
     'maintainer': 'VitoshaBG EOOD',
-    'website': 'https://vitoshabg.com',
+    'website': 'https://vitoshabg.eu',
     'category': 'Accounting/Localizations',
     'license': 'LGPL-3',
 
