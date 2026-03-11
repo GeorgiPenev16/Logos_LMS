@@ -27,16 +27,35 @@ class ResPartnerBG(models.Model):
         ondelete='set null',
     )
 
+    # Computed fields placed OUTSIDE the o_address_format widget — immune to
+    # the address widget re-render that resets Char fields (city, zip).
+    settlement_city = fields.Char(
+        string="Населено място / City",
+        compute='_compute_settlement_address',
+        store=True,
+        readonly=False,
+    )
+    settlement_postcode = fields.Char(
+        string="Пощенски код / Postcode",
+        compute='_compute_settlement_address',
+        store=True,
+        readonly=False,
+    )
+
+    @api.depends('settlement_id')
+    def _compute_settlement_address(self):
+        for rec in self:
+            rec.settlement_city     = rec.settlement_id.name_bg or False
+            rec.settlement_postcode = rec.settlement_id.postcode or False
+
     @api.onchange('settlement_id')
     def _onchange_settlement_id(self):
-        """Auto-fill standard address fields from selected Bulgarian settlement."""
+        """Auto-fill Many2one address fields — Char fields handled by computed fields."""
         s = self.settlement_id
         if not s:
             return
         self.country_id = s.state_id.country_id if s.state_id else False
         self.state_id   = s.state_id
-        self.city       = s.name_bg
-        self.zip        = s.postcode or ''
 
     # ── Settlement lookup — Labour / Employer address (ep_* fields) ──
 

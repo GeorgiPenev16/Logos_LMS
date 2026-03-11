@@ -15,11 +15,20 @@
             <field name="priority">99</field>
             <field name="arch" type="xml">
 
-                <!-- ═══ SETTLEMENT LOOKUP — main address block (fills standard fields) ═══ -->
-                <xpath expr="//field[@name='city']" position="before">
+                <!-- ═══ SETTLEMENT LOOKUP — main address block ═══ -->
+                <!-- All three fields placed BEFORE street — outside the o_address_format div.
+                     Char fields (settlement_city, settlement_postcode) are computed+stored,
+                     so they are immune to the address widget re-render that resets city/zip. -->
+                <xpath expr="//field[@name='street']" position="before">
                     <field name="settlement_id"
                            string="Населено място / Settlement"
                            options="{'no_create': True, 'no_create_edit': True}"/>
+                    <field name="settlement_city"
+                           string="Населено място / City"
+                           readonly="1"/>
+                    <field name="settlement_postcode"
+                           string="Пощенски код / Postcode"
+                           readonly="1"/>
                 </xpath>
 
                 <!-- ═══ SETTLEMENT LOOKUP — outside o_address_format (avoids widget reset) ═══ -->
