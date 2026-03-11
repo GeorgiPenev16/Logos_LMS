@@ -81,12 +81,11 @@
                             domain="[('type_prefix', '=', 'с.')]"/>
                     <filter string="С пощ. код" name="has_postcode"
                             domain="[('postcode', '!=', '')]"/>
-                    <group string="Group By">
-                        <filter string="Област" name="group_state"
-                                context="{'group_by': 'state_id'}"/>
-                        <filter string="Община" name="group_mun"
-                                context="{'group_by': 'mun_name'}"/>
-                    </group>
+                    <separator/>
+                    <filter string="Group by Област" name="group_state"
+                            context="{'group_by': 'state_id'}"/>
+                    <filter string="Group by Община" name="group_mun"
+                            context="{'group_by': 'mun_name'}"/>
                 </search>
             </field>
         </record>
