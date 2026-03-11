@@ -30,13 +30,13 @@ class ResPartnerBG(models.Model):
     # Computed fields placed OUTSIDE the o_address_format widget — immune to
     # the address widget re-render that resets Char fields (city, zip).
     settlement_city = fields.Char(
-        string="Населено място / City",
+        string="Град / City",
         compute='_compute_settlement_address',
         store=True,
         readonly=False,
     )
     settlement_postcode = fields.Char(
-        string="Пощенски код / Postcode",
+        string="Пощ. код / Postcode",
         compute='_compute_settlement_address',
         store=True,
         readonly=False,
@@ -61,7 +61,7 @@ class ResPartnerBG(models.Model):
 
     ep_settlement_id = fields.Many2one(
         comodel_name='bg.settlement',
-        string="Населено място / Settlement",
+        string="Нас. място (Работодател) / Employer Settlement",
         help="Select from the EKATTE register — auto-fills employer city, postcode and oblast",
         ondelete='set null',
     )
@@ -69,13 +69,13 @@ class ResPartnerBG(models.Model):
     # Computed fields shown OUTSIDE the o_address_format widget — immune to
     # the address widget re-render that resets Char fields (city, zip).
     ep_settlement_city = fields.Char(
-        string="Населено място / City",
+        string="Град (Работодател) / Employer City",
         compute='_compute_ep_settlement_address',
         store=True,
         readonly=False,
     )
     ep_settlement_postcode = fields.Char(
-        string="Пощенски код / Postcode",
+        string="Пощ. код (Работодател) / Employer Postcode",
         compute='_compute_ep_settlement_address',
         store=True,
         readonly=False,
