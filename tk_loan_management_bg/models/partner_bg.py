@@ -59,13 +59,6 @@ class ResPartnerBG(models.Model):
         self.ep_city       = s.name_bg
         self.ep_zip        = s.postcode or ''
 
-    @api.onchange('ep_country_id')
-    def _onchange_ep_country_refill_city(self):
-        """Re-fill city/zip after ep_country_id cascade clears the address widget."""
-        if self.ep_settlement_id:
-            self.ep_city = self.ep_settlement_id.name_bg
-            self.ep_zip  = self.ep_settlement_id.postcode or ''
-
     # ── Company fields ──
 
     bulstat = fields.Char(
