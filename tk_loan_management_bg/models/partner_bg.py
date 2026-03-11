@@ -33,11 +33,17 @@ class ResPartnerBG(models.Model):
         s = self.settlement_id
         if not s:
             return
-        self.city     = s.name_bg
-        self.zip      = s.postcode or ''
-        self.state_id = s.state_id
-        if s.state_id and s.state_id.country_id:
-            self.country_id = s.state_id.country_id
+        country = s.state_id.country_id if s.state_id else False
+        # Standard Odoo address fields
+        self.city       = s.name_bg
+        self.zip        = s.postcode or ''
+        self.state_id   = s.state_id
+        self.country_id = country
+        # tk_loan_management custom address fields (ep_*)
+        self.ep_city       = s.name_bg
+        self.ep_zip        = s.postcode or ''
+        self.ep_state_id   = s.state_id
+        self.ep_country_id = country
 
     # ── Company fields ──
 
