@@ -1628,3 +1628,62 @@ Must be dynamic before any Logos loan can be signed.
 ---
 
 *End of session log.*
+
+---
+
+## Session 2026-03-11 — Phase 5 Complete + Currency Setup + Company Data
+
+### Phase 5: Document System — COMPLETE (build passing)
+
+Full document generation system implemented and deployed to staging. 5 build failures debugged:
+
+| Build | Error | Fix |
+|-------|-------|-----|
+| 1 | `t-raw` removed in Odoo 17+ | Changed to `t-out` |
+| 1 | `ref=` + `eval=` on same `<field>` | Removed redundant attribute |
+| 2 | `base.paperformat_euro` not in Odoo 19 | Removed `paperformat_id` line |
+| 2 | Ambiguous `//header` xpath | Changed to direct child `/header` |
+| 3 | `<field name="is_active">True</field>` invalid | Changed to `eval="True"` |
+| 3 | `noupdate` on `<odoo>` instead of `<data>` | Moved to `<data noupdate="1">` |
+| 3 | `type="html"` on CDATA field → empty content | Removed `type="html"` attribute |
+| Warning | Incomplete `@api.depends` on stored computed field | Added sub-fields `.name` |
+| Warning | `readonly=True` on wizard Python field blocks ORM writes | Removed from Python, kept in view XML only |
+
+**Base module "Loan Contract" suppressed** from gear/print menu:
+```xml
+<record id="tk_loan_management.loan_contract_report" model="ir.actions.report">
+    <field name="binding_model_id" eval="False"/>
+</record>
+```
+
+---
+
+### Logos Company Data — Manually Entered
+
+**Date:** 2026-03-11
+**Environment:** Staging (Odoo.sh)
+**Method:** Settings → Company (manual UI entry)
+
+Logos company info (name, EIK, address, MOL, etc.) has been configured directly in Odoo staging.
+
+**Impact on scripts:**
+- `setup_logos.py` must **NOT overwrite** existing company data
+- Pattern: read current value → skip if already set → write only if missing
+- Company info section should be a "fill gaps" operation, not a full overwrite
+
+---
+
+### Currency Setup
+
+**Decision:** EUR is the active company currency. BGN deactivated.
+**Reason:** Bulgaria joins Eurozone 2026.
+**Fixed rate:** 1.95583 (historical reference only — EUR is primary going forward).
+
+`scripts/setup_logos.py` created with:
+- Section 1: Currency — activate EUR, deactivate BGN, set `res.company.currency_id = EUR`
+- Section 2: Loan types — 3 Logos products with all amounts in `€`
+- `TEST_MODE = True` default; `--apply` flag to write
+
+All loan type descriptions updated: `лв.` → `€`.
+
+---

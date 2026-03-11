@@ -1,4 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_bg_settlement_user,bg.settlement user,model_bg_settlement,,1,0,0,0
+access_bg_settlement_manager,bg.settlement manager,model_bg_settlement,tk_loan_management.department_manager,1,1,1,1
 access_loan_codebtor_line_user,customer.loan.codebtor.line user,model_customer_loan_codebtor_line,,1,1,1,1
 access_loan_guarantor_line_user,customer.loan.guarantor.line user,model_customer_loan_guarantor_line,,1,1,1,1
 access_loan_document_template_user,loan.document.template user,model_loan_document_template,,1,0,0,0

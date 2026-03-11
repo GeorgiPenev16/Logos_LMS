@@ -92,8 +92,11 @@
 > - `{loan_amount_words}` uses Bulgarian number-to-words (e.g. "хиляда и двеста лева и 00 стотинки")
 
 ## Phase 6: Configuration Scripts
-- [ ] `scripts/setup_generic.py` — create journals, accounts, document types, holidays, system params
-- [ ] `scripts/setup_logos.py` — Logos-specific: company info, loan types, interest rates, penalty config
+- [x] Logos company data entered manually in Odoo.sh staging via Settings → Company (2026-03-11)
+      > **NOTE:** `setup_logos.py` must NOT overwrite company info — check before writing, skip if set
+- [ ] `scripts/setup_generic.py` — journals, document types, holidays, system params
+- [ ] `scripts/setup_logos.py` — loan types, interest rates, settings (company info: skip-if-set)
+- [ ] `l10n_bg` dependency evaluated and added if needed
 - [ ] `scripts/README.md` — usage instructions for all scripts
 - [ ] All scripts use XML-RPC, `TEST_MODE=True` by default
 

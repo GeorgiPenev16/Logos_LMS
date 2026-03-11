@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# Phase 6: Bulgarian address reference
+from . import bg_settlement
 # Фаза 2: Партньор и кредит — българска локализация
 from . import partner_bg
 from . import loan_bg

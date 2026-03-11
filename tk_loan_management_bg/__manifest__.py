@@ -13,7 +13,7 @@
         - Редактируема таблица на вноски
         - Полета за AnaCredit отчетност към БНБ
     """,
-    'version': '1.0.8',
+    'version': '1.0.9',
     'author': 'VitoshaBG EOOD',
     'company': 'VitoshaBG EOOD',
     'maintainer': 'VitoshaBG EOOD',
@@ -29,12 +29,20 @@
         # Security
         'security/ir.model.access.csv',
 
+        # Phase 6: Bulgarian address reference data
+        # Load order matters: oblasts → settlements (settlements reference state records)
+        'data/res_country_state_bg.xml',   # 28 oblasts → res.country.state (noupdate=1)
+        'data/bg.settlement.csv',          # 5,256 settlements → bg.settlement
+
         # Views — Фаза 2
         'views/partner_bg_views.xml',
         'views/loan_bg_views.xml',
 
         # Views — Фаза 4
         'views/loan_gpr_views.xml',
+
+        # Views — Phase 6: Bulgarian address
+        'views/bg_settlement_views.xml',
 
         # Views — Фаза 5: Document System
         'views/document_template_views.xml',

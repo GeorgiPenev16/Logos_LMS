@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!--
+            Phase 6 — Bulgarian Settlement (ЕКАТТЕ) views.
+            Menu: Loans → Configuration → Bulgarian Settlements
+        -->
+
+        <!-- ═══ List view ═══ -->
+        <record id="bg_settlement_list_view" model="ir.ui.view">
+            <field name="name">bg.settlement.list</field>
+            <field name="model">bg.settlement</field>
+            <field name="arch" type="xml">
+                <list string="Settlements / Населени места">
+                    <field name="ekatte" string="ЕКАТТЕ"/>
+                    <field name="type_prefix" string="Вид"/>
+                    <field name="name_bg" string="Населено място"/>
+                    <field name="name_en" string="Name (EN)"/>
+                    <field name="mun_name" string="Община"/>
+                    <field name="state_id" string="Област"/>
+                    <field name="postcode" string="Пощ. код"/>
+                    <field name="nuts3" string="NUTS3" optional="hide"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- ═══ Form view ═══ -->
+        <record id="bg_settlement_form_view" model="ir.ui.view">
+            <field name="name">bg.settlement.form</field>
+            <field name="model">bg.settlement</field>
+            <field name="arch" type="xml">
+                <form string="Settlement / Населено място">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="type_prefix" class="o_field_char"
+                                       style="width:3em;"/>
+                                <field name="name_bg"
+                                       placeholder="Населено място…"/>
+                            </h1>
+                            <h2>
+                                <field name="name_en"
+                                       placeholder="Name in English…"/>
+                            </h2>
+                        </div>
+                        <group>
+                            <group string="ЕКАТТЕ / Administrative">
+                                <field name="ekatte"/>
+                                <field name="state_id"/>
+                                <field name="mun_code"/>
+                                <field name="mun_name"/>
+                                <field name="nuts3"/>
+                            </group>
+                            <group string="Postal / Geographic">
+                                <field name="postcode"/>
+                                <field name="lat"/>
+                                <field name="lng"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- ═══ Search view ═══ -->
+        <record id="bg_settlement_search_view" model="ir.ui.view">
+            <field name="name">bg.settlement.search</field>
+            <field name="model">bg.settlement</field>
+            <field name="arch" type="xml">
+                <search string="Search Settlements / Търси население">
+                    <field name="name_bg" string="Населено място"/>
+                    <field name="name_en" string="Name (EN)"/>
+                    <field name="ekatte"  string="ЕКАТТЕ"/>
+                    <field name="postcode" string="Пощ. код"/>
+                    <field name="state_id" string="Област"/>
+                    <field name="mun_name" string="Община"/>
+                    <separator/>
+                    <filter string="Градове" name="cities"
+                            domain="[('type_prefix', '=', 'гр.')]"/>
+                    <filter string="Села" name="villages"
+                            domain="[('type_prefix', '=', 'с.')]"/>
+                    <filter string="С пощ. код" name="has_postcode"
+                            domain="[('postcode', '!=', '')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Област" name="group_state"
+                                context="{'group_by': 'state_id'}"/>
+                        <filter string="Община" name="group_mun"
+                                context="{'group_by': 'mun_name'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- ═══ Window action ═══ -->
+        <record id="bg_settlement_action" model="ir.actions.act_window">
+            <field name="name">Bulgarian Settlements / Населени места</field>
+            <field name="res_model">bg.settlement</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <!-- ═══ Menu: Loans → Configuration → Bulgarian Settlements ═══ -->
+        <menuitem id="menu_bg_settlements"
+                  name="Bulgarian Settlements / Населени места"
+                  parent="tk_loan_management.customer_loan_configuration"
+                  action="bg_settlement_action"
+                  sequence="30"/>
+
+    </data>
+</odoo>

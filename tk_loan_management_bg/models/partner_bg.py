@@ -18,6 +18,27 @@ class ResPartnerBG(models.Model):
     """Bulgarian localization for partner"""
     _inherit = 'res.partner'
 
+    # ── Settlement lookup (Bulgarian address autocomplete) ──
+
+    settlement_id = fields.Many2one(
+        comodel_name='bg.settlement',
+        string="Населено място / Settlement",
+        help="Select from the EKATTE register — auto-fills city, postcode and oblast",
+        ondelete='set null',
+    )
+
+    @api.onchange('settlement_id')
+    def _onchange_settlement_id(self):
+        """Auto-fill address fields from selected Bulgarian settlement."""
+        s = self.settlement_id
+        if not s:
+            return
+        self.city     = s.name_bg
+        self.zip      = s.postcode or ''
+        self.state_id = s.state_id
+        if s.state_id and s.state_id.country_id:
+            self.country_id = s.state_id.country_id
+
     # ── Company fields ──
 
     bulstat = fields.Char(
