@@ -23,12 +23,17 @@
                 </xpath>
 
                 <!-- ═══ SETTLEMENT LOOKUP — outside o_address_format (avoids widget reset) ═══ -->
-                <!-- Placed after date_of_salary_to, before the Address div -->
-                <xpath expr="//field[@name='date_of_salary_to']" position="after">
+                <!-- Placed after employer field, before the Address div -->
+                <xpath expr="//field[@name='employer']" position="after">
                     <field name="ep_settlement_id"
+                           string="Населено място / Settlement"
                            options="{'no_create': True, 'no_create_edit': True}"/>
-                    <field name="ep_settlement_city"/>
-                    <field name="ep_settlement_postcode"/>
+                    <field name="ep_settlement_city"
+                           string="Град / City"
+                           readonly="1"/>
+                    <field name="ep_settlement_postcode"
+                           string="Пощенски код / Postcode"
+                           readonly="1"/>
                 </xpath>
 
                 <!-- ═══ COMPANY FIELDS: EIK, BULSTAT, Manager ═══ -->

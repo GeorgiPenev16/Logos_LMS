@@ -42,7 +42,7 @@ class ResPartnerBG(models.Model):
 
     ep_settlement_id = fields.Many2one(
         comodel_name='bg.settlement',
-        string="Нас. място (Работодател) / Employer Settlement",
+        string="Населено място / Settlement",
         help="Select from the EKATTE register — auto-fills employer city, postcode and oblast",
         ondelete='set null',
     )
