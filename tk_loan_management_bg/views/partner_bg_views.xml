@@ -15,10 +15,16 @@
             <field name="priority">99</field>
             <field name="arch" type="xml">
 
-                <!-- ═══ SETTLEMENT LOOKUP — inside Labour Information address block ═══ -->
-                <!-- Placed before ep_city so selecting fills ep_city/ep_zip/ep_state_id -->
-                <xpath expr="//field[@name='ep_city']" position="before">
+                <!-- ═══ SETTLEMENT LOOKUP — main address block (fills standard fields) ═══ -->
+                <xpath expr="//field[@name='city']" position="before">
                     <field name="settlement_id"
+                           string="Населено място / Settlement"
+                           options="{'no_create': True, 'no_create_edit': True}"/>
+                </xpath>
+
+                <!-- ═══ SETTLEMENT LOOKUP — Labour address block (fills ep_* fields) ═══ -->
+                <xpath expr="//field[@name='ep_city']" position="before">
+                    <field name="ep_settlement_id"
                            string="Населено място / Settlement"
                            options="{'no_create': True, 'no_create_edit': True}"/>
                 </xpath>

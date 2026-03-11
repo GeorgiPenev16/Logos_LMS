@@ -18,7 +18,7 @@ class ResPartnerBG(models.Model):
     """Bulgarian localization for partner"""
     _inherit = 'res.partner'
 
-    # ── Settlement lookup (Bulgarian address autocomplete) ──
+    # ── Settlement lookup — main address (standard Odoo fields) ──
 
     settlement_id = fields.Many2one(
         comodel_name='bg.settlement',
@@ -29,16 +29,42 @@ class ResPartnerBG(models.Model):
 
     @api.onchange('settlement_id')
     def _onchange_settlement_id(self):
-        """Auto-fill ep_* address fields from selected Bulgarian settlement."""
+        """Auto-fill standard address fields from selected Bulgarian settlement."""
         s = self.settlement_id
         if not s:
             return
-        # Set country first so the address format widget stabilises,
-        # then city/zip so they are not cleared by the widget re-render.
+        self.country_id = s.state_id.country_id if s.state_id else False
+        self.state_id   = s.state_id
+        self.city       = s.name_bg
+        self.zip        = s.postcode or ''
+
+    # ── Settlement lookup — Labour / Employer address (ep_* fields) ──
+
+    ep_settlement_id = fields.Many2one(
+        comodel_name='bg.settlement',
+        string="Населено място / Settlement",
+        help="Select from the EKATTE register — auto-fills employer city, postcode and oblast",
+        ondelete='set null',
+    )
+
+    @api.onchange('ep_settlement_id')
+    def _onchange_ep_settlement_id(self):
+        """Auto-fill ep_* address fields from selected Bulgarian settlement."""
+        s = self.ep_settlement_id
+        if not s:
+            return
+        # Set country first — stabilises address format widget before city/zip
         self.ep_country_id = s.state_id.country_id if s.state_id else False
         self.ep_state_id   = s.state_id
         self.ep_city       = s.name_bg
         self.ep_zip        = s.postcode or ''
+
+    @api.onchange('ep_country_id')
+    def _onchange_ep_country_refill_city(self):
+        """Re-fill city/zip after ep_country_id cascade clears the address widget."""
+        if self.ep_settlement_id:
+            self.ep_city = self.ep_settlement_id.name_bg
+            self.ep_zip  = self.ep_settlement_id.postcode or ''
 
     # ── Company fields ──
 
