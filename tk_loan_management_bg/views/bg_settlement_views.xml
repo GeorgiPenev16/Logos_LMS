@@ -81,7 +81,7 @@
                             domain="[('type_prefix', '=', 'с.')]"/>
                     <filter string="С пощ. код" name="has_postcode"
                             domain="[('postcode', '!=', '')]"/>
-                    <group expand="0" string="Group By">
+                    <group string="Group By">
                         <filter string="Област" name="group_state"
                                 context="{'group_by': 'state_id'}"/>
                         <filter string="Община" name="group_mun"
