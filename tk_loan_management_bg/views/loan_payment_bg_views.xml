@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    GROUP E — Payment Wizard BG Override
+    - Unlocks the payment date field (base has readonly="1")
+    - Adds penalty option selector and calculated penalty display
+-->
+<odoo>
+    <data noupdate="0">
+
+        <record id="loan_payment_view_form_bg" model="ir.ui.view">
+            <field name="name">loan.payment.view.form.bg</field>
+            <field name="model">loan.payment</field>
+            <field name="inherit_id" ref="tk_loan_management.loan_payment_view_form"/>
+            <field name="arch" type="xml">
+
+                <!-- Unlock payment date -->
+                <xpath expr="//field[@name='date']" position="attributes">
+                    <attribute name="readonly">0</attribute>
+                </xpath>
+
+                <!-- Add penalty section after the credit_balance field -->
+                <xpath expr="//field[@name='credit_balance']" position="after">
+                    <field name="penalty_calculated_display"
+                           options="{'currency_field': 'currency_id'}"
+                           readonly="1"
+                           force_save="1"/>
+                    <field name="penalty_option" widget="radio"/>
+                    <field name="penalty_custom_amount_wizard"
+                           options="{'currency_field': 'currency_id'}"
+                           invisible="penalty_option != 'custom'"/>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

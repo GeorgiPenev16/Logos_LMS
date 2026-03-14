@@ -7,7 +7,7 @@
 - **Custom Module:** `tk_loan_management_bg` (VitoshaBG additions - inherits base module)
 - **Odoo Version:** 19
 - **Base Module Version:** 1.0.8 (staging) — upgraded from 1.0.6
-- **Custom Module Version:** 1.0.15
+- **Custom Module Version:** 1.0.16
 - **Repo Path:** `C:\Odoo\Logos_LMS-staging` (canonical), `C:\Odoo\LMS_21072025` (original/archive)
 
 ## ARCHITECTURE RULE
@@ -104,7 +104,8 @@ Path: `tk_loan_management/`
 | **A** | `res.config.settings` extension (23 `lms_` fields on `res.company`), Settings UI tab "Loans (БГ)", Bulgarian NAS chart of accounts (18 accounts, noupdate=1), 4 loan journals (LDISB/LCOL/LOPS/LINV, noupdate=1). Base module per-loan account fields hidden; auto-populated from company settings via `default_get()`. | 1.0.12 | `361bed0` `37198d7` `580c710` |
 | **B** | Disbursement overhaul: `_compute_st_lt_split()` (12-month window from installment schedule), `action_disburse_loan()` override: DR 4110+262 / CR 5031. Graceful fallback to base if accounts not configured. `_create_fee_invoice_bg()` for origination fee invoice (LINV journal → 7220). | 1.0.13 | `2d91157` |
 | **C** | Interest accrual cron (daily 06:00): `_cron_post_interest_accrual()` posts DR 4960 / CR 7210 per installment on due date. Fields added to `customer.loan.lines`: `accrual_move_id`, `accrual_status`. Skips gracefully if accounts not configured. | 1.0.14 | pending |
-| **D** | Penalty system (cash-basis, zero GL): 6 fields on `customer.loan.lines` (`penalty_start_date`, `penalty_accrued_informational`, `penalty_calculated_at_payment`, `penalty_custom_amount`, `waive_penalty`, `paid_penalty`). Daily cron `_cron_update_penalty_informational()`. Base GL-posting crons overridden as no-ops. Account 4961 NOT used. | 1.0.15 | pending |
+| **D** | Penalty system (cash-basis, zero GL): 6 fields on `customer.loan.lines` (`penalty_start_date`, `penalty_accrued_informational`, `penalty_calculated_at_payment`, `penalty_custom_amount`, `waive_penalty`, `paid_penalty`). Daily cron `_cron_update_penalty_informational()`. Base GL-posting crons overridden as no-ops. Account 4961 NOT used. | 1.0.15 | `cb349d2` |
+| **E** | Payment wizard overhaul: global 4-round FIFO sweep (Penalty→Fee→Interest→Principal), correct BG accounts (4960/4113/4110-4112/7230), unlocked payment date, 3 penalty options (full/waived/custom), one JE per installment. Graceful fallback to base if accounts not configured. | 1.0.16 | pending |
 
 ### Remaining — by group (see PLAN.md Phase 3b + ACCOUNTING_SPEC.md)
 | Group | Feature | Priority |

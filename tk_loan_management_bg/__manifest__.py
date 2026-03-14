@@ -13,7 +13,7 @@
         - Редактируема таблица на вноски
         - Полета за AnaCredit отчетност към БНБ
     """,
-    'version': '1.0.15',
+    'version': '1.0.16',
     'author': 'VitoshaBG EOOD',
     'company': 'VitoshaBG EOOD',
     'maintainer': 'VitoshaBG EOOD',
@@ -47,6 +47,9 @@
         # Views — Фаза 2
         'views/partner_bg_views.xml',
         'views/loan_bg_views.xml',
+
+        # GROUP E: Payment wizard overhaul
+        'views/loan_payment_bg_views.xml',
 
         # Views — Фаза 4
         'views/loan_gpr_views.xml',

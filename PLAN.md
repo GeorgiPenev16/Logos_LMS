@@ -121,25 +121,24 @@
 
 ---
 
-### GROUP E — Payment Wizard Overhaul
-> Depends on GROUP C + D. Core operational change.
+### GROUP E — Payment Wizard Overhaul ✅ COMPLETE (2026-03-14, v1.0.16)
+> Commit: pending push — `wizard/loan_payment_bg.py` + `views/loan_payment_bg_views.xml`
 
-- [ ] Unlock `date` field in wizard (remove `readonly="1"`)
-- [ ] Fix FIFO order: **Penalty → Interest → Fee → Principal** (base has wrong order)
-- [ ] Penalty — **3 options** in wizard (per installment):
-  - **Option 1 — Full**: `penalty_calculated_at_payment` (recalculated fresh on `payment_date`, read-only)
-  - **Option 2 — Waived**: `exclude_penalty` checkbox → `penalty_to_pay = 0`, no JE, `penalty_accrued_informational = 0`
-  - **Option 3 — Custom**: `penalty_custom_amount` editable field (negotiated; validation: ≥ 0)
-  - JE when penalty > 0: `DR 5031 / CR 7230` only. **No 4961. No reconciliation.**
-- [ ] Current-period accrued interest to payment date: `principal × (rate/365) × elapsed_days`
-- [ ] Overpayment: `DR 5031 / CR 4950` (deferred) + flag `status_overpaid = True`
-- [ ] Account destinations: 7230 penalty income, 4960→cleared interest, 4113 fees, 4110/4112/262 principal
-- [ ] Payment Receipt document (`loan.payment.receipt` model):
-  - Fields: `receipt_number` (RCPT-XXXXXXXXXX), `client_name`, `client_identifier`, `loan_contract_number`, `payment_date`, `total_amount_received`, `penalty_paid`, `interest_paid`, `fee_paid`, `principal_paid`, `remaining_principal_balance`, `next_installment_date/amount`, `days_overdue_cleared`, `invoice_numbers`, `installments_covered`
-  - QWeb PDF template
-- [ ] Invoice generation per `invoice_mode`:
-  - `invoice_receipt`: auto-create Customer Invoice for income components (7220/7230/7240/7250), validate immediately
-  - `receipt_only`: income posted via JE only, no Odoo invoice
+- [x] Unlock `date` field in wizard (view xpath removes `readonly="1"`)
+- [x] Fix FIFO order: **Penalty → Fee → Interest → Principal** (correct ЗПК Art. 35 order)
+- [x] Penalty — **3 options** in wizard:
+  - **Option 1 — Full** (`penalty_option='full'`): fresh calc to `payment_date` per overdue line; `penalty_calculated_display` shown readonly
+  - **Option 2 — Waived** (`penalty_option='waived'`): all overdue lines set `waive_penalty=True`; `penalty_accrued_informational=0`; zero JE for penalty
+  - **Option 3 — Custom** (`penalty_option='custom'` + `penalty_custom_amount_wizard`): custom amount consumed greedily from oldest overdue line; validated against per-line cap
+  - JE: `DR 5031 / CR 7230` (`is_overdue_interest=True`). **No 4961. No reconciliation.**
+- [x] Account mapping: 4960 (accrued interest), 4113 (fees receivable), 4110 (current principal), 4112 (overdue principal), 7230 (penalty income)
+- [x] Overdue detection: `inst.emi_date < payment_date` → CR 4112; else CR 4110
+- [x] Overpayment: `loan.credit_balance = remaining` (held for future installments)
+- [x] One JE per installment (all components bundled) — compatible with base `_compute_amount()` flags
+- [x] Graceful fallback to base if `lms_collection_journal_id` / core accounts not configured
+- [x] Initial fee payment path unchanged (delegates to `super()`)
+- [ ] Payment Receipt document — deferred (Phase 6 scripts / post go-live)
+- [ ] Invoice generation per `invoice_mode` — deferred (post go-live)
 
 ---
 
