@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Bulgarian NAS Chart of Accounts — LMS Accounts
+    These accounts are created once (noupdate=1) and then selected in Settings.
+    All amounts are in EUR (post 01.01.2026 EUR adoption).
+-->
+<odoo>
+<data noupdate="1">
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ASSET / RECEIVABLE ACCOUNTS
+    ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- 151 — Long-term bank loans received (liability, for reference) -->
+    <record id="account_151" model="account.account">
+        <field name="name">151 — Получени дългосрочни банкови заеми / LT Bank Loans Received</field>
+        <field name="code">151</field>
+        <field name="account_type">liability_non_current</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- 152 — Other long-term loans received -->
+    <record id="account_152" model="account.account">
+        <field name="name">152 — Получени дългосрочни заеми / Other LT Loans Received</field>
+        <field name="code">152</field>
+        <field name="account_type">liability_non_current</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- 262 — Long-term loan receivables granted -->
+    <record id="account_262" model="account.account">
+        <field name="name">262 — Предоставени дългосрочни заеми / LT Loans Granted</field>
+        <field name="code">262</field>
+        <field name="account_type">asset_non_current</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- 2991 — Allowance for loan losses (contra-asset) -->
+    <record id="account_2991" model="account.account">
+        <field name="name">2991 — Провизии за загуби по кредити / Loan Loss Allowance</field>
+        <field name="code">2991</field>
+        <field name="account_type">asset_non_current</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- 4110 — Short-term (current portion) loan receivables -->
+    <record id="account_4110" model="account.account">
+        <field name="name">4110 — Текуща част от дългосрочни заеми / ST Current Portion of Loans</field>
+        <field name="code">4110</field>
+        <field name="account_type">asset_current</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- 4112 — Overdue loan principal receivables -->
+    <record id="account_4112" model="account.account">
+        <field name="name">4112 — Просрочени вземания по заеми / Overdue Loan Receivables</field>
+        <field name="code">4112</field>
+        <field name="account_type">asset_current</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- 4113 — Fees receivable (origination, administration) -->
+    <record id="account_4113" model="account.account">
+        <field name="name">4113 — Вземания за такси по заеми / Loan Fees Receivable</field>
+        <field name="code">4113</field>
+        <field name="account_type">asset_current</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- 4532 — VAT on sales -->
+    <record id="account_4532" model="account.account">
+        <field name="name">4532 — ДДС за внасяне / VAT Payable</field>
+        <field name="code">4532</field>
+        <field name="account_type">liability_current</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- 4950 — Other receivables (miscellaneous) -->
+    <record id="account_4950" model="account.account">
+        <field name="name">4950 — Разни вземания / Other Receivables</field>
+        <field name="code">4950</field>
+        <field name="account_type">asset_current</field>
+        <field name="reconcile" eval="True"/>
+    </record>
+
+    <!-- 4960 — Accrued interest receivable -->
+    <record id="account_4960" model="account.account">
+        <field name="name">4960 — Начислени приходи за лихви / Accrued Interest Receivable</field>
+        <field name="code">4960</field>
+        <field name="account_type">asset_current</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         BANK / CASH ACCOUNTS
+    ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- 5030 — Operating bank account -->
+    <record id="account_5030" model="account.account">
+        <field name="name">5030 — Разплащателна сметка (основна) / Operating Bank Account</field>
+        <field name="code">5030</field>
+        <field name="account_type">asset_cash</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- 5031 — Loan-dedicated bank account -->
+    <record id="account_5031" model="account.account">
+        <field name="name">5031 — Разплащателна сметка (кредитна) / Loan Bank Account</field>
+        <field name="code">5031</field>
+        <field name="account_type">asset_cash</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         INCOME ACCOUNTS
+    ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- 7210 — Interest income on loans -->
+    <record id="account_7210" model="account.account">
+        <field name="name">7210 — Приходи от лихви по кредити / Interest Income on Loans</field>
+        <field name="code">7210</field>
+        <field name="account_type">income</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- 7220 — Origination and administration fee income -->
+    <record id="account_7220" model="account.account">
+        <field name="name">7220 — Приходи от такси по кредити / Loan Fee Income</field>
+        <field name="code">7220</field>
+        <field name="account_type">income</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- 7230 — Penalty interest income (cash basis only) -->
+    <record id="account_7230" model="account.account">
+        <field name="name">7230 — Приходи от наказателна лихва / Penalty Interest Income</field>
+        <field name="code">7230</field>
+        <field name="account_type">income</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- 7240 — Early repayment fee income -->
+    <record id="account_7240" model="account.account">
+        <field name="name">7240 — Приходи от такси за предсрочно погасяване / Early Repayment Fee Income</field>
+        <field name="code">7240</field>
+        <field name="account_type">income</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- 7250 — Other loan-related income -->
+    <record id="account_7250" model="account.account">
+        <field name="name">7250 — Други приходи по кредити / Other Loan Income</field>
+        <field name="code">7250</field>
+        <field name="account_type">income</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         EXPENSE ACCOUNTS
+    ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- 6290 — Loan loss provision expense -->
+    <record id="account_6290" model="account.account">
+        <field name="name">6290 — Разходи за провизии по кредити / Loan Loss Provision Expense</field>
+        <field name="code">6290</field>
+        <field name="account_type">expense</field>
+        <field name="reconcile" eval="False"/>
+    </record>
+
+</data>
+</odoo>

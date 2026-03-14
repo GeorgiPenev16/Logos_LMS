@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    LMS Loan Journals — Bulgarian НФИ
+    Created once (noupdate=1). After creation, admin links these in Settings → Loans (БГ).
+
+    LOAN-DISB  — Disbursement (bank) — DR 262/4110, CR 5031
+    LOAN-COL   — Collection (bank)   — DR 5031, CR various receivables
+    LOAN-OPS   — Operations (general)— accruals, reclassifications, provisions
+    LOAN-INV   — Fee Invoices (sale) — origination fee customer invoices
+-->
+<odoo>
+<data noupdate="1">
+
+    <!-- ── LOAN-DISB: Loan Disbursement Journal ──────────────────────── -->
+    <record id="journal_loan_disb" model="account.journal">
+        <field name="name">Loan Disbursement / Усвояване на кредити</field>
+        <field name="code">LDISB</field>
+        <field name="type">bank</field>
+        <field name="default_account_id" ref="account_5031"/>
+        <field name="show_on_dashboard" eval="False"/>
+        <field name="sequence" eval="20"/>
+    </record>
+
+    <!-- ── LOAN-COL: Loan Collection Journal ─────────────────────────── -->
+    <record id="journal_loan_col" model="account.journal">
+        <field name="name">Loan Collection / Събиране на вноски</field>
+        <field name="code">LCOL</field>
+        <field name="type">bank</field>
+        <field name="default_account_id" ref="account_5031"/>
+        <field name="show_on_dashboard" eval="False"/>
+        <field name="sequence" eval="21"/>
+    </record>
+
+    <!-- ── LOAN-OPS: Loan Operations Journal ─────────────────────────── -->
+    <record id="journal_loan_ops" model="account.journal">
+        <field name="name">Loan Operations / Кредитни операции</field>
+        <field name="code">LOPS</field>
+        <field name="type">general</field>
+        <field name="show_on_dashboard" eval="False"/>
+        <field name="sequence" eval="22"/>
+    </record>
+
+    <!-- ── LOAN-INV: Loan Fee Invoice Journal ────────────────────────── -->
+    <record id="journal_loan_inv" model="account.journal">
+        <field name="name">Loan Fee Invoices / Такси по кредити</field>
+        <field name="code">LINV</field>
+        <field name="type">sale</field>
+        <field name="default_account_id" ref="account_7220"/>
+        <field name="show_on_dashboard" eval="False"/>
+        <field name="sequence" eval="23"/>
+    </record>
+
+</data>
+</odoo>

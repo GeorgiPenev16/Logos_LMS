@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- LMS Accounting (БГ) tab in Settings → Accounting -->
+    <record id="res_config_settings_lms_bg_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.lms.bg.form</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <!-- Append new tab after existing Accounting tabs -->
+            <xpath expr="//div[hasclass('settings')]" position="inside">
+                <div class="app_settings_block" data-string="Loans (БГ)" string="Loans (БГ)"
+                     data-key="tk_loan_management_bg" id="lms_bg_settings">
+
+                    <!-- ── Penalty Configuration ───────────────────────── -->
+                    <h2>Penalty Configuration / Наказателна лихва</h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label">Annual Penalty Rate / Годишна наказателна лихва (%)</span>
+                                <div class="text-muted">
+                                    Per ЗПК Art. 33 / Постановление №426/2014. Default: ECB base + 8pp = 10.15%
+                                </div>
+                                <div class="content-group mt8">
+                                    <div class="row">
+                                        <label for="lms_penalty_rate_annual" class="col-lg-4 o_light_label"/>
+                                        <field name="lms_penalty_rate_annual" class="col-lg-2"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="lms_penalty_divisor" class="col-lg-4 o_light_label"
+                                               string="Days Divisor / Делител"/>
+                                        <field name="lms_penalty_divisor" class="col-lg-2"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="lms_penalty_grace_days" class="col-lg-4 o_light_label"
+                                               string="Grace Days / Гратис дни"/>
+                                        <field name="lms_penalty_grace_days" class="col-lg-2"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane">
+                                <field name="lms_fee_invoice_on_disburse" class="o_light_label"/>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <label for="lms_fee_invoice_on_disburse"/>
+                                <div class="text-muted">
+                                    Issue a customer invoice for origination fees when disbursing
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── Journals ───────────────────────────────────── -->
+                    <h2>Loan Journals / Кредитни журнали</h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <div class="content-group">
+                                    <div class="row">
+                                        <label for="lms_disbursement_journal_id" class="col-lg-5 o_light_label"
+                                               string="Disbursement / Усвояване"/>
+                                        <field name="lms_disbursement_journal_id" class="col-lg-7"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="lms_collection_journal_id" class="col-lg-5 o_light_label"
+                                               string="Collection / Събиране"/>
+                                        <field name="lms_collection_journal_id" class="col-lg-7"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="lms_operations_journal_id" class="col-lg-5 o_light_label"
+                                               string="Operations / Операции"/>
+                                        <field name="lms_operations_journal_id" class="col-lg-7"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="lms_invoice_journal_id" class="col-lg-5 o_light_label"
+                                               string="Fee Invoices / Такси"/>
+                                        <field name="lms_invoice_journal_id" class="col-lg-7"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── Asset / Receivable Accounts ────────────────── -->
+                    <h2>Receivable Accounts / Вземания</h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <div class="content-group">
+                                    <div class="row">
+                                        <label for="lms_lt_loan_account_id" class="col-lg-5 o_light_label"
+                                               string="LT Loans / Дълготрайни (262)"/>
+                                        <field name="lms_lt_loan_account_id" class="col-lg-7"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="lms_st_loan_account_id" class="col-lg-5 o_light_label"
+                                               string="ST Loans / Текуща част (4110)"/>
+                                        <field name="lms_st_loan_account_id" class="col-lg-7"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="lms_overdue_loan_account_id" class="col-lg-5 o_light_label"
+                                               string="Overdue / Просрочени (4112)"/>
+                                        <field name="lms_overdue_loan_account_id" class="col-lg-7"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="lms_fees_receivable_account_id" class="col-lg-5 o_light_label"
+                                               string="Fees Receivable / Вземания такси (4113)"/>
+                                        <field name="lms_fees_receivable_account_id" class="col-lg-7"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="lms_accrued_interest_account_id" class="col-lg-5 o_light_label"
+                                               string="Accrued Interest / Начислена лихва (4960)"/>
+                                        <field name="lms_accrued_interest_account_id" class="col-lg-7"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="lms_allowance_account_id" class="col-lg-5 o_light_label"
+                                               string="Loan Loss Allowance / Провизии (2991)"/>
+                                        <field name="lms_allowance_account_id" class="col-lg-7"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── Income Accounts ────────────────────────────── -->
+                    <h2>Income Accounts / Приходи</h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <div class="content-group">
+                                    <div class="row">
+                                        <label for="lms_interest_income_account_id" class="col-lg-5 o_light_label"
+                                               string="Interest Income / Лихви (7210)"/>
+                                        <field name="lms_interest_income_account_id" class="col-lg-7"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="lms_fee_income_account_id" class="col-lg-5 o_light_label"
+                                               string="Fee Income / Такси (7220)"/>
+                                        <field name="lms_fee_income_account_id" class="col-lg-7"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="lms_penalty_income_account_id" class="col-lg-5 o_light_label"
+                                               string="Penalty Income / Наказателна лихва (7230)"/>
+                                        <field name="lms_penalty_income_account_id" class="col-lg-7"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="lms_early_repayment_income_account_id" class="col-lg-5 o_light_label"
+                                               string="Early Repayment / Предсрочно погасяване (7240)"/>
+                                        <field name="lms_early_repayment_income_account_id" class="col-lg-7"/>
+                                    </div>
+                                    <div class="row">
+                                        <label for="lms_other_income_account_id" class="col-lg-5 o_light_label"
+                                               string="Other LMS Income / Друго (7250)"/>
+                                        <field name="lms_other_income_account_id" class="col-lg-7"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── Expense Accounts ───────────────────────────── -->
+                    <h2>Expense Accounts / Разходи</h2>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <div class="content-group">
+                                    <div class="row">
+                                        <label for="lms_provision_expense_account_id" class="col-lg-5 o_light_label"
+                                               string="Provision Expense / Разход провизии (6290)"/>
+                                        <field name="lms_provision_expense_account_id" class="col-lg-7"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

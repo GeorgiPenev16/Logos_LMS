@@ -8,5 +8,7 @@ from . import loan_gpr
 # Phase 5: Document System
 from . import document_template
 from . import loan_document
+# GROUP A: Settings + chart of accounts
+from . import res_config_settings_bg
 # from . import loan_type_bg      # Фаза 4
 # from . import anacredit_fields  # Фаза 8
