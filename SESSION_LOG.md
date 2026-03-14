@@ -2061,3 +2061,44 @@ Fields on both lines: `partner_id`, `is_interest=True`, `customer_loan_id`, `loa
 - `CLAUDE.md`: GROUP C added to Completed Accounting Groups; version → 1.0.14
 - `PLAN.md`: GROUP C marked ✅ COMPLETE; priority step 3 marked ✅
 - `SESSION_LOG.md`: this entry
+
+---
+
+## Session: 2026-03-14 (continued) — GROUP D: Penalty System
+
+### Overview
+GROUP D implements the cash-basis penalty system. Decision confirmed: Account 4961 NOT used.
+No daily GL entries. Informational display only.
+
+### What was built
+
+**`models/loan_penalty_bg.py`** — two classes:
+
+1. `CustomerLoanLinePenaltyBG` (`_inherit = 'customer.loan.lines'`) — 6 new fields:
+   - `penalty_start_date` — stored computed: `emi_date + lms_penalty_grace_days`; depends on `company_id.lms_penalty_grace_days`
+   - `penalty_accrued_informational` — Float(16,2); updated daily by cron; display-only; zero GL
+   - `penalty_calculated_at_payment` — Float(16,2); recalculated fresh when payment wizard opens
+   - `penalty_custom_amount` — Float(16,2); staff-negotiated amount (Option 3 in wizard)
+   - `waive_penalty` — Boolean; permanent waiver flag; resets informational to 0
+   - `paid_penalty` — Float(16,2), readonly; running total of penalty cash received and posted
+
+2. `CustomerLoanPenaltyBG` (`_inherit = 'customer.loan'`) — 3 methods:
+   - `_cron_installment_due_penalty()` → no-op (overrides base GL-posting cron)
+   - `_cron_loan_overdue_penalty()` → no-op (overrides base compound interest cron)
+   - `_cron_update_penalty_informational()` → daily informational update:
+     - `daily_rate = lms_penalty_rate_annual / 100 / lms_penalty_divisor`
+     - For each overdue line (today > penalty_start_date, not waived, unpaid_base > 0):
+       - `penalty_accrued_informational = unpaid_base × daily_rate × overdue_days`
+     - Resets to 0 for waived or fully-cleared lines
+     - Zero DR/CR anywhere. Account 4961 NOT used.
+
+**`data/cron_penalty_bg.xml`** — `ir.cron` record:
+- Model: `customer.loan`; method: `_cron_update_penalty_informational()`
+- Daily, priority=7, unlimited runs, active=True
+
+#### Files modified
+- `models/__init__.py`: added `from . import loan_penalty_bg`
+- `__manifest__.py`: added `data/cron_penalty_bg.xml`; version → 1.0.15
+- `CLAUDE.md`: GROUP D added to Completed Accounting Groups; version → 1.0.15
+- `PLAN.md`: GROUP D marked ✅ COMPLETE
+- `SESSION_LOG.md`: this entry

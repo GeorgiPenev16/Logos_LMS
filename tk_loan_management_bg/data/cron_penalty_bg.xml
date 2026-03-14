@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    GROUP D — Penalty Informational Cron
+    Runs daily: updates penalty_accrued_informational on overdue lines.
+    ZERO journal entries. Account 4961 NOT used. Cash-basis only.
+
+    Base module's two penalty crons (_cron_installment_due_penalty,
+    _cron_loan_overdue_penalty) are overridden in loan_penalty_bg.py
+    to be no-ops — their ir.cron records remain but call our no-op methods.
+-->
+<odoo>
+    <data noupdate="0">
+
+        <record id="cron_lms_penalty_informational" model="ir.cron">
+            <field name="name">LMS: Update Penalty Informational / Наказателна лихва (информ.)</field>
+            <field name="model_id" ref="tk_loan_management.model_customer_loan"/>
+            <field name="state" eval="'code'"/>
+            <field name="code">model._cron_update_penalty_informational()</field>
+            <field name="interval_number" eval="1"/>
+            <field name="interval_type">days</field>
+            <field name="numbercall" eval="-1"/>
+            <field name="active" eval="True"/>
+            <field name="priority" eval="7"/>
+        </record>
+
+    </data>
+</odoo>

@@ -14,5 +14,7 @@ from . import res_config_settings_bg
 from . import loan_disburse_bg
 # GROUP C: Interest accrual cron (DR 4960 / CR 7210)
 from . import loan_accrual_bg
+# GROUP D: Penalty system (cash-basis, informational only — zero GL)
+from . import loan_penalty_bg
 # from . import loan_type_bg      # Фаза 4
 # from . import anacredit_fields  # Фаза 8

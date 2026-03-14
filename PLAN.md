@@ -101,22 +101,23 @@
 
 ---
 
-### GROUP D — Penalty System (Cash Basis — NO daily GL)
-> Depends on GROUP A. Decision 2026-03-14: cash basis only. 4961 NOT used.
+### GROUP D — Penalty System (Cash Basis — NO daily GL) ✅ COMPLETE (2026-03-14, v1.0.15)
+> Commit: pending push — `models/loan_penalty_bg.py` + `data/cron_penalty_bg.xml`
 
-- [ ] Daily cron (informational, **zero journal entries**):
+- [x] Daily cron (informational, **zero journal entries**):
   - For each overdue installment where `today > penalty_start_date` and not `waive_penalty`:
-  - `inst.penalty_accrued_informational = unpaid_base × (rate/365) × overdue_days`
+  - `inst.penalty_accrued_informational = unpaid_base × (rate/divisor) × overdue_days`
   - No DR/CR. Display only. Purpose: client statement, wizard display, negotiation.
-- [ ] Add fields on `customer.loan.lines` (via `_inherit`):
-  - `penalty_start_date` Date — computed: `emi_date + penalty_grace_days`
+- [x] Add fields on `customer.loan.lines` (via `_inherit`):
+  - `penalty_start_date` Date — computed: `emi_date + lms_penalty_grace_days` (stored)
   - `penalty_accrued_informational` Float — daily calc, display only, no GL
   - `penalty_calculated_at_payment` Float — recalculated fresh when payment wizard opens
   - `penalty_custom_amount` Float — staff-editable negotiated amount (Option 3)
   - `waive_penalty` Boolean — permanent waiver flag for this installment
-  - `paid_penalty` Float — cumulative penalty actually received and posted
-- [ ] Override base `_cron_installment_due_penalty()` → replace with informational-only calc
-- [ ] `waive_penalty = True`: skip daily calc, `penalty_accrued_informational = 0`, exclude from wizard
+  - `paid_penalty` Float — cumulative penalty actually received and posted (readonly)
+- [x] Override base `_cron_installment_due_penalty()` → no-op (suppress base GL posting)
+- [x] Override base `_cron_loan_overdue_penalty()` → no-op (suppress compound interest posting)
+- [x] `waive_penalty = True`: skip daily calc, `penalty_accrued_informational = 0`, exclude from wizard
 
 ---
 
