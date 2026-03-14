@@ -1687,3 +1687,301 @@ Logos company info (name, EIK, address, MOL, etc.) has been configured directly 
 All loan type descriptions updated: `лв.` → `€`.
 
 ---
+
+---
+
+## Session: 2026-03-13 — ACCOUNTING_SPEC.md Analysis & Full Plan Update
+
+### Files reviewed
+- `ACCOUNTING_SPEC.md` (new authoritative accounting reference, v2.0)
+- `CLAUDE.md`, `PLAN.md`, `INVESTIGATION.md` — all updated
+
+### ACCOUNTING_SPEC.md — Summary
+
+Entity: **НФИ** (non-bank financial institution, ЗКИ Art. 3a). Standard: **Bulgarian NAS**. Currency: **EUR** (post 01.01.2026).
+
+#### Chart of accounts defined
+- **Assets:** 262 (LT loans), 4110 (ST current), 4112 (overdue), 4113 (fees receivable), 4960 (accrued interest), 4961 (penalty receivable), 2991 (allowance/contra)
+- **Cash:** 5030 (disbursements), 5031 (collections)
+- **Liabilities:** 152/151 (funding), 4950 (deferred fees), 4532 (VAT)
+- **Income:** 7210 (interest), 7220 (initial fees), 7230 (penalty), 7240 (admin fees), 7250 (loan taxes)
+- **Expense:** 6210 (interest on funding), 6290 (provision)
+
+#### 5 Journals required
+LOAN-DISB, LOAN-COL, LOAN-OPS, LOAN-INV, LOAN-PEN
+
+#### Key rules established
+1. Loan asset = full principal always (fees never deducted from 4110/262)
+2. Interest = accrual basis (DR 4960 / CR 7210 at installment date)
+3. Penalty = **dual approach**: Approach A daily GL (4961/7230) + Approach B fresh calc at payment
+4. `penalty_grace_days` configurable (default 0) — NEVER hardcode
+5. Current penalty rate: **10.15% p.a.** (ECB main rate + 8pp, Постановление №426/2014)
+6. FIFO payment order: **Penalty → Interest → Fee → Principal** (base module has wrong order)
+7. Invoice mode: `invoice_receipt` (default) or `receipt_only` per config
+8. LT/ST reclassification: monthly cron (262 → 4110)
+9. Overdue reclassification: daily cron (4110 → 4112)
+10. Provision for loan losses: DPD buckets (1-2% / 10-25% / 50% / 75% / 100%)
+
+### Phase 3b — Regrouped into 8 implementation groups
+
+| Group | Focus | Depends on | Priority |
+|-------|-------|-----------|---------|
+| A | Config settings + chart of accounts + journals | — | First (blocks all) |
+| B | Disbursement: 4110+262 split, fee invoice | A | Pre go-live |
+| C | Interest accrual cron (4960/7210) | A | Pre go-live |
+| D | Penalty overhaul: dual approach, grace days, `waive_penalty` | A | Pre go-live |
+| E | Payment wizard: FIFO fix, Approach B, receipt, invoice mode | C+D | Go-live |
+| F | LT/ST reclassification + overdue status crons | B | Post go-live |
+| G | Restructuring (decrease term) + pre-closure wizard | E | Post go-live |
+| H | Provision for loan losses | F | Post go-live |
+
+### Files updated
+- **`PLAN.md`**: Phase 3b completely rewritten with GROUP A–H; Priority Order updated
+- **`CLAUDE.md`**: Accounting reference section rewritten (chart of accounts, JE table, FIFO order, penalty rules, base module gaps); Remaining items updated to GROUP A–H; dev rules updated
+- **`INVESTIGATION.md`**: Section 13 gap table updated with ✅ for completed phases; Section 14 added (9-point analysis with exact file:line references)
+- **`SESSION_LOG.md`**: This entry
+
+### Next steps (in order)
+1. Implement **GROUP A** — `res.config.settings` extension + data files for COA + journals
+2. Implement **GROUP B** — disbursement JE overhaul
+3. Implement **GROUP C + D** — accrual + penalty crons
+4. Write **`setup_generic.py`** (Phase 6) configuring journals and accounts via XML-RPC
+5. Write **`import_contacts.py`** and refine **`import_loans.py`** (Phase 7)
+
+
+---
+
+## Session: 2026-03-13 (continued) — AnaCredit_CLAUDE.md Analysis & Full Project Overview
+
+### Files reviewed
+- `AnaCredit_CLAUDE.md` — standalone BNB AnaCredit generator reference (placed in project root)
+- All project docs cross-checked for consistency
+
+### AnaCredit_CLAUDE.md — Summary
+
+The file documents `anacredit_generator_v3.0.py` (v3.1), a **standalone Python script** that is already working in production at `C:\BNB_Reports\Data_base\Anacredit Monthly\`.
+
+**What it does:**
+- Input: `CUCR_enhanced.csv` (manually prepared from Logos legacy software)
+- Output: 10 BNB-required AnaCredit tables (Monthly M_FI_EA or Daily D_FI_EA)
+- EUR transition: Bulgaria adopted EUR 01.01.2026; BGN legacy credits per-agent handled
+- Key bug fixed this session: `int(NaN)` on `CUCR_EXP_NOM` (line ~932)
+
+**Integration strategy decided:**
+- Odoo stores AnaCredit fields on `customer.loan` → Export Wizard generates `CUCR_enhanced.csv` → fed into existing standalone generator → 10 BNB tables → BNB upload
+- Generator script stays standalone — not reimplemented inside Odoo
+- Integration is **post go-live** (generator already covers production needs)
+
+### Phase 8 expanded into 3 groups
+
+| Group | Scope |
+|-------|-------|
+| AC-1 | AnaCredit fields on `customer.loan` + `loan.type` + `res.config.settings` (5 new fields) |
+| AC-2 | `CUCR_enhanced.csv` export wizard / XML-RPC script with all mapping logic |
+| AC-3 | Workflow docs + BNB submission validation procedure |
+
+### Full project overview as of 2026-03-13
+
+#### COMPLETED (Phases 0–6-address + Phase 3 guarantor)
+| Phase | Status | Key deliverable |
+|-------|--------|----------------|
+| 0 | ✅ Mostly done | Git, repo, docs (3 minor items open) |
+| 1 | ✅ Done | Module skeleton |
+| 2 | ✅ Done | EIK/BULSTAT/МОЛ/`is_guarantor`, EGN skip for companies |
+| 3 | ✅ Done | `represented_by`, codebtor/guarantor tabs on loan |
+| 4 | ✅ Done | ГПР/XIRR via pyxirr, 50% constraint |
+| 5 | ✅ Done | Dynamic document templates, PDF+DOCX, 3 defaults |
+| 6-address | ✅ Done | 28 oblasts + 5,256 ЕКАТТЕ settlements, partner settlement lookup |
+
+#### IN SCOPE — pre go-live
+| Phase | Group | Scope |
+|-------|-------|-------|
+| 3b | A | Config settings + chart of accounts + 5 journals |
+| 3b | B | Disbursement: 4110+262 split, fee invoice |
+| 3b | C | Interest accrual cron (4960/7210) |
+| 3b | D | Penalty overhaul: dual approach, grace days, `waive_penalty` |
+| 6 | — | Config scripts: `setup_generic.py`, `setup_logos.py` |
+| 7 | — | Import scripts: `import_contacts.py`, `import_loans.py` |
+| 3b | E | Payment wizard: FIFO fix, Approach B, receipt doc, invoice mode |
+
+#### POST GO-LIVE
+| Phase | Group | Scope |
+|-------|-------|-------|
+| 3b | F | LT/ST reclassification + overdue status crons |
+| 3b | G | Decrease-term restructure + pre-closure wizard |
+| 3b | H | Provision for loan losses (DPD buckets) |
+| 8 | AC-1 | AnaCredit fields on loan + config |
+| 8 | AC-2 | CUCR_enhanced.csv export |
+| 8 | AC-3 | BNB submission workflow |
+
+### Files updated this session
+- `PLAN.md`: Phase 8 expanded into AC-1/AC-2/AC-3 with full field mapping table; Priority Order extended to 13 steps
+- `CLAUDE.md`: AnaCredit section added (strategy, field mapping table, CUCR_EXP_NOM codes, new config fields); Remaining table updated with AC groups
+- `INVESTIGATION.md`: Section 15 added — AnaCredit gap analysis (field-by-field status, computed logic, workflow)
+- `SESSION_LOG.md`: This entry
+
+
+---
+
+## Session: 2026-03-14 — Penalty Architecture Decision
+
+### Decision: Cash-basis penalty only. Account 4961 NOT used.
+
+**Context:** Two findings reviewed — disbursement 4110+262 split and FIFO payment order.
+During FIFO implementation review, penalty architecture corrected.
+
+### What changed
+
+**Removed:**
+- Approach A daily GL cron (`DR 4961 / CR 7230`)
+- 4961 (Penalty Receivable) account — removed from chart of accounts plan
+- Approach A vs B reconciliation at payment time
+- `penalty_accrued_informational` as a GL-posted field
+
+**Kept / Added:**
+- Daily cron: informational calc only → `penalty_accrued_informational` (Float, display only, zero JE)
+- Payment wizard: **3 penalty options**:
+  1. **Full** — `penalty_calculated_at_payment` (recalculated fresh on payment date)
+  2. **Waived** — `exclude_penalty = True` → zero, no JE, reset informational field
+  3. **Custom** — `penalty_custom_amount` (staff-editable negotiated amount)
+- JE only on cash receipt: `DR 5031 / CR 7230`
+
+### Fields on `customer.loan.lines`
+| Field | Type | Purpose |
+|-------|------|---------|
+| `penalty_start_date` | Date | Computed: `emi_date + penalty_grace_days` |
+| `penalty_accrued_informational` | Float | Daily calc — display only, no GL |
+| `penalty_calculated_at_payment` | Float | Fresh calc when wizard opens |
+| `penalty_custom_amount` | Float | Staff negotiated override |
+| `waive_penalty` | Boolean | Permanent waiver flag |
+| `paid_penalty` | Float | Running total actually received |
+
+### Why this is right for Logos (small НФИ)
+- Books stay clean until cash received ✅
+- Client always sees accurate running penalty ✅
+- Three options cover all real scenarios: pay full / waive / negotiate ✅
+- One clean JE at payment, no reconciliation complexity ✅
+- Simpler to implement and audit ✅
+
+### Files updated
+- `ACCOUNTING_SPEC.md`: Section 6 rewritten (cash basis), Section 7 FIFO table and 7B JE corrected
+- `CLAUDE.md`: Penalty rules updated, JE table corrected, base module gaps updated
+- `PLAN.md`: GROUP D rewritten (informational cron only), GROUP E penalty options updated
+
+
+
+---
+
+## Session: 2026-03-14 — GROUP A + GROUP B Implementation
+
+### Overview
+Full implementation of GROUP A (configuration foundation) and GROUP B (disbursement overhaul).
+Module bumped from v1.0.11 → v1.0.13. All commits pushed to `staging` branch on GitHub.
+
+---
+
+### GROUP A — Configuration & Chart of Accounts (v1.0.12)
+
+#### What was built
+
+**`models/res_config_settings_bg.py`** (new file)
+- `ResCompanyLMSBG` inherits `res.company` — 23 `lms_` prefixed fields:
+  - Penalty: `lms_penalty_rate_annual` (10.15%), `lms_penalty_divisor` (360), `lms_penalty_grace_days` (0)
+  - Invoice mode: `lms_fee_invoice_on_disburse` (Boolean)
+  - Journals: `lms_disbursement_journal_id`, `lms_collection_journal_id`, `lms_operations_journal_id`, `lms_invoice_journal_id`
+  - Asset accounts: `lms_lt_loan_account_id` (262), `lms_st_loan_account_id` (4110), `lms_overdue_loan_account_id` (4112), `lms_fees_receivable_account_id` (4113), `lms_accrued_interest_account_id` (4960), `lms_allowance_account_id` (2991)
+  - Income accounts: `lms_interest_income_account_id` (7210), `lms_fee_income_account_id` (7220), `lms_penalty_income_account_id` (7230), `lms_early_repayment_income_account_id` (7240), `lms_other_income_account_id` (7250)
+  - Expense account: `lms_provision_expense_account_id` (6290)
+- `ResConfigSettingsLMSBG` inherits `res.config.settings` — all `related='company_id.lms_...'` fields with `readonly=False`
+
+**`views/res_config_settings_bg_views.xml`** (new file)
+- Inherits `base.res_config_settings_view_form`, inserts `<app>` block inside `//form`
+- App name: "Loans (БГ)" — appears in Settings sidebar
+- 5 `<block>` sections: Penalty, Journals, Receivable Accounts, Income Accounts, Expense Accounts
+- Pattern follows `tk_loan_management`'s own settings view (same `<app>/<block>/<setting>` structure)
+
+**`data/account_chart_bg.xml`** (new file, noupdate=1)
+- 18 Bulgarian NAS accounts: 151, 152, 262, 2991, 4110, 4112, 4113, 4532, 4950, 4960, 5030, 5031, 7210, 7220, 7230, 7240, 7250, 6290
+
+**`data/account_journals_bg.xml`** (new file, noupdate=1)
+- 4 loan journals: LDISB (bank, default 5031), LCOL (bank, default 5031), LOPS (general), LINV (sale, default 7220)
+
+**`models/loan_bg.py`** — `default_get()` added to `CustomerLoanBG`:
+- Auto-populates 5 base accounting fields from `res.company.lms_*` on new loan creation:
+  - `receivable_account_id` ← `lms_st_loan_account_id`
+  - `interest_income_account_id` ← `lms_interest_income_account_id`
+  - `bank_cash_account` ← `lms_disbursement_journal_id.default_account_id`
+  - `journal_item_id` ← `lms_disbursement_journal_id`
+  - `repayment_journal_item_id` ← `lms_collection_journal_id`
+
+**`views/loan_bg_views.xml`** — two groups hidden via xpath:
+- `group[@name='accounting_details']` → `invisible="1"`
+- `group[@name='journal_details']` → `invisible="1"`
+
+#### Key design decision: why inherit `res.company` not per-loan
+Fields on `res.company` persist across settings save/discard cycles and across all loans.
+Per-loan fields would require manual entry for every new loan — unacceptable for operations.
+
+#### Bug fixed during implementation
+First settings view attempt used wrong `inherit_id` (`account.res_config_settings_view_form`) and wrong xpath (`//div[hasclass('settings')]`). Fixed to `base.res_config_settings_view_form` + `//form` with `<app>` block — matching TechKhedut's own pattern.
+
+#### Commits
+- `361bed0` — models + data files (account chart + journals)
+- `37198d7` — settings view fix (correct xpath + app pattern)
+- `580c710` — hide base account fields; auto-populate via `default_get()`
+
+---
+
+### GROUP B — Disbursement Overhaul (v1.0.13)
+
+#### What was built
+
+**`models/loan_disburse_bg.py`** (new file) — `CustomerLoanDisburseBG` inherits `customer.loan`
+
+**`_compute_st_lt_split(self)`:**
+```python
+ref_date = self.disbursement_date or fields.Date.today()
+cutoff = ref_date + relativedelta(months=12)
+st_amount = sum(line.installment_amount for line in self.loan_lines_ids
+                if line.emi_date and line.emi_date <= cutoff and not line.display_type)
+st_amount = min(max(st_amount, 0.0), self.loan_amount)
+lt_amount = max(self.loan_amount - st_amount, 0.0)
+```
+
+**`action_disburse_loan(self)`** override:
+1. Check BG accounts configured → if not, call `super()` and return (safe fallback)
+2. Compute ST/LT split
+3. Call `super()` → runs base validations, mail, status update, creates draft JE
+4. If `super()` returned error → propagate it immediately
+5. Replace draft JE lines: `(5,0,0)` deletes existing; adds DR 4110 (ST) + DR 262 (LT) / CR 5031
+6. Post the corrected move with `move.action_post()`
+7. If `lms_fee_invoice_on_disburse=True` and fee configured → call `_create_fee_invoice_bg()`
+
+**`_create_fee_invoice_bg(self, fee_amount, fee_account, journal)`:**
+- Creates `out_invoice` (customer invoice) on LINV journal
+- Single line: `fee_amount → fee_income_acc (7220)`
+- Calls `action_post()` immediately → status Paid
+
+#### Journal Entry produced (after override)
+```
+DR  4110  Current portion (next 12-month principal)     [ST amount]
+DR  262   Long-term remainder                           [LT amount]
+    CR  5031  Bank — Loan account                       [loan_amount]
+```
+
+#### Edge cases handled
+- `st_amount == 0` (all LT): only DR 262 line created
+- `lt_amount == 0` (all ST, e.g. < 12-month loan): only DR 4110 line created
+- `display_type` lines (section headers in schedule) excluded from sum
+- `super()` error return propagated before any JE modification
+- BG accounts not configured → falls back to base single-account JE
+
+#### Commit
+- `2d91157` — full GROUP B implementation
+
+---
+
+### Files updated this session
+- `CLAUDE.md`: version → 1.0.13; Completed Accounting Groups table added; Remaining table updated; Custom Module Models table expanded
+- `PLAN.md`: GROUP A marked ✅ COMPLETE with commits; GROUP B marked ✅ COMPLETE with implementation detail; Priority Order steps 1-2 marked ✅
+- `SESSION_LOG.md`: this entry

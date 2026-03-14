@@ -7,6 +7,7 @@
 - **Custom Module:** `tk_loan_management_bg` (VitoshaBG additions - inherits base module)
 - **Odoo Version:** 19
 - **Base Module Version:** 1.0.8 (staging) — upgraded from 1.0.6
+- **Custom Module Version:** 1.0.13
 - **Repo Path:** `C:\Odoo\Logos_LMS-staging` (canonical), `C:\Odoo\LMS_21072025` (original/archive)
 
 ## ARCHITECTURE RULE
@@ -81,27 +82,144 @@ Path: `tk_loan_management/`
 - **v1.0.8:** Enhanced JE tracking flags on `account.move.line` (`is_interest`, `is_principal`, `is_fee`, `is_overdue_interest`)
 - **v1.0.8:** Controllers for portal, website lead form, and sanction letter signing
 
-## KNOWN GAPS (what `tk_loan_management_bg` must fix)
-1. **No company/EIK support** — all partners treated as individuals, EGN always required
-2. **No guarantor role on loan** — `is_codebtor` exists on partner but loan has no codebtor/guarantor field
-3. **No ГПР/XIRR calculation** — only simple PMT formula, no APR/IRR/total cost of credit
-4. **Contract company info hardcoded** — "Finance Hold Bulgaria" with specific EIK baked into template
-5. **Codebtor not linked to loan** — `codebtor_ids` is partner-to-partner M2M, not on `customer.loan`
-6. **No domain enforcement on codebtor role** — any partner can be added regardless of `is_codebtor` flag
-7. **No AnaCredit reporting fields**
-8. **Installments not editable** after generation
+## DEVELOPMENT STATUS
+
+### Completed
+| Phase | Feature | Details |
+|-------|---------|---------|
+| Phase 2 | **Company/EIK support** | `company_registry` EIK validation (9-digit checksum), `bulstat` field, `manager_id` (МОЛ), skip EGN for companies |
+| Phase 2 | **Guarantor role** | `is_guarantor` on `res.partner`; loan view wired up |
+| Phase 4 | **ГПР/XIRR calculation** | `loan.gpr` model, XIRR method per ЗПК чл.19, max 50% enforcement |
+| Phase 5 | **Dynamic document templates** | `loan.document` + `document.template` models, admin-editable, report renderer |
+| Phase 6 | **Bulgarian address data** | 28 oblasts → `res.country.state`; 5,256 settlements → `bg.settlement` (ЕКАТТЕ + postcodes + coordinates + NUTS3) |
+| Phase 6 | **`l10n_bg` dependency** | Evaluated — **not added** (module is self-contained; `l10n_bg` not required for address or compliance features) |
+| Phase 7 | **Guarantor & Co-debtor on loan** | `customer.loan.guarantor.line` + `customer.loan.codebtor.line` models; `guarantor_line_ids` / `codebtor_line_ids` One2many on `customer.loan`; dedicated tabs in loan form; editable only in draft/confirm; domain enforces `is_guarantor`/`is_codebtor` flags |
+| Phase 7 | **Represented By** | `represented_by` Many2one on `customer.loan`; visible only for company borrowers; auto-fills from `customer_id.manager_id` on change; readonly after draft |
+| Phase 6 | **Settlement lookup on partner** | `settlement_id` Many2one on `res.partner`; auto-fills city, postcode, oblast, country for main address |
+| Phase 6 | **Employer settlement lookup** | `ep_settlement_id` Many2one; auto-fills employer city, postcode, oblast |
+
+### Completed Accounting Groups
+| Group | Feature | Version | Commit |
+|-------|---------|---------|--------|
+| **A** | `res.config.settings` extension (23 `lms_` fields on `res.company`), Settings UI tab "Loans (БГ)", Bulgarian NAS chart of accounts (18 accounts, noupdate=1), 4 loan journals (LDISB/LCOL/LOPS/LINV, noupdate=1). Base module per-loan account fields hidden; auto-populated from company settings via `default_get()`. | 1.0.12 | `361bed0` `37198d7` `580c710` |
+| **B** | Disbursement overhaul: `_compute_st_lt_split()` (12-month window from installment schedule), `action_disburse_loan()` override: DR 4110+262 / CR 5031. Graceful fallback to base if accounts not configured. `_create_fee_invoice_bg()` for origination fee invoice (LINV journal → 7220). | 1.0.13 | `2d91157` |
+
+### Remaining — by group (see PLAN.md Phase 3b + ACCOUNTING_SPEC.md)
+| Group | Feature | Priority |
+|-------|---------|---------|
+| **C** | Interest accrual cron: DR 4960 / CR 7210 at installment date | Pre go-live |
+| **D** | Penalty informational cron (no GL), installment line fields (`penalty_accrued_informational`, `penalty_calculated_at_payment`, etc.) | Pre go-live |
+| **E** | Payment wizard: FIFO fix (Penalty→Interest→Fee→Principal), unlock date, 3-option penalty, receipt doc, invoice mode | Go-live |
+| **F** | LT/ST reclassification cron (262↔4110) + overdue status (4110→4112) | Post go-live |
+| **G** | Restructuring (decrease term formula) + pre-closure wizard (ЗПК compliant) | Post go-live |
+| **H** | Provision for loan losses (DPD buckets, 6290/2991) | Post go-live |
+| **AC-1** | AnaCredit fields on `customer.loan` + `res.config.settings.anacredit_agent_id` | Post go-live |
+| **AC-2** | `CUCR_enhanced.csv` export wizard / XML-RPC script | Post go-live |
+| **AC-3** | BNB submission workflow docs + validation | Post go-live |
+| — | Improved Bulgarian translations | Ongoing |
 
 > **Note:** v1.0.8 partially addresses installment recalculation via prepayment wizard, but
 > installment grid fields remain non-editable for manual corrections.
 
-## WHAT `tk_loan_management_bg` MUST ADD
-1. Company borrower support (ЕИК, MOL/МОЛ, БУЛСТАТ)
-2. Guarantor role (Поръчител) linked to loan
-3. ГПР/XIRR calculation (Bulgarian law requirement, max 50%)
-4. Dynamic contract template (editable by admin, company info from settings)
-5. Editable installments grid
-6. Improved Bulgarian translations
-7. AnaCredit reporting fields
+## CUSTOM MODULE MODELS (`tk_loan_management_bg`)
+
+| Model | File | Purpose |
+|-------|------|---------|
+| `res.partner` (inherited) | `partner_bg.py` | EIK/BULSTAT validation, МОЛ, `is_guarantor`, settlement lookup (main + employer), EGN skip for companies |
+| `customer.loan` (inherited) | `loan_bg.py` | `represented_by`, `codebtor_line_ids`, `guarantor_line_ids`, `generated_document_ids`; `default_get()` auto-fills base accounting fields from `res.company.lms_*` |
+| `customer.loan` (inherited) | `loan_disburse_bg.py` | GROUP B: `_compute_st_lt_split()`, `action_disburse_loan()` override (DR 4110+262/CR 5031), `_create_fee_invoice_bg()` |
+| `customer.loan.codebtor.line` | `loan_bg.py` | Co-debtor line: `partner_id` (domain `is_codebtor=True`), `guarantee_percentage` |
+| `customer.loan.guarantor.line` | `loan_bg.py` | Guarantor line: `partner_id` (domain `is_guarantor=True`), `guarantee_percentage` |
+| `res.company` (inherited) | `res_config_settings_bg.py` | GROUP A: 23 `lms_` fields (penalty config, journals, 14 accounts) |
+| `res.config.settings` (inherited) | `res_config_settings_bg.py` | GROUP A: `related` fields exposing all `lms_*` in Settings → Loans (БГ) |
+| `loan.gpr` | `loan_gpr.py` | ГПР (APR) calculation via XIRR method per ЗПК чл.19 |
+| `loan.document` | `loan_document.py` | Document generation linked to loan |
+| `document.template` | `document_template.py` | Admin-editable document templates |
+| `bg.settlement` | `bg_settlement.py` | 5,256 Bulgarian settlements (ЕКАТТЕ) with postcode, oblast, municipality, NUTS3, lat/lng |
+
+### `bg.settlement` Key Fields
+- `ekatte` — 5-digit NSI code
+- `name_bg` / `name_en` — settlement name (BG/EN)
+- `type_prefix` — с. / гр. / ман. etc.
+- `display_name_bg` — computed full name (prefix + name)
+- `state_id` → `res.country.state` (28 oblasts)
+- `mun_code` / `mun_name` — municipality
+- `postcode`, `lat`, `lng`, `nuts3`
+- Search by: `display_name_bg`, `name_bg`, `name_en`, `ekatte`, `postcode`
+
+### Address auto-fill on `res.partner`
+- `settlement_id` → fills `city`, `zip` (via computed `settlement_city`/`settlement_postcode`), `state_id`, `country_id`
+- `ep_settlement_id` → fills employer address fields (`ep_settlement_city`, `ep_settlement_postcode`, `ep_state_id`, `ep_country_id`)
+- Computed fields stored outside `o_address_format` widget to survive re-render resets
+
+## ACCOUNTING REFERENCE
+
+> **Primary source: `ACCOUNTING_SPEC.md`** — read before writing any accounting code.
+> Entity: НФИ (non-bank financial institution). Standard: Bulgarian NAS. Currency: EUR (post 01.01.2026).
+
+### Chart of Accounts (Bulgarian NAS)
+| Account | Name | Type |
+|---------|------|------|
+| `262` | Дългосрочни заеми — клиенти | LT Loans Receivable |
+| `4110` | Вземания по кредити — текуща вноска | ST Loans Receivable (current 12m) |
+| `4112` | Просрочени вземания | Overdue Loan Principal |
+| `4113` | Вземания за такси | Fees Receivable |
+| `4960` | Начислени лихви | Accrued Interest Receivable |
+| `4961` | Начислена наказателна лихва | Penalty Interest Receivable |
+| `2991` | Провизии за загуби | Allowance for Loan Losses (contra) |
+| `5030` | Разплащателна сметка — Отпускане | Bank — Disbursements |
+| `5031` | Разплащателна сметка — Погашения | Bank — Collections |
+| `7210` | Приходи от лихви | Interest Income |
+| `7220` | Приходи от такси | Initial Fee Income |
+| `7230` | Приходи от наказателни лихви | Penalty Interest Income |
+| `7240` | Приходи от такси и санкции | Fee & Admin Income |
+| `7250` | Приходи от данъци по кредити | Loan Tax Income |
+| `6290` | Разходи за обезценка | Loan Loss Provision Expense |
+
+### Key Journal Entries (target state — after GROUP A-E)
+| Event | DR | CR |
+|-------|----|----|
+| Disbursement | 4110 + 262 | 5030 |
+| Interest accrual (at installment date) | 4960 | 7210 |
+| Penalty daily increment (Approach A cron) | 4961 | 7230 |
+| Payment — penalty (cash basis) | 5031 | 7230 only (no 4961) |
+| Payment — interest | 5031 | 4960 |
+| Payment — fee | 5031 | 4113 / 7220 |
+| Payment — principal | 5031 | 4110 / 4112 / 262 |
+| Overdue reclassification | 4112 | 4110 |
+| LT→ST reclassification (monthly) | 4110 | 262 |
+| Provision | 6290 | 2991 |
+
+### Penalty Rules — CASH BASIS ONLY (NEVER hardcode rates)
+- Rate: `penalty_rate_annual` from `res.config.settings` (currently 10.15% = ECB+8pp)
+- Divisor: `penalty_divisor` = 365 (A/365F)
+- Grace days: `penalty_grace_days` from settings (default 0)
+- Base: `unpaid_principal + unpaid_interest` of that installment only
+- No penalty on penalty (simple interest)
+- Resets to zero after any payment — recalculate from new unpaid balance
+- **`4961` NOT used** — no daily GL entries
+- Daily cron: informational only → `penalty_accrued_informational` (display, no JE)
+- Payment wizard — **3 options**:
+  1. **Full** — `penalty_calculated_at_payment` (recalculated fresh on payment date)
+  2. **Waived** — `exclude_penalty = True` → `penalty_to_pay = 0`, no JE
+  3. **Custom** — `penalty_custom_amount` (negotiated, staff editable, ≥ 0)
+- JE posted only on cash receipt: `DR 5031 / CR 7230`
+
+### Payment FIFO Order (correct per ЗПК Art. 35)
+1. Penalty (`DR 5031 / CR 7230` — cash basis, amount per option chosen)
+2. Interest (4960 cleared)
+4. Principal (4110 → 4112 → 262)
+
+### Base Module Accounting Gaps (what must be overridden)
+- Single `receivable_account_id` instead of 4110+262 split
+- No `accrued_interest_account_id` (4960) — interest not accrued separately
+- Penalty and fee both credited to `interest_income_account_id` (wrong accounts)
+- Payment FIFO order wrong: base does Interest → Penalty → Fee → Principal
+- Wizard date readonly — no daily interest calc to payment date
+- No `exclude_penalty` checkbox / no custom penalty amount
+- No LT/ST reclassification
+- No provision for loan losses
+- **4961 NOT used** — base module penalty cron replaced by informational-only calc
 
 ## SCRIPTS
 | Script | Purpose |
@@ -117,12 +235,70 @@ Path: `tk_loan_management/`
 - Data currently in their own software
 - Needs backdated loan entry with paid installments marked
 
+## LOGOS CURRENCY
+- **EUR (Euro)** — active, company currency
+- **BGN** — inactive (Bulgaria joins Eurozone 2026)
+- All loan amounts displayed and entered in **€**
+- Fixed rate 1.95583 (historical reference only — EUR is primary)
+
 ## BULGARIAN COMPLIANCE REQUIREMENTS
 - ГПР mandatory on every contract (max 50%)
 - ЕИК for companies (9 or 13 digits with checksum)
 - EGN for individuals (10 digits with checksum)
 - BGN/EUR dual currency (fixed rate 1.95583)
 - Sequential invoice numbering
+
+## ANACREDIT INTEGRATION (Phase 8 — post go-live)
+
+> **Reference:** `AnaCredit_CLAUDE.md` — full spec of the standalone generator.
+> **Standalone script:** `C:\BNB_Reports\Data_base\Anacredit Monthly\anacredit_generator_v3.0.py` (v3.1, working)
+
+### Strategy
+```
+Odoo customer.loan → Export Wizard → CUCR_enhanced.csv → anacredit_generator_v3.0.py → 10 BNB tables → BNB upload
+```
+The generator script is **already operational in production**. Odoo integration adds automation only.
+
+### Odoo field → CUCR_enhanced.csv mapping
+
+| CUCR Column | Odoo Source | Notes |
+|---|---|---|
+| `CUCR_DATE` | Report month (wizard input) | YYYYMMDD |
+| `CUCR_CRED` | `customer.loan.name` | Contract number |
+| `CUCR_BAE` | `res.config.settings.anacredit_agent_id` | e.g. BGR00441 |
+| `CUCR_BORR` | `customer_id.company_registry` / `personal_number` | EIK or EGN |
+| `CUCR_REC` | Computed from loan status | 5=active, 6=closed, 7=restructured, 8=new, 9=written-off |
+| `CUCR_EXP_NOM` | Computed from DPD + status | 70=performing, 73=NPL |
+| `CRED_DAT1` | `approval_date` | Credit initiation date |
+| `CRED_DAT2` / `DATF` | `end_date` | Maturity dates |
+| `CUCR_SUMA` | `loan_amount` | Disbursed amount |
+| `CUCR_TOT_BALANS` | Sum of remaining principal from schedule | |
+| `CUCR_INTR` | `interest_rate` | 6 decimal places |
+| `CUCR_PRINC_OVER` | Overdue principal from `loan_lines_ids` | |
+| `CUCR_OVER_INTER` | Overdue interest from `loan_lines_ids` | |
+| `CUCR_JUD_DUES` | New field `anacredit_jud_dues` on loan | Default 0 |
+| `CUCR_TOT_OFFBAL` | New field `anacredit_tot_offbal` on loan | Default 0 |
+| `BORR_TYPE` | `customer_id.is_company` → 1/2/3 | 1=EGN, 2=EIK, 3=BULSTAT |
+| `CRED_SPEC` | `loan_type_id.anacredit_cred_spec` | New field on loan type |
+| `CRED_GRACE_PER` | Computed from `grace_period` | 90=fixed, 92=interest-only, 91=balloon |
+| `CRED_CO_BORR` | `codebtor_line_ids[0].partner_id.company_registry` | First codebtor EIK/EGN |
+| `DAYS_PAST_DUE` | Max days overdue from schedule lines | |
+
+### CUCR_EXP_NOM mapping (BNB codes)
+| Code | Meaning | Condition |
+|------|---------|-----------|
+| 70 | Performing | DPD < 30 |
+| 71 | Watch list | DPD 30–60 |
+| 72 | Substandard | DPD 60–90 |
+| 73 | Doubtful | DPD 90–180 |
+| 74 | Loss | DPD > 180 |
+
+### New config fields needed (GROUP AC-1)
+- `res.config.settings.anacredit_agent_id` — Char, BNB reporting agent code (BGR00441 etc.)
+- `res.config.settings.anacredit_version` — Char, default '0.9'
+- `customer.loan.type.anacredit_cred_spec` — Char, instrument type code (102/110/111 etc.)
+- `customer.loan.anacredit_jud_dues` — Monetary, judgment dues
+- `customer.loan.anacredit_tot_offbal` — Monetary, off-balance sheet amount
 
 ## DEVELOPMENT RULES
 - Always use `TEST_MODE = True` by default in scripts
@@ -131,3 +307,6 @@ Path: `tk_loan_management/`
 - All company info must come from settings, not baked into templates
 - Prefer editing existing files over creating new ones
 - Never modify files inside `tk_loan_management/`
+- **Before any accounting code: read `ACCOUNTING_SPEC.md` first**
+- **Never hardcode `penalty_rate_annual`, `penalty_divisor`, `penalty_grace_days`** — always read from `res.config.settings`
+- All JEs must carry: `partner_id`, `loan_id` ref, `ref` (human-readable), `journal_id`

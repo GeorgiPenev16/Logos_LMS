@@ -45,6 +45,128 @@
 > automatic installment recalculation (`action_recalculate_installment()`).
 > Manual line editing is deprioritised — will revisit if a concrete client need arises.
 
+## Phase 3b: Full Accounting Overhaul (spec: ACCOUNTING_SPEC.md, identified 2026-03-13)
+
+> **Reference:** `ACCOUNTING_SPEC.md` is the authoritative source for all accounting logic.
+> Read it before writing any accounting Python/XML. Bulgarian NAS, НФИ entity, EUR post-2026.
+> Phase 3b supersedes the earlier 3b-1…3b-5 item list — fully regrouped below.
+
+---
+
+### GROUP A — Configuration & Chart of Accounts Foundation ✅ COMPLETE (2026-03-14, v1.0.12)
+> Commits: `361bed0` (models + data), `37198d7` (settings view fix), `580c710` (hide base fields + auto-populate)
+
+- [x] Extend `res.config.settings` with:
+  - `penalty_rate_annual` Float (default 0.1015 — ECB+8pp, update manually)
+  - `penalty_divisor` Integer (default 365)
+  - `penalty_grace_days` Integer (default 0 — NEVER hardcode)
+  - `default_invoice_mode` Selection (`invoice_receipt` / `receipt_only`)
+  - `invoice_initial_fees` Boolean (default True)
+  - `fee_recognition_method` Selection (`immediate` / `amortised`)
+  - Journal fields: `lms_disbursement_journal_id`, `lms_collection_journal_id`, `lms_operations_journal_id`, `lms_invoice_journal_id`
+  - Account fields (all Many2one `account.account`, prefixed `lms_`):
+    - Assets: `lms_lt_loan_account_id` (262), `lms_st_loan_account_id` (4110), `lms_overdue_loan_account_id` (4112), `lms_fees_receivable_account_id` (4113), `lms_accrued_interest_account_id` (4960), `lms_allowance_account_id` (2991)
+    - Income: `lms_interest_income_account_id` (7210), `lms_fee_income_account_id` (7220), `lms_penalty_income_account_id` (7230), `lms_early_repayment_income_account_id` (7240), `lms_other_income_account_id` (7250)
+    - Expense: `lms_provision_expense_account_id` (6290)
+- [x] Data file: 4 journals (LDISB, LCOL, LOPS, LINV) — `noupdate=1` — `data/account_journals_bg.xml`
+- [x] Data file: Bulgarian NAS chart of accounts (18 accounts: 151, 152, 262, 2991, 4110, 4112, 4113, 4532, 4950, 4960, 5030, 5031, 7210–7250, 6290) — `noupdate=1` — `data/account_chart_bg.xml`
+- [x] Settings view: "Loans (БГ)" app block in `res.config.settings` — `views/res_config_settings_bg_views.xml`
+- [x] Base module per-loan fields hidden from UI; auto-populated via `default_get()` from `res.company.lms_*`
+
+---
+
+### GROUP B — Disbursement Overhaul ✅ COMPLETE (2026-03-14, v1.0.13)
+> Commit: `2d91157` — `models/loan_disburse_bg.py`
+
+- [x] `_compute_st_lt_split()`: sums `installment_amount` for lines with `emi_date ≤ disbursement_date + 12 months` → ST amount; LT = loan_amount − ST; clamped to [0, loan_amount]
+- [x] Override `action_disburse_loan()`: calls `super()` (validations + mail + status), then replaces draft JE lines with `DR 4110 (ST) + DR 262 (LT) / CR 5031 (bank)`, posts move
+- [x] Graceful fallback: if `lms_lt_loan_account_id` / `lms_st_loan_account_id` / `lms_disbursement_journal_id` not set in Settings → base behaviour runs unchanged
+- [x] `_create_fee_invoice_bg()`: creates + validates `out_invoice` on LINV journal (7220) when `lms_fee_invoice_on_disburse=True` and `is_processing_fee` and `processing_fee_deduct_from='disbursement'`
+- [ ] Deferred fee amortisation cron (monthly): `DR 4950 / CR 7220` per loan — deferred to post go-live
+
+---
+
+### GROUP C — Interest Accrual Cron
+> Depends on GROUP A.
+
+- [ ] New daily cron at 06:00: for each installment where `emi_date == today` → post `DR 4960 / CR 7210`
+- [ ] Add fields to `customer.loan.lines` (via `_inherit`): `accrual_move_id` Many2one, `accrual_status` Selection (draft/posted/reversed)
+- [ ] Advance payment: if paid before due date, reverse partial 4960 accrual (interest re-calc: `principal × rate/365 × actual_days`)
+
+---
+
+### GROUP D — Penalty System (Cash Basis — NO daily GL)
+> Depends on GROUP A. Decision 2026-03-14: cash basis only. 4961 NOT used.
+
+- [ ] Daily cron (informational, **zero journal entries**):
+  - For each overdue installment where `today > penalty_start_date` and not `waive_penalty`:
+  - `inst.penalty_accrued_informational = unpaid_base × (rate/365) × overdue_days`
+  - No DR/CR. Display only. Purpose: client statement, wizard display, negotiation.
+- [ ] Add fields on `customer.loan.lines` (via `_inherit`):
+  - `penalty_start_date` Date — computed: `emi_date + penalty_grace_days`
+  - `penalty_accrued_informational` Float — daily calc, display only, no GL
+  - `penalty_calculated_at_payment` Float — recalculated fresh when payment wizard opens
+  - `penalty_custom_amount` Float — staff-editable negotiated amount (Option 3)
+  - `waive_penalty` Boolean — permanent waiver flag for this installment
+  - `paid_penalty` Float — cumulative penalty actually received and posted
+- [ ] Override base `_cron_installment_due_penalty()` → replace with informational-only calc
+- [ ] `waive_penalty = True`: skip daily calc, `penalty_accrued_informational = 0`, exclude from wizard
+
+---
+
+### GROUP E — Payment Wizard Overhaul
+> Depends on GROUP C + D. Core operational change.
+
+- [ ] Unlock `date` field in wizard (remove `readonly="1"`)
+- [ ] Fix FIFO order: **Penalty → Interest → Fee → Principal** (base has wrong order)
+- [ ] Penalty — **3 options** in wizard (per installment):
+  - **Option 1 — Full**: `penalty_calculated_at_payment` (recalculated fresh on `payment_date`, read-only)
+  - **Option 2 — Waived**: `exclude_penalty` checkbox → `penalty_to_pay = 0`, no JE, `penalty_accrued_informational = 0`
+  - **Option 3 — Custom**: `penalty_custom_amount` editable field (negotiated; validation: ≥ 0)
+  - JE when penalty > 0: `DR 5031 / CR 7230` only. **No 4961. No reconciliation.**
+- [ ] Current-period accrued interest to payment date: `principal × (rate/365) × elapsed_days`
+- [ ] Overpayment: `DR 5031 / CR 4950` (deferred) + flag `status_overpaid = True`
+- [ ] Account destinations: 7230 penalty income, 4960→cleared interest, 4113 fees, 4110/4112/262 principal
+- [ ] Payment Receipt document (`loan.payment.receipt` model):
+  - Fields: `receipt_number` (RCPT-XXXXXXXXXX), `client_name`, `client_identifier`, `loan_contract_number`, `payment_date`, `total_amount_received`, `penalty_paid`, `interest_paid`, `fee_paid`, `principal_paid`, `remaining_principal_balance`, `next_installment_date/amount`, `days_overdue_cleared`, `invoice_numbers`, `installments_covered`
+  - QWeb PDF template
+- [ ] Invoice generation per `invoice_mode`:
+  - `invoice_receipt`: auto-create Customer Invoice for income components (7220/7230/7240/7250), validate immediately
+  - `receipt_only`: income posted via JE only, no Odoo invoice
+
+---
+
+### GROUP F — Reclassification & Overdue Status
+> Depends on GROUP B.
+
+- [ ] Monthly cron (1st of month, 07:00): per loan, compute new 12-month window → `DR 4110 / CR 262`; reverse next day
+- [ ] Daily cron (07:00): installments where `emi_date < today AND status != paid` → `DR 4112 / CR 4110` + `status = overdue`
+- [ ] Add `days_overdue` Integer computed on `customer.loan.lines`
+- [ ] Mark Overdue Installments daily cron: sets `status = 'overdue'`, updates `days_overdue`
+
+---
+
+### GROUP G — Restructuring & Pre-closure
+> Depends on GROUP E.
+
+- [ ] **Decrease installment** (base exists, but fix accounts to use 4110/4112/262 split)
+- [ ] **Decrease term** (new): formula from spec §11C:
+  ```python
+  N = -math.log(1 - (monthly_rate * remaining_principal) / fixed_installment) / math.log(1 + monthly_rate)
+  N = math.ceil(N)
+  ```
+- [ ] **Pre-closure wizard**: staff inputs pre-closure fee %; compute total due; cancel future installments (`status='cancelled'`); reverse future accruals (`DR 7210 / CR 4960`); post final settlement JE (5031 / 4110+4112+262+4960+7230+7240); set `loan.status = 'closed'`; ЗПК right: no interest/penalty beyond closure date
+
+---
+
+### GROUP H — Provision for Loan Losses
+> Can be done post go-live.
+
+- [ ] DPD bucket table configurable in settings (0-30: 1-2%, 31-60: 10-25%, 61-90: 50%, 91-180: 75%, >180: 100%)
+- [ ] Monthly provision cron: compute required provision per loan, post `DR 6290 / CR 2991`
+- [ ] Write-off entry: `DR 2991 / CR 4110+4112+262`
+- [ ] Provision report
+
 ## Phase 4: Financial Parameters ✅ COMPLETE (tested 2026-03-10)
 - [x] `models/loan_gpr.py` — pyxirr-based IRR and XIRR (identical to Excel functions)
 - [x] `eir_ifrs` computed field — EIR per IFRS 9, periodic rate (e.g. 2.012660 %/month)
@@ -118,17 +240,73 @@
 > Depends on Phase 2 (partner fields) being completed first.
 
 ## Phase 8: AnaCredit Integration
-- [ ] `models/anacredit_fields.py` — BNB (Bulgarian National Bank) reporting fields on `customer.loan`
-- [ ] Fields: instrument type, purpose code, amortisation type, interest rate type, etc.
-- [ ] `models/anacredit_report.py` — XML/CSV export logic
-- [ ] Mapping from loan fields to AnaCredit schema
-- [ ] Scheduled action for periodic reporting
+> **Reference:** `AnaCredit_CLAUDE.md` — full spec of the standalone generator script.
+> **Strategy:** Odoo stores AnaCredit fields on `customer.loan` → export `CUCR_enhanced.csv`
+> → feed into existing standalone `anacredit_generator_v3.0.py` → BNB submission.
+> The generator script is already working (v3.1, EUR transition support). Odoo's job is to
+> provide correctly populated data for it.
 
-## Priority Order
-1. **Phase 0** — environment setup (in progress)
-2. **Phase 1 + 2** — foundation and partner fixes (blocks everything else)
-3. **Phase 3** — loan model fixes (blocks import scripts)
-4. **Phase 5** — contract template (**blocks go-live** — no loan can be signed without correct contract)
-5. **Phase 4** — ГПР (legal compliance, must be on every contract per ZPK)
-6. **Phase 6 + 7** — scripts (needed for data migration before go-live)
-7. **Phase 8** — AnaCredit (can be done post go-live)
+### GROUP AC-1 — AnaCredit Fields on `customer.loan`
+- [ ] New model or `_inherit` extension: `models/anacredit_bg.py`
+- [ ] Fields needed on `customer.loan`:
+  | Odoo Field | CUCR Column | Source / Logic |
+  |---|---|---|
+  | `anacredit_rec` | `CUCR_REC` | Computed: 8=new disburse, 5=active, 7=restructured, 6=closed, 9=written-off |
+  | `anacredit_bae` | `CUCR_BAE` | From `res.config.settings.anacredit_agent_id` (e.g. BGR00441) |
+  | `anacredit_exp_nom` | `CUCR_EXP_NOM` | Computed: 70=performing (<30 DPD), 73=NPL (≥90 DPD) — per BNB table |
+  | `anacredit_cred_spec` | `CRED_SPEC` | From `customer.loan.type` — new `anacredit_cred_spec` Char field |
+  | `anacredit_grace_per` | `CRED_GRACE_PER` | Map from `grace_period` type: 90=fixed inst, 92=interest-only, 91=balloon |
+  | `anacredit_jud_dues` | `CUCR_JUD_DUES` | New Monetary field — judgment dues |
+  | `anacredit_tot_offbal` | `CUCR_TOT_OFFBAL` | New Monetary field — off-balance sheet |
+  | Existing: `loan_amount` | `CUCR_SUMA` | Direct |
+  | Existing: `interest_rate` | `CUCR_INTR` | Direct |
+  | Existing: `approval_date` | `CRED_DAT1` | Direct |
+  | Existing: `end_date` | `CRED_DAT2` / `DATF` | Direct |
+  | From schedule: overdue principal | `CUCR_PRINC_OVER` | Computed from `loan_lines_ids` |
+  | From schedule: overdue interest | `CUCR_OVER_INTER` | Computed from `loan_lines_ids` |
+  | From schedule: days past due | `DAYS_PAST_DUE` | Computed from max overdue installment |
+  | From partner: borrower type | `BORR_TYPE` | 1=EGN person, 2=EIK company, 3=BULSTAT |
+  | From codebtor_line_ids | `CRED_CO_BORR` | First codebtor's EGN/EIK |
+- [ ] `res.config.settings` additions: `anacredit_agent_id` Char (e.g. BGR00441), `anacredit_version` Char (default '0.9')
+- [ ] `anacredit_cred_spec` Char field on `customer.loan.type` (maps to TYP_INSTRMNT via generator)
+
+### GROUP AC-2 — CUCR_enhanced.csv Export from Odoo
+- [ ] Wizard or scheduled action: `loan.anacredit.export.wizard`
+- [ ] User selects report month → system queries all active loans for that period
+- [ ] Generates `CUCR_enhanced.csv` with all required columns (semicolon-delimited, UTF-8)
+- [ ] File downloadable from wizard or saved to configurable folder
+- [ ] Validates mandatory fields before export (CRED_DAT1, CUCR_BORR, CUCR_CRED)
+- [ ] Script version: XML-RPC export script `scripts/export_anacredit.py` as alternative
+
+### GROUP AC-3 — Workflow & Documentation
+- [ ] Document end-to-end workflow:
+  `Odoo → Export Wizard → CUCR_enhanced.csv → anacredit_generator_v3.0.py → 10 BNB tables → BNB upload`
+- [ ] `scripts/README.md` section: AnaCredit monthly procedure
+- [ ] Validate CUCR_enhanced.csv output against known-good sample files
+- [ ] Handle BGN legacy credits per-agent list (already in generator v3.1)
+
+> **Note:** Groups AC-1 and AC-2 are post go-live. The standalone generator script is already
+> operational and used in production. Odoo integration adds automation but is not a go-live blocker.
+
+## Priority Order (updated 2026-03-13)
+
+### Completed
+- Phase 0 (env), Phase 1 (foundation), Phase 2 (partners), Phase 3 (loan model),
+  Phase 4 (ГПР), Phase 5 (documents), Phase 6-address (ЕКАТТЕ settlements + partner lookup)
+
+### Remaining — dependency order
+| Step | What | Blocks |
+|------|------|--------|
+| ✅ 1 | **Phase 3b GROUP A** — config settings + chart of accounts + journals | Everything accounting |
+| ✅ 2 | **Phase 3b GROUP B** — disbursement overhaul (4110+262 split, fee invoice) | GROUP F |
+| 3 | **Phase 3b GROUP C** — interest accrual cron (4960/7210) | GROUP E |
+| 4 | **Phase 3b GROUP D** — penalty overhaul (4961/7230, grace days, dual approach) | GROUP E |
+| 5 | **Phase 6** — config scripts (`setup_generic.py`, `setup_logos.py`) | Phase 7 |
+| 6 | **Phase 7** — import scripts (`import_contacts.py`, `import_loans.py`) | Go-live |
+| 7 | **Phase 3b GROUP E** — payment wizard overhaul (FIFO fix, receipt, invoice) | Go-live |
+| 8 | **Phase 3b GROUP F** — reclassification + overdue status crons | Post go-live |
+| 9 | **Phase 3b GROUP G** — restructuring + pre-closure wizard | Post go-live |
+| 10 | **Phase 3b GROUP H** — provision for loan losses | Post go-live |
+| 11 | **Phase 8 AC-1** — AnaCredit fields on `customer.loan` + config | Post go-live |
+| 12 | **Phase 8 AC-2** — `CUCR_enhanced.csv` export wizard/script | Post go-live |
+| 13 | **Phase 8 AC-3** — workflow documentation + BNB submission validation | Post go-live |
