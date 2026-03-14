@@ -368,13 +368,312 @@ Each line: `duration` (max installments), `interest_rate`, `installment_type`
 
 | # | Gap | Severity | Phase |
 |---|-----|----------|-------|
-| 1 | No company borrower support (ЕИК/МОЛ) | **Critical** — client has mostly company borrowers | Phase 2 |
-| 2 | EGN required for all partners | **Critical** — blocks company partner creation | Phase 2 |
-| 3 | No ГПР calculation | **Critical** — Bulgarian legal requirement | Phase 4 |
-| 4 | Contract hardcoded to specific company | **High** — must be dynamic | Phase 5 |
-| 5 | Guarantor not linked to loan | **High** — contract references guarantor | Phase 3 |
-| 6 | Codebtor role not enforced | **Medium** — any partner can be added | Phase 3 |
+| 1 | No company borrower support (ЕИК/МОЛ) | **Critical** — client has mostly company borrowers | Phase 2 ✅ |
+| 2 | EGN required for all partners | **Critical** — blocks company partner creation | Phase 2 ✅ |
+| 3 | No ГПР calculation | **Critical** — Bulgarian legal requirement | Phase 4 ✅ |
+| 4 | Contract hardcoded to specific company | **High** — must be dynamic | Phase 5 ✅ |
+| 5 | Guarantor not linked to loan | **High** — contract references guarantor | Phase 3 ✅ |
+| 6 | Codebtor role not enforced | **Medium** — any partner can be added | Phase 3 ✅ |
 | 7 | No AnaCredit fields | **Medium** — BNB reporting needed eventually | Phase 8 |
-| 8 | Installments not editable | **Medium** — can't correct errors | Phase 3 |
+| 8 | Installments not editable | **Medium** — can't correct errors | Postponed |
 | 9 | No min/max on loan type | **Low** — nice to have | Phase 4 |
 | 10 | No EUR dual currency | **Low** — most loans in BGN | Future |
+
+---
+
+## 14. Payment & Accounting Deep-Dive (2026-03-12)
+
+Analysis of: `customer_loan.py`, `wizard/loan_payment.py`, `data/ir_cron.xml`
+against 9 operational questions from Logos client requirements.
+
+---
+
+### 14.1 CASH DISBURSEMENT
+**Status: ✅ DONE**
+**Found in:** `customer_loan.py:201-204`, `customer_loan_views.xml:807-810`, `customer_loan.py:1994-2062`
+
+```python
+disbursement_payment_type = fields.Selection([
+    ('cash', 'Cash'),
+    ('bank_transfer', 'Bank Transfer')
+])
+```
+Radio button widget in view. Disbursement JE posts:
+- Debit: `receivable_account_id` (loan receivable)
+- Credit: `bank_cash_account` (whichever account is configured on the loan)
+
+**Residual gap:** No separate petty cash account field — both cash and bank variants use the same `bank_cash_account` Many2one. The selection affects the label but not the account used.
+
+---
+
+### 14.2 FEE SEPARATION IN JOURNALS
+**Status: ⚠️ PARTIAL**
+**Found in:** `customer_loan.py:110-114, 205-219`, `wizard/loan_payment.py:198-226`
+
+Fees ARE a separate round in payment allocation (Round 3: fee, after interest, before principal). Each fee payment creates a separate journal line with `is_fee = True` marker.
+
+**Gap:** No `fee_income_account_id` field. Fees are credited to `interest_income_account_id` — the same account as interest. Impossible to separate fee income from interest income at the account/GL level. Affects Bulgarian chart of accounts compliance (721 vs 728/similar).
+
+---
+
+### 14.3 PENALTY JOURNAL ENTRY TIMING
+**Status: ✅ DONE (accrual-based daily)**
+**Found in:** `data/ir_cron.xml:15-23`, `customer_loan.py:953-1015`
+
+Cron trigger: `_cron_installment_due_penalty()` — runs **every day** automatically.
+
+```python
+# JE structure (lines 982-1005):
+# Debit:  bank_cash_account          (penalty amount)
+# Credit: interest_income_account_id (penalty income — same as interest account)
+```
+
+Penalty JE is created once per overdue installment, the day after `emi_date`, independent of payment.
+
+**Note:** Penalty is credited to `interest_income_account_id`, not a dedicated penalty income account — same gap as fees (see 14.2).
+
+---
+
+### 14.4 PENALTY EXCLUDE CHECKBOX
+**Status: ❌ MISSING**
+**Found in:** Nothing. Searched `exclude_penalty`, `waive_penalty`, `skip_penalty`, `penalty_waived` — zero results in entire codebase.
+
+**Gap:** Full feature missing. No Boolean or field of any kind to waive/exclude penalty on a specific installment or payment. Once `is_penalty = True` on the loan, all overdue installments accrue penalty automatically. No override mechanism.
+
+---
+
+### 14.5 CALCULATE DUE UP TO SELECTED DATE
+**Status: ⚠️ PARTIAL**
+**Found in:** `wizard/loan_payment.py:34, 42-60`, `wizard/loan_payment_view.xml:15`
+
+A `date` field exists in the wizard and `_compute_remain_amount` uses it — collects all installments where `emi_date <= date`. The logic skeleton is in place.
+
+**BUT:** The date field is `readonly="1"` in the view — user cannot change it. Always defaults to `fields.Date.today()`.
+
+**Gaps:**
+1. Date field hardcoded as readonly — **no user-selectable date**
+2. **No daily interest** — interest is fixed per installment; no pro-rata calculation for days between due date and payment date
+3. **No daily penalty** — penalty is cron-based; not recalculated dynamically on the wizard's payment date
+
+---
+
+### 14.6 DECREASE INSTALLMENT RESTRUCTURE (keep term, lower EMI)
+**Status: ✅ DONE**
+**Found in:** `customer_loan.py:1619-1723`
+**Function:** `action_recalculate_installment()`
+
+Takes `credit_balance` (overpayment), subtracts from remaining principal, recalculates EMI for the **same number of remaining installments** → lower installment amount. Unlinks old unpaid installments, creates new schedule, triggers email notification.
+
+---
+
+### 14.7 DECREASE TERM RESTRUCTURE (keep EMI, shorten term)
+**Status: ❌ MISSING**
+**Found in:** Nothing. Searched `decrease_term`, `shorten_term`, `same_installment`, `keep_installment` — zero results.
+
+**Gap:** Full feature missing. `action_recalculate_installment()` only does the reverse (keeps term, reduces EMI). No "keep same installment, shorten term" restructure option exists.
+
+---
+
+### 14.8 OVERPAYMENT HANDLING
+**Status: ✅ DONE (manual trigger)**
+**Found in:** `customer_loan.py:321`, `wizard/loan_payment.py:259-260`, `customer_loan_views.xml:711-715`
+
+```python
+credit_balance = fields.Monetary()  # on customer.loan
+# After all payment rounds, leftover:
+if amount > 0:
+    loan_id.credit_balance = amount
+```
+
+Stored in `credit_balance`, displayed in loan view when > 0.
+
+**Residual gap:** Not automatically applied to the next installment. User must manually trigger `action_recalculate_installment()` to apply the credit balance. Acceptable for Logos use case.
+
+---
+
+### 14.9 BULGARIAN ACCOUNTS (411, 228, 721, 724)
+**Status: ❌ MISSING (account codes) / ⚠️ PARTIAL (account fields)**
+**Found in:** Zero matches for account codes `411`, `228`, `721`, `724` anywhere in codebase.
+
+Account fields that exist on `customer.loan`:
+
+| Field | Account role | Used for |
+|-------|-------------|---------|
+| `receivable_account_id` | 411 equivalent | Loan principal receivable |
+| `bank_cash_account` | Cash/Bank | Disbursement credit / repayment debit |
+| `interest_income_account_id` | 721 equivalent | Interest income — **AND penalty AND fee** |
+| `journal_item_id` | — | Disbursement journal |
+| `repayment_journal_item_id` | — | Repayment journal |
+
+**Three problems:**
+1. **No default accounts** — must be manually selected on every loan; no defaults on loan type or company settings
+2. **No `penalty_income_account_id`** — penalty credited to `interest_income_account_id`
+3. **No `fee_income_account_id`** — fees credited to `interest_income_account_id`
+
+For Bulgarian compliance need at minimum:
+- `receivable_account_id` → 411
+- `interest_income_account_id` → 721
+- `penalty_income_account_id` → 724 (separate field needed)
+- `fee_income_account_id` → 728 or similar (separate field needed)
+- Defaults configurable on `customer.loan.type` (not per-loan)
+
+---
+
+### 14.10 Summary Table
+
+| # | Item | Status | Fixable in `tk_loan_management_bg` |
+|---|------|--------|-------------------------------------|
+| 1 | Cash disbursement | ✅ | n/a |
+| 2 | Fee separate account | ⚠️ | ✅ Add `fee_income_account_id` field + loan type default |
+| 3 | Penalty timing (daily accrual) | ✅ | n/a |
+| 4 | Penalty exclude/waive checkbox | ❌ | ✅ Add `waive_penalty` Boolean on installment line |
+| 5 | Calculate due to selected date | ⚠️ | ✅ Override wizard: unlock date field, add daily interest calc |
+| 6 | Decrease installment restructure | ✅ | n/a |
+| 7 | Decrease term restructure | ❌ | ✅ New restructure wizard option |
+| 8 | Overpayment handling | ✅ | n/a (manual trigger acceptable) |
+| 9 | Bulgarian account codes | ❌ | ✅ Add `penalty_income_account_id`, `fee_income_account_id`; defaults on loan type |
+
+
+---
+
+## 15. AnaCredit Integration Gap Analysis (2026-03-13)
+
+### 15.1 What exists (standalone script — fully operational)
+
+- **Script:** `C:\BNB_Reports\Data_base\Anacredit Monthly\anacredit_generator_v3.0.py` (v3.1)
+- **Input:** `CUCR_enhanced.csv` — manually prepared from Logos's legacy software
+- **Output:** 10 BNB-required CSV tables (Monthly M_FI_EA or Daily D_FI_EA)
+- **Status:** Working in production. EUR transition support complete. BGN legacy credits handled per-agent.
+
+### 15.2 What Odoo must provide (GROUP AC-1 fields)
+
+Fields missing from `customer.loan` that are needed for CUCR_enhanced.csv export:
+
+| CUCR Column | Status in Odoo | Action needed |
+|---|---|---|
+| `CUCR_DATE` | ❌ | Wizard input (report month) |
+| `CUCR_CRED` | ✅ `customer.loan.name` | Direct map |
+| `CUCR_BAE` | ❌ | `res.config.settings.anacredit_agent_id` |
+| `CUCR_BORR` | ✅ `customer_id.company_registry` / `personal_number` | Direct map |
+| `CUCR_REC` | ⚠️ | Compute from loan status (5/6/7/8/9) |
+| `CUCR_EXP_NOM` | ❌ | Compute from DPD: 70/71/72/73/74 |
+| `CRED_DAT1` | ✅ `approval_date` | Direct map |
+| `CRED_DAT2` / `DATF` | ✅ `end_date` | Direct map |
+| `CUCR_SUMA` | ✅ `loan_amount` | Direct map |
+| `CUCR_TOT_BALANS` | ⚠️ | Compute from schedule lines |
+| `CUCR_INTR` | ✅ `interest_rate` | Direct map |
+| `CUCR_PRINC_OVER` | ⚠️ | Compute from overdue schedule lines |
+| `CUCR_OVER_INTER` | ⚠️ | Compute from overdue schedule lines |
+| `CUCR_JUD_DUES` | ❌ | New field `anacredit_jud_dues` |
+| `CUCR_TOT_OFFBAL` | ❌ | New field `anacredit_tot_offbal` |
+| `BORR_TYPE` | ✅ `customer_id.is_company` | Map: False→1, True→2 |
+| `CRED_SPEC` | ❌ | New field on `customer.loan.type` |
+| `CRED_GRACE_PER` | ⚠️ | Map from loan `grace_period` type |
+| `CRED_CO_BORR` | ✅ `codebtor_line_ids[0]` | Extract EIK/EGN of first codebtor |
+| `DAYS_PAST_DUE` | ⚠️ | Compute from max overdue installment |
+
+**Legend:** ✅ exists and maps directly | ⚠️ needs computed logic | ❌ new field required
+
+### 15.3 New fields required (minimal additions)
+
+On `customer.loan`:
+- `anacredit_jud_dues` Monetary (default 0) — judgment dues
+- `anacredit_tot_offbal` Monetary (default 0) — off-balance sheet amount
+
+On `customer.loan.type`:
+- `anacredit_cred_spec` Char — BNB instrument type code (102/110/111/111G/113/114/115/117/121/124)
+
+On `res.config.settings`:
+- `anacredit_agent_id` Char — BNB reporting agent code (BGR00441 etc.)
+- `anacredit_version` Char — default '0.9'
+
+### 15.4 Computed logic required (GROUP AC-2 export wizard)
+
+```python
+# CUCR_REC from loan status:
+status_to_rec = {
+    'disbursement': '8',   # New
+    'in_progress':  '5',   # Active
+    'closure':      '6',   # Closing
+    'settlement':   '6',   # Closing
+    # restructured (detect from recalculate history): '7'
+    # written-off: '9'
+}
+
+# CUCR_EXP_NOM from DPD:
+def exp_nom(days_past_due):
+    if days_past_due < 30:  return 70  # Performing
+    if days_past_due < 60:  return 71  # Watch list
+    if days_past_due < 90:  return 72  # Substandard
+    if days_past_due < 180: return 73  # Doubtful
+    return 74                           # Loss
+
+# CRED_GRACE_PER from loan type:
+grace_map = {'fixed': '90', 'interest_only': '92', 'balloon': '91'}
+```
+
+### 15.5 Workflow (unchanged — generator script stays standalone)
+
+```
+1. Monthly: run Odoo export wizard → downloads CUCR_enhanced.csv
+2. Copy to: C:\BNB_Reports\Data_base\Anacredit Monthly\Input_Anacredit\
+3. Run: python anacredit_generator_v3.0.py --report-type monthly
+4. Upload 10 output CSVs to BNB portal
+```
+
+
+---
+
+## Section 16: Payment FIFO Order Decision (2026-03-14)
+
+### Finding 2 — Corrected Payment Algorithm
+
+**Previous understanding (wrong):** Per-installment waterfall — fully clear each installment
+(Penalty→Interest→Fee→Principal) before moving to the next installment.
+
+**Correct approach for Logos:** Global 4-round sweep across ALL installments.
+
+### Why global sweep is correct
+
+A per-installment waterfall means a partial payment that covers penalty and interest of
+installment #1, but not its principal, would be blocked from clearing penalty on installment
+#2. This is operationally wrong — ЗПК Art. 35 mandates priority ORDER (penalty first,
+principal last), not per-installment isolation.
+
+The global sweep respects ЗПК Art. 35 priority AND allows partial payments to clear
+accumulated penalty and interest across multiple overdue installments before touching any
+principal. This matches how Bulgarian NFIs operate in practice.
+
+### Algorithm (Decision: 2026-03-14)
+
+```
+remaining = amount_paid
+installments = all unpaid, sorted by emi_date ASC
+
+Round 1 — ALL penalties (all installments, oldest first):
+    for each inst: pay = min(penalty_due, remaining) → DR 5031 / CR 7230
+
+Round 2 — ALL fees (all installments, oldest first):
+    for each inst: pay = min(fee_due, remaining) → DR 5031 / CR 4113
+
+Round 3 — ALL interest (all installments, oldest first):
+    for each inst: pay = min(interest_due, remaining) → DR 5031 / CR 4960
+
+Round 4 — Principal FIFO (oldest first, partial OK):
+    for each inst: pay = min(principal_due, remaining) → DR 5031 / CR 4112 or 4110
+
+Overpayment: loan.credit_balance += remaining
+```
+
+### Impact on GROUP E (Payment Wizard)
+
+- `wizard/loan_payment_bg.py` must implement this 4-round algorithm
+- Single consolidated `account.move` created per payment with all line items
+- Per-installment `paid_*` fields updated after each round
+- `penalty_accrued_informational` reset to zero after penalty payment
+- Principal account chosen per-installment: 4112 if `inst.status == 'overdue'`, else 4110
+
+### Files updated
+
+- `ACCOUNTING_SPEC.md`: Section 7 fully rewritten with global sweep algorithm, code structure,
+  example JEs, and wizard penalty options table

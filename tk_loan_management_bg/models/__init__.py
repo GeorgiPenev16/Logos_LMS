@@ -12,5 +12,7 @@ from . import loan_document
 from . import res_config_settings_bg
 # GROUP B: Disbursement overhaul (4110+262 split)
 from . import loan_disburse_bg
+# GROUP C: Interest accrual cron (DR 4960 / CR 7210)
+from . import loan_accrual_bg
 # from . import loan_type_bg      # Фаза 4
 # from . import anacredit_fields  # Фаза 8

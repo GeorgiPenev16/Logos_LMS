@@ -1985,3 +1985,79 @@ DR  262   Long-term remainder                           [LT amount]
 - `CLAUDE.md`: version → 1.0.13; Completed Accounting Groups table added; Remaining table updated; Custom Module Models table expanded
 - `PLAN.md`: GROUP A marked ✅ COMPLETE with commits; GROUP B marked ✅ COMPLETE with implementation detail; Priority Order steps 1-2 marked ✅
 - `SESSION_LOG.md`: this entry
+
+
+---
+
+## Session: 2026-03-14 (continued) — Payment FIFO Decision + GROUP C
+
+### Payment FIFO Order — Architecture Decision
+
+**Corrected from per-installment waterfall to global 4-round sweep.**
+
+#### Old (wrong):
+> Per installment: fully clear Penalty→Interest→Fee→Principal on installment #1,
+> then move to installment #2, etc.
+
+#### New (correct for Logos):
+> Global sweep — each round clears one component across ALL installments (oldest first):
+> - Round 1: ALL penalties (all installments)
+> - Round 2: ALL fees (all installments)
+> - Round 3: ALL interest (all installments)
+> - Round 4: Principal FIFO (oldest first, partial OK)
+> - Overpayment → `loan.credit_balance`
+
+#### Why this matters
+A partial payment that covers penalty + interest on installment #1 but not its principal
+should still clear penalty on installment #2. The global sweep allows this; per-installment
+waterfall would not. ЗПК Art. 35 mandates the priority ORDER, not per-installment isolation.
+
+#### Files updated
+- `ACCOUNTING_SPEC.md`: Section 7 fully rewritten (7.0 Algorithm, 7.1 Priority, 7.2 Code Structure, 7.3-7.7 examples)
+- `CLAUDE.md`: Payment FIFO section updated to global sweep
+- `INVESTIGATION.md`: Section 16 added with decision rationale and GROUP E impact
+
+---
+
+### GROUP C — Interest Accrual Cron (v1.0.14)
+
+#### What was built
+
+**`models/loan_accrual_bg.py`** (new file)
+
+`CustomerLoanLineAccrualBG` inherits `customer.loan.lines`:
+- `accrual_move_id` Many2one `account.move` (readonly, `ondelete='set null'`)
+- `accrual_status` Selection: draft / posted / reversed (default: draft)
+
+`CustomerLoanAccrualBG` inherits `customer.loan`:
+
+`_cron_post_interest_accrual()`:
+1. Reads `lms_accrued_interest_account_id` (4960), `lms_interest_income_account_id` (7210), `lms_operations_journal_id` from `res.company`
+2. Logs warning + returns if any not configured (safe fallback)
+3. Searches all `in_progress` loans
+4. Per loan: filters lines where `emi_date == today AND accrual_status != 'posted' AND interest_amount > 0`
+5. Per line: creates `account.move` with two lines (DR 4960 / CR 7210, `is_interest=True`), posts it, sets `accrual_move_id` + `accrual_status = 'posted'`
+6. Per-line try/except: one failure doesn't block other loans
+7. Logs total count at end
+
+#### Journal Entry produced
+```
+DR  4960  Начислени лихви — {loan.name} / {inst_no}     [interest_amount]
+    CR  7210  Приходи от лихви — {loan.name} / {inst_no} [interest_amount]
+```
+Fields on both lines: `partner_id`, `is_interest=True`, `customer_loan_id`, `loan_line_id`.
+
+**`data/cron_accrual_bg.xml`** (new file):
+- `ir.cron`: daily, unlimited runs (`numbercall=-1`), `priority=5` (runs before base penalty crons)
+- Code: `model._cron_post_interest_accrual()`
+
+#### Design notes
+- Cron uses `priority=5` to run before base module penalty crons (priority=10 by default)
+- `accrual_status` field allows future reversal logic (advance payment in GROUP E)
+- `is_interest=True` flag on move lines reuses base module's existing tracking flag
+- `noupdate=0` on cron so admin can adjust schedule without data reset
+
+#### Files updated
+- `CLAUDE.md`: GROUP C added to Completed Accounting Groups; version → 1.0.14
+- `PLAN.md`: GROUP C marked ✅ COMPLETE; priority step 3 marked ✅
+- `SESSION_LOG.md`: this entry

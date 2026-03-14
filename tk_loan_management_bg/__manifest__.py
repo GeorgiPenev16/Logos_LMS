@@ -13,7 +13,7 @@
         - Редактируема таблица на вноски
         - Полета за AnaCredit отчетност към БНБ
     """,
-    'version': '1.0.13',
+    'version': '1.0.14',
     'author': 'VitoshaBG EOOD',
     'company': 'VitoshaBG EOOD',
     'maintainer': 'VitoshaBG EOOD',
@@ -37,6 +37,9 @@
         # GROUP A: Chart of accounts and journals (noupdate=1, before views)
         'data/account_chart_bg.xml',
         'data/account_journals_bg.xml',
+
+        # GROUP C: Interest accrual cron
+        'data/cron_accrual_bg.xml',
 
         # Views — Фаза 2
         'views/partner_bg_views.xml',

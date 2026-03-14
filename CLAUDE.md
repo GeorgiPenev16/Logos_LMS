@@ -7,7 +7,7 @@
 - **Custom Module:** `tk_loan_management_bg` (VitoshaBG additions - inherits base module)
 - **Odoo Version:** 19
 - **Base Module Version:** 1.0.8 (staging) — upgraded from 1.0.6
-- **Custom Module Version:** 1.0.13
+- **Custom Module Version:** 1.0.14
 - **Repo Path:** `C:\Odoo\Logos_LMS-staging` (canonical), `C:\Odoo\LMS_21072025` (original/archive)
 
 ## ARCHITECTURE RULE
@@ -103,11 +103,11 @@ Path: `tk_loan_management/`
 |-------|---------|---------|--------|
 | **A** | `res.config.settings` extension (23 `lms_` fields on `res.company`), Settings UI tab "Loans (БГ)", Bulgarian NAS chart of accounts (18 accounts, noupdate=1), 4 loan journals (LDISB/LCOL/LOPS/LINV, noupdate=1). Base module per-loan account fields hidden; auto-populated from company settings via `default_get()`. | 1.0.12 | `361bed0` `37198d7` `580c710` |
 | **B** | Disbursement overhaul: `_compute_st_lt_split()` (12-month window from installment schedule), `action_disburse_loan()` override: DR 4110+262 / CR 5031. Graceful fallback to base if accounts not configured. `_create_fee_invoice_bg()` for origination fee invoice (LINV journal → 7220). | 1.0.13 | `2d91157` |
+| **C** | Interest accrual cron (daily 06:00): `_cron_post_interest_accrual()` posts DR 4960 / CR 7210 per installment on due date. Fields added to `customer.loan.lines`: `accrual_move_id`, `accrual_status`. Skips gracefully if accounts not configured. | 1.0.14 | pending |
 
 ### Remaining — by group (see PLAN.md Phase 3b + ACCOUNTING_SPEC.md)
 | Group | Feature | Priority |
 |-------|---------|---------|
-| **C** | Interest accrual cron: DR 4960 / CR 7210 at installment date | Pre go-live |
 | **D** | Penalty informational cron (no GL), installment line fields (`penalty_accrued_informational`, `penalty_calculated_at_payment`, etc.) | Pre go-live |
 | **E** | Payment wizard: FIFO fix (Penalty→Interest→Fee→Principal), unlock date, 3-option penalty, receipt doc, invoice mode | Go-live |
 | **F** | LT/ST reclassification cron (262↔4110) + overdue status (4110→4112) | Post go-live |
@@ -205,10 +205,15 @@ Path: `tk_loan_management/`
   3. **Custom** — `penalty_custom_amount` (negotiated, staff editable, ≥ 0)
 - JE posted only on cash receipt: `DR 5031 / CR 7230`
 
-### Payment FIFO Order (correct per ЗПК Art. 35)
-1. Penalty (`DR 5031 / CR 7230` — cash basis, amount per option chosen)
-2. Interest (4960 cleared)
-4. Principal (4110 → 4112 → 262)
+### Payment Allocation — Global 4-Round Sweep (ЗПК Art. 35)
+NOT per-installment waterfall. Each round clears one component across ALL installments (oldest first):
+1. **Round 1 — ALL penalties** (`DR 5031 / CR 7230` — cash basis, skip if `waive_penalty`)
+2. **Round 2 — ALL fees** (`DR 5031 / CR 4113`)
+3. **Round 3 — ALL interest** (`DR 5031 / CR 4960` — clears accrued)
+4. **Round 4 — Principal FIFO** (`DR 5031 / CR 4112` if overdue, else `4110`; partial OK)
+- Overpayment → `loan.credit_balance` (not 4950)
+- Single consolidated `account.move` per payment
+- See ACCOUNTING_SPEC.md Section 7 for full code structure
 
 ### Base Module Accounting Gaps (what must be overridden)
 - Single `receivable_account_id` instead of 4110+262 split

@@ -86,12 +86,18 @@
 
 ---
 
-### GROUP C — Interest Accrual Cron
-> Depends on GROUP A.
+### GROUP C — Interest Accrual Cron ✅ COMPLETE (2026-03-14, v1.0.14)
+> Commit: pending push — `models/loan_accrual_bg.py` + `data/cron_accrual_bg.xml`
 
-- [ ] New daily cron at 06:00: for each installment where `emi_date == today` → post `DR 4960 / CR 7210`
-- [ ] Add fields to `customer.loan.lines` (via `_inherit`): `accrual_move_id` Many2one, `accrual_status` Selection (draft/posted/reversed)
-- [ ] Advance payment: if paid before due date, reverse partial 4960 accrual (interest re-calc: `principal × rate/365 × actual_days`)
+- [x] `CustomerLoanLineAccrualBG` inherits `customer.loan.lines`: adds `accrual_move_id` Many2one, `accrual_status` Selection (draft/posted/reversed)
+- [x] `CustomerLoanAccrualBG` inherits `customer.loan`: `_cron_post_interest_accrual()` — daily 06:00
+  - Finds all `in_progress` loans; filters lines where `emi_date == today` AND `accrual_status != 'posted'` AND `interest_amount > 0`
+  - Posts one `account.move` per line: DR 4960 (`interest_amount`) / CR 7210 (`interest_amount`)
+  - Sets `accrual_move_id` + `accrual_status = 'posted'`; logs count
+  - Skips gracefully with warning if accounts/journal not configured in Settings
+  - Per-line try/except: one failed line doesn't block remaining loans
+- [x] `data/cron_accrual_bg.xml`: `ir.cron` record, daily, priority=5, unlimited runs
+- [ ] Advance payment partial reversal of 4960 accrual — deferred to GROUP E (payment wizard)
 
 ---
 
@@ -299,7 +305,7 @@
 |------|------|--------|
 | ✅ 1 | **Phase 3b GROUP A** — config settings + chart of accounts + journals | Everything accounting |
 | ✅ 2 | **Phase 3b GROUP B** — disbursement overhaul (4110+262 split, fee invoice) | GROUP F |
-| 3 | **Phase 3b GROUP C** — interest accrual cron (4960/7210) | GROUP E |
+| ✅ 3 | **Phase 3b GROUP C** — interest accrual cron (4960/7210) | GROUP E |
 | 4 | **Phase 3b GROUP D** — penalty overhaul (4961/7230, grace days, dual approach) | GROUP E |
 | 5 | **Phase 6** — config scripts (`setup_generic.py`, `setup_logos.py`) | Phase 7 |
 | 6 | **Phase 7** — import scripts (`import_contacts.py`, `import_loans.py`) | Go-live |
