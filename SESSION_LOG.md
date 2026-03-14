@@ -2102,3 +2102,50 @@ No daily GL entries. Informational display only.
 - `CLAUDE.md`: GROUP D added to Completed Accounting Groups; version → 1.0.15
 - `PLAN.md`: GROUP D marked ✅ COMPLETE
 - `SESSION_LOG.md`: this entry
+
+---
+
+## Session: 2026-03-14 (continued) — GROUP E: Payment Wizard Overhaul
+
+### Overview
+GROUP E replaces the base `loan.payment` wizard `action_register_payment()` with a
+BG-correct global 4-round FIFO sweep and correct accounting.
+
+### What was built
+
+**`wizard/loan_payment_bg.py`** — `LoanPaymentBG(_inherit='loan.payment')`:
+
+**New fields:**
+- `penalty_option` Selection (`full`/`waived`/`custom`) — defaults `full`
+- `penalty_custom_amount_wizard` Float — editable when option=`custom`
+- `penalty_calculated_display` Float — computed on `date` + `customer_loan_id`; fresh penalty total to payment date
+
+**`_compute_penalty_display()`:**
+- Iterates overdue lines (skips waived, skips not-yet-overdue)
+- `total = sum(max(0, calc - already_paid))` using `lms_penalty_rate_annual / lms_penalty_divisor`
+
+**`action_register_payment()` override:**
+- Delegates initial-fee payments unchanged to `super()`
+- Falls back to base wizard if `lms_collection_journal_id` / `lms_accrued_interest_account_id` / `lms_st_loan_account_id` not set
+- Global 4-round sweep (ЗПК Art. 35 priority):
+  - Round 1 — ALL penalties (oldest first); `custom` mode consumes `penalty_custom_amount_wizard` greedily
+  - Round 2 — ALL fees → 4113
+  - Round 3 — ALL interest → 4960
+  - Round 4 — Principal FIFO → 4112 (if `emi_date < payment_date`) or 4110
+- Per installment: one `account.move` (all components bundled) → `action_post()`
+  - Compatible with base `_compute_amount()` flag detection (`is_interest`, `is_fee`, `is_principal`, `is_overdue_interest`)
+- Updates GROUP D stored fields `paid_penalty` + `penalty_accrued_informational` after JE post
+- `waived` mode: sets `waive_penalty=True` + resets `penalty_accrued_informational=0` on all overdue lines
+- Overpayment: `loan.credit_balance = remaining`
+
+**`views/loan_payment_bg_views.xml`** — inherits `loan.payment.view.form`:
+- xpath removes `readonly="1"` from `date` field
+- Inserts after `credit_balance`: `penalty_calculated_display` (readonly), `penalty_option` (radio), `penalty_custom_amount_wizard` (hidden unless custom)
+
+#### Files modified
+- `wizard/__init__.py`: new file, imports `loan_payment_bg`
+- `__init__.py`: added `from . import wizard`
+- `__manifest__.py`: added `views/loan_payment_bg_views.xml`; version → 1.0.16
+- `CLAUDE.md`: GROUP E added to Completed Accounting Groups; version → 1.0.16
+- `PLAN.md`: GROUP E marked ✅ COMPLETE
+- `SESSION_LOG.md`: this entry
