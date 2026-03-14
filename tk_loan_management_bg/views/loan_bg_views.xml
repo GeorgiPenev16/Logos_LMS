@@ -12,6 +12,14 @@
                    ref="tk_loan_management.customer_loan_form_view"/>
             <field name="arch" type="xml">
 
+                <!-- ═══ HIDE base accounting/journal groups — managed via Settings ═══ -->
+                <xpath expr="//group[@name='accounting_details']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//group[@name='journal_details']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
                 <!-- ═══ ПРЕДСТАВЛЯВАН ОТ — само за фирмени клиенти ═══ -->
                 <xpath expr="//field[@name='phone']" position="before">
                     <field name="represented_by"

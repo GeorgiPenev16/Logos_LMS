@@ -118,3 +118,26 @@ class CustomerLoanBG(models.Model):
                 'default_loan_id': self.id,
             },
         }
+
+    @api.model
+    def default_get(self, fields_list):
+        """Auto-populate base accounting fields from company LMS settings.
+
+        The base module requires receivable_account_id, interest_income_account_id,
+        bank_cash_account, journal_item_id, and repayment_journal_item_id to be set
+        before disbursement. We hide those fields from the UI and fill them here so
+        users never have to configure them per-loan.
+        """
+        res = super().default_get(fields_list)
+        company = self.env.company
+        if 'receivable_account_id' in fields_list and company.lms_st_loan_account_id:
+            res['receivable_account_id'] = company.lms_st_loan_account_id.id
+        if 'interest_income_account_id' in fields_list and company.lms_interest_income_account_id:
+            res['interest_income_account_id'] = company.lms_interest_income_account_id.id
+        if 'bank_cash_account' in fields_list and company.lms_disbursement_journal_id:
+            res['bank_cash_account'] = company.lms_disbursement_journal_id.default_account_id.id
+        if 'journal_item_id' in fields_list and company.lms_disbursement_journal_id:
+            res['journal_item_id'] = company.lms_disbursement_journal_id.id
+        if 'repayment_journal_item_id' in fields_list and company.lms_collection_journal_id:
+            res['repayment_journal_item_id'] = company.lms_collection_journal_id.id
+        return res
