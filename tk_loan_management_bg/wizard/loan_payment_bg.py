@@ -35,16 +35,16 @@ class LoanPaymentBG(models.TransientModel):
         default='full',
     )
 
-    penalty_custom_amount_wizard = fields.Float(
+    penalty_custom_amount_wizard = fields.Monetary(
         string='Custom Penalty / Договорена наказателна лихва',
-        digits=(16, 2),
+        currency_field='currency_id',
         default=0.0,
         help='Staff-negotiated penalty. Used only when Penalty Option = Custom.',
     )
 
-    penalty_calculated_display = fields.Float(
+    penalty_calculated_display = fields.Monetary(
         string='Calculated Penalty / Изчислена наказателна лихва',
-        digits=(16, 2),
+        currency_field='currency_id',
         compute='_compute_penalty_display',
         help='Fresh penalty total to the selected payment date across all overdue installments.',
     )

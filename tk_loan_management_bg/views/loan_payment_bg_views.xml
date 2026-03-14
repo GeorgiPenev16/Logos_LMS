@@ -13,20 +13,16 @@
             <field name="inherit_id" ref="tk_loan_management.loan_payment_view_form"/>
             <field name="arch" type="xml">
 
-                <!-- Unlock payment date -->
+                <!-- Unlock payment date: replace readonly field with editable one -->
                 <xpath expr="//field[@name='date']" position="attributes">
-                    <attribute name="readonly">0</attribute>
+                    <attribute name="readonly">False</attribute>
                 </xpath>
 
-                <!-- Add penalty section after the credit_balance field -->
+                <!-- Add penalty fields after credit_balance -->
                 <xpath expr="//field[@name='credit_balance']" position="after">
-                    <field name="penalty_calculated_display"
-                           options="{'currency_field': 'currency_id'}"
-                           readonly="1"
-                           force_save="1"/>
+                    <field name="penalty_calculated_display" readonly="1"/>
                     <field name="penalty_option" widget="radio"/>
                     <field name="penalty_custom_amount_wizard"
-                           options="{'currency_field': 'currency_id'}"
                            invisible="penalty_option != 'custom'"/>
                 </xpath>
 
