@@ -10,5 +10,7 @@ from . import document_template
 from . import loan_document
 # GROUP A: Settings + chart of accounts
 from . import res_config_settings_bg
+# GROUP B: Disbursement overhaul (4110+262 split)
+from . import loan_disburse_bg
 # from . import loan_type_bg      # Фаза 4
 # from . import anacredit_fields  # Фаза 8
