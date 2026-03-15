@@ -16,6 +16,36 @@
 - Scripts go into `/scripts` folder at project root
 - Import scripts go at project root (e.g. `import_loans.py`)
 
+## ODOO 19 — VIEW INHERITANCE RULES
+
+### xpath selectors — FORBIDDEN attributes
+**NEVER use `@string` as an xpath selector.** Odoo 19 throws:
+> `View inheritance may not use attribute 'string' as a selector.`
+
+This applies to ALL group/page/notebook selectors. Use field-based predicates instead.
+
+| ❌ FORBIDDEN | ✅ CORRECT |
+|-------------|-----------|
+| `//group[@string='Loan Details']` | `//group[.//field[@name='remaining_loan_principle_amount']]` |
+| `//group[@string='Pre-Closure Details']` | `//group[.//field[@name='is_pre_closure_charge']]` |
+| `//page[@string='Settings']` | `//page[.//field[@name='some_field']]` |
+| `//notebook[@string='...']` | Use positional: `//notebook/page[1]` |
+
+**Valid selectors:**
+- `@name` — always safe: `//field[@name='loan_id']`
+- `@class` — safe: `//div[@class='o_field_widget']`
+- `@id` — safe
+- Field-content predicates: `//group[.//field[@name='field_name']]`
+- Positional: `//group[1]`, `//notebook/page[2]`
+- `position="attributes"` — valid for overriding `required`, `invisible`, `readonly`
+
+**Workflow when inheriting a base view with groups:**
+1. Open the base view XML (`tk_loan_management/views/…xml`)
+2. Find a unique field INSIDE the target group
+3. Use `//group[.//field[@name='that_field']]` as the selector
+
+**Confirmed fix (2026-03-15):** `pre_closure_bg_views.xml` — two `@string` selectors replaced with field-content predicates. Commit `9a7dd46`.
+
 ## BASE MODULE STRUCTURE
 Path: `tk_loan_management/`
 

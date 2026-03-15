@@ -2458,3 +2458,40 @@ Writes `lms_penalty_rate_annual`=0.1015, `lms_penalty_divisor`=365,
 - `PLAN.md`: setup_generic.py marked ✅ COMPLETE with sub-task detail
 - `STATUS_REPORT.md`: scripts table updated
 - `SESSION_LOG.md`: this entry
+
+---
+
+## Session: 2026-03-15 (continued) — Fix: @string xpath selector forbidden in Odoo 19
+
+### Error
+```
+odoo.tools.convert.ParseError: while parsing pre_closure_bg_views.xml:9
+View inheritance may not use attribute 'string' as a selector.
+```
+
+Occurred on install of `tk_loan_management_bg` — module failed to load.
+
+### Root cause
+`views/pre_closure_bg_views.xml` used `@string` attribute as xpath selector:
+```xml
+<xpath expr="//group[@string='Loan Details']" position="replace">
+<xpath expr="//group[@string='Pre-Closure Details']" position="attributes">
+```
+Odoo 19 explicitly forbids `@string` as a view inheritance selector.
+
+### Fix
+Replaced with field-content predicates by reading the base wizard view to identify
+a unique field inside each target group:
+
+| Old (forbidden) | New (valid) |
+|----------------|-------------|
+| `//group[@string='Loan Details']` | `//group[.//field[@name='remaining_loan_principle_amount']]` |
+| `//group[@string='Pre-Closure Details']` | `//group[.//field[@name='is_pre_closure_charge']]` |
+
+Commit: `9a7dd46`
+
+### Rule added to CLAUDE.md
+New section "ODOO 19 — VIEW INHERITANCE RULES" with:
+- Forbidden vs valid selector table
+- Field-content predicate pattern
+- Workflow: open base view → find unique field inside target group → use as predicate
