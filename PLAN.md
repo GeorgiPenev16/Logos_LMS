@@ -230,15 +230,19 @@
 ## Phase 6: Configuration Scripts
 - [x] Logos company data entered manually in Odoo.sh staging via Settings → Company (2026-03-11)
       > **NOTE:** `setup_logos.py` must NOT overwrite company info — check before writing, skip if set
-- [ ] `scripts/setup_generic.py` — journals, document types, system params + **Bulgarian holidays 2026–2035**:
+- [x] `scripts/setup_generic.py` — Bulgarian holidays 2026–2035 + penalty settings + document types:
   - [x] Installment date immutability rule documented (CLAUDE.md, ACCOUNTING_SPEC.md Rules 15/16, INVESTIGATION.md Section 18)
   - [x] Holiday-aware date generation for new loans — `_adjust_due_date()` with month-end direction rule documented
   - [x] Master rule "one installment per month — never cross month boundary" documented
   - [x] Jan 1 handling clarified: NOT a special case — moves AFTER (stays in January)
-  - [x] Direction examples table: Jan 1→Jan 2, Dec 31→Dec 30, Dec 30→Dec 29, Mar 3→Mar 4, May 1→May 4
-  - [ ] 10-year holiday coverage 2026–2035 in `resource.calendar.leaves` (fixed, Easter, weekend compensation, EUR special)
+  - [x] Direction examples table + multi-day block (Apr 27–30) + Dec 31 Sat/Sun edge cases confirmed
+  - [x] `orthodox_easter()` algorithm verified 2025–2035
+  - [x] 10-year holiday coverage 2026–2035: fixed + Easter (4 days) + weekend compensation (КТ чл.154 ал.2) + Jan 2 2026 EUR special
+  - [x] Populates both `resource.calendar.leaves` AND `public.holidays` (base module)
+  - [x] `setup_penalty_settings()`: `lms_penalty_rate_annual`=0.1015, `lms_penalty_divisor`=365, `lms_penalty_grace_days`=0 (skip-if-set)
+  - [x] `setup_document_types()`: 8 standard loan document types
   - [ ] Annual holiday coverage check cron (`_cron_holiday_coverage_check`) — Dec 1st, admin notification if ≤ 2 years remaining
-  - [ ] `_adjust_due_date()` + `_is_non_working()` + `_prev_business_day()` implemented in `loan_bg.py` or schedule mixin
+  - [ ] `_adjust_due_date()` + helpers implemented in Odoo Python (loan schedule model)
 - [x] `scripts/setup_logos.py` — currencies (EUR/BGN) + 3 loan types; JSON-RPC; env-var config (`ODOO_URL`, `ODOO_DB`, `ODOO_USER`, `ODOO_PASS`); `TEST_MODE=True` by default (commit `1fef838`)
 - [x] `l10n_bg` dependency evaluated — **not added** (self-contained, not required)
 - [ ] `scripts/README.md` — usage instructions for all scripts

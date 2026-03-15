@@ -38,7 +38,7 @@ Version: tk_loan_management_bg v1.0.18
 | Script | Status | Notes |
 |--------|--------|-------|
 | `scripts/setup_logos.py` | ✅ committed `1fef838` | JSON-RPC, env vars, currencies + 3 loan types |
-| `scripts/setup_generic.py` | ⬜ not started | Journals, doc types, holidays |
+| `scripts/setup_generic.py` | ✅ committed | Holidays 2026–2035 (both models), penalty settings, doc types |
 | `scripts/import_contacts.py` | ⬜ not started | Borrowers/guarantors from Excel |
 | `import_loans.py` (root) | ⬜ draft exists | Loan migration — needs validation |
 
@@ -48,7 +48,7 @@ Version: tk_loan_management_bg v1.0.18
 | Installment date immutability after disbursement | ✅ documented | CLAUDE.md, ACCOUNTING_SPEC.md Rule 15, INVESTIGATION.md §18.1 |
 | Holiday-aware schedule (suggest only, officer confirms) | ✅ documented | CLAUDE.md, ACCOUNTING_SPEC.md Rule 16, INVESTIGATION.md §18.2 |
 | Annual holiday coverage check cron | ✅ spec written | CLAUDE.md |
-| setup_generic.py — 10-year holiday data 2026–2035 | ⬜ implementation pending | PLAN.md Phase 6 |
+| setup_generic.py — 10-year holiday data 2026–2035 | ✅ implemented | `resource.calendar.leaves` + `public.holidays` |
 
 ### TechKhedut integrity
 ✅ VERIFIED CLEAN (2026-03-15) — zero modifications, OPL-1 compliance intact.

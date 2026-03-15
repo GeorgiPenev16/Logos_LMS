@@ -2414,3 +2414,47 @@ walk backward until working day. No special case needed.
 Note: Easter four-day block (Апрелски пример Apr 27-30) also confirmed — all four
 contractual dates resolve to same last business day (Apr 24 in example). Apr 27 takes
 AFTER→fallback→BEFORE path; Apr 28-30 take BEFORE directly. Algorithm correct.
+
+---
+
+## Session: 2026-03-15 (continued) — setup_generic.py built
+
+### Overview
+`scripts/setup_generic.py` — complete generic Odoo configuration script.
+JSON-RPC, env-var config, TEST_MODE=True default, --apply pattern.
+
+### Section 1: Holidays (resource.calendar.leaves + public.holidays)
+
+`build_holiday_list(years)` computes all entries per year:
+- 10 fixed national holidays (КТ чл.154 ал.1)
+- 4 Orthodox Easter days: Good Fri + Holy Sat + Easter Sun + Easter Mon
+  - Algorithm: Julian calendar + 13 days → Gregorian. Verified 2025–2035.
+- Special one-offs: Jan 2 2026 "Еднократен почивен ден — въвеждане на EUR"
+- Weekend compensations (КТ чл.154 ал.2):
+  - Saturday holiday → following Monday (if not already a holiday)
+  - Sunday holiday → following Monday (if not already a holiday)
+  - Easter Sat/Sun compensations correctly skipped (Mon already Easter Monday)
+
+2026 output: 18 entries. Dec 26 Sat → Dec 28 Mon. May 24 Sun → May 25 Mon.
+Sep 6 Sun → Sep 7 Mon. Apr 11 Sat comp skipped (Apr 13 = Easter Monday).
+
+Populates BOTH:
+- `resource.calendar.leaves` (calendar_id, date_from/to, time_type='leave')
+  → used by our `_adjust_due_date()` / `_get_bg_holidays()`
+- `public.holidays` (start_date, end_date, action_confirm())
+  → used by base module `_get_valid_installment_date()`
+
+Skip-if-exists logic prevents duplicates on re-run.
+
+### Section 2: Penalty Settings (res.company)
+Writes `lms_penalty_rate_annual`=0.1015, `lms_penalty_divisor`=365,
+`lms_penalty_grace_days`=0 — skips each field if already set to non-zero.
+
+### Section 3: Document Types (customer.document.type)
+8 standard loan document types. Skip-if-exists.
+
+### Files modified
+- `scripts/setup_generic.py`: new file
+- `PLAN.md`: setup_generic.py marked ✅ COMPLETE with sub-task detail
+- `STATUS_REPORT.md`: scripts table updated
+- `SESSION_LOG.md`: this entry
