@@ -2401,3 +2401,16 @@ entire last week of month were holidays, practically impossible).
 - `PLAN.md`: setup_generic.py sub-tasks expanded — Jan 1 clarification ✅,
   direction examples ✅, implementation of helper methods ⬜
 - `SESSION_LOG.md`: this entry
+
+---
+
+## Session: 2026-03-15 (continued) — Dec 31 edge cases confirmed
+
+Q: Dec 31 Sunday → Dec 29 Fri (Dec 30 Sat also weekend)
+Q: Dec 31 Saturday → Dec 30 Fri
+Both handled by existing `_adjust_due_date()` — `days_to_month_end = 0` → move BEFORE,
+walk backward until working day. No special case needed.
+
+Note: Easter four-day block (Апрелски пример Apr 27-30) also confirmed — all four
+contractual dates resolve to same last business day (Apr 24 in example). Apr 27 takes
+AFTER→fallback→BEFORE path; Apr 28-30 take BEFORE directly. Algorithm correct.
