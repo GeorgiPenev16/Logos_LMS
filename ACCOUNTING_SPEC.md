@@ -710,24 +710,44 @@ Old lines are frozen at their original dates.
 
 Holidays affect **only** initial schedule generation (pre-disbursement, `status = draft`).
 
+**Master rule: ONE installment per month — never cross month boundary.**
+
 **Correct flow:**
-1. System calculates installment date mathematically
-2. If date is public holiday or weekend → system **suggests** next business day
-3. Loan officer **reviews and confirms** (human decision, not automatic)
-4. Officer may override the suggestion if needed
-5. Date is locked after disbursement — immutable from that point
+1. System calculates raw installment date mathematically (amortisation schedule)
+2. If date is public holiday or weekend → apply `_adjust_due_date()` → stays in same calendar month
+3. System **suggests** adjusted date to loan officer
+4. Loan officer **reviews and confirms** (human decision, not automatic)
+5. Officer may override the suggestion if needed
+6. Date is locked after disbursement — immutable from that point
 
 **System may suggest, human must confirm. System never auto-applies.**
 
+**Direction rule:**
+
+| Condition | Direction | Rationale |
+|-----------|-----------|-----------|
+| Date in last 3 days of month | Move **BEFORE** (same month) | Can't push to next month — that month already has its own installment |
+| Moving AFTER would cross month end | Move **BEFORE** (same month) | Same — month boundary is inviolable |
+| All other cases | Move **AFTER** (same month) | Standard "next business day" |
+
+**Jan 1 is NOT a special case.** Day 1 of month → 30 days to month-end → "move AFTER" →
+Jan installment stays in January. Jan 1 (holiday) → Jan 2 (or next working day in January).
+Moving to December would create two installments in December — forbidden by the one-per-month rule.
+
+**Dec 31 example:** Day 31 of month → 0 days to month-end → "move BEFORE" →
+Dec installment stays in December. Dec 31 Sat → Dec 30 Fri.
+
 **Not affected by holiday logic:**
-- Any existing in-progress loan (immutable)
+- Any existing in-progress loan (immutable — see Rule 15)
 - Penalty calculation (always calendar days from contract `emi_date`)
 - Interest accrual cron (fires on exact `emi_date`, regardless of day of week)
-- Any reclassification cron
+- Any reclassification or pre-closure cron
 
 **Holiday data source:** `resource.calendar.leaves` (populated by `setup_generic.py`).
 Coverage: 2026–2035. Fixed holidays + Orthodox Easter + weekend compensation (КТ чл.154 ал.2).
 Annual coverage check cron runs December 1st; notifies admin if coverage expires within 2 years.
+
+**Full implementation:** See `CLAUDE.md` → Critical Business Rules → Holiday-Aware Date Generation.
 
 ---
 

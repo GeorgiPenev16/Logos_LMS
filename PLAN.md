@@ -232,9 +232,13 @@
       > **NOTE:** `setup_logos.py` must NOT overwrite company info — check before writing, skip if set
 - [ ] `scripts/setup_generic.py` — journals, document types, system params + **Bulgarian holidays 2026–2035**:
   - [x] Installment date immutability rule documented (CLAUDE.md, ACCOUNTING_SPEC.md Rules 15/16, INVESTIGATION.md Section 18)
-  - [x] Holiday-aware date generation for new loans (suggest only, officer confirms, immutable after disbursement)
+  - [x] Holiday-aware date generation for new loans — `_adjust_due_date()` with month-end direction rule documented
+  - [x] Master rule "one installment per month — never cross month boundary" documented
+  - [x] Jan 1 handling clarified: NOT a special case — moves AFTER (stays in January)
+  - [x] Direction examples table: Jan 1→Jan 2, Dec 31→Dec 30, Dec 30→Dec 29, Mar 3→Mar 4, May 1→May 4
   - [ ] 10-year holiday coverage 2026–2035 in `resource.calendar.leaves` (fixed, Easter, weekend compensation, EUR special)
   - [ ] Annual holiday coverage check cron (`_cron_holiday_coverage_check`) — Dec 1st, admin notification if ≤ 2 years remaining
+  - [ ] `_adjust_due_date()` + `_is_non_working()` + `_prev_business_day()` implemented in `loan_bg.py` or schedule mixin
 - [x] `scripts/setup_logos.py` — currencies (EUR/BGN) + 3 loan types; JSON-RPC; env-var config (`ODOO_URL`, `ODOO_DB`, `ODOO_USER`, `ODOO_PASS`); `TEST_MODE=True` by default (commit `1fef838`)
 - [x] `l10n_bg` dependency evaluated — **not added** (self-contained, not required)
 - [ ] `scripts/README.md` — usage instructions for all scripts

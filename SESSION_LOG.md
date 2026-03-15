@@ -2345,3 +2345,59 @@ Annual check cron (`_cron_holiday_coverage_check`):
 - `PLAN.md`: Phase 6 `setup_generic.py` item expanded with holiday sub-tasks
 - `STATUS_REPORT.md`: Business rules table added to completed section
 - `SESSION_LOG.md`: this entry
+
+---
+
+## Session: 2026-03-15 (continued) — _adjust_due_date() Month-End Logic
+
+### Decision: Jan 1 correction
+
+Previous spec said "Jan 1 → move to December." This was WRONG.
+
+**Corrected rule:** Jan 1 is NOT a special case. It is day 1 of a 31-day month.
+`days_to_month_end = 30`. Not in last 3 days. → Move AFTER (next business day in January).
+Jan installment stays in January. Moving to December would create two December installments — forbidden.
+
+### Master rule established
+
+**ONE installment per month — never cross month boundary in either direction.**
+
+This supersedes any simple "next business day" approach.
+
+### Direction algorithm (_adjust_due_date)
+
+```
+if days_to_month_end <= 2:          # last 3 days of month
+    → move BEFORE (prev business day, same month)
+elif moving AFTER would cross month:
+    → move BEFORE (prev business day, same month)
+else:
+    → move AFTER (next business day, same month)
+```
+
+Safety guards: `UserError` if no business day found in month (extremely rare — only if
+entire last week of month were holidays, practically impossible).
+
+### Examples table (finalised)
+
+| Original | Reason | Days to EOM | Direction | Result |
+|----------|--------|-------------|-----------|--------|
+| Jan 1 | Holiday | 30 | AFTER | Jan 2 (or next working) |
+| Mar 3 Mon | Holiday | 28 | AFTER | Mar 4 Tue |
+| May 1 Fri | Holiday | 30 | AFTER | May 4 Mon |
+| May 24 Sun | Weekend+holiday | 7 | AFTER | May 25 Mon |
+| Nov 30 Sat | Weekend | 0 | BEFORE | Nov 29 Fri |
+| Dec 24 holiday | Holiday | 7 | AFTER | Dec 26 Fri (if Dec 25 also holiday) |
+| Dec 29 Fri holiday | Holiday | 2 | BEFORE | Dec 28 Thu |
+| Dec 30 Sun holiday | Weekend+holiday | 1 | BEFORE | Dec 28 Fri (skips Dec 29 if also off) |
+| Dec 31 Sat | Weekend | 0 | BEFORE | Dec 30 Fri |
+
+### Files updated
+- `CLAUDE.md`: Holiday-Aware Date Generation section replaced with corrected algorithm,
+  direction table, full example table, complete Python code for `_adjust_due_date()`,
+  `_prev_business_day()`, `_is_non_working()`, `_get_bg_holidays()`, UI message template
+- `ACCOUNTING_SPEC.md`: Rule 16 rewritten — master rule, direction table, Jan 1 correction,
+  Dec 31 example, link to CLAUDE.md for full code
+- `PLAN.md`: setup_generic.py sub-tasks expanded — Jan 1 clarification ✅,
+  direction examples ✅, implementation of helper methods ⬜
+- `SESSION_LOG.md`: this entry

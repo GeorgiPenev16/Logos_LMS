@@ -349,24 +349,96 @@ def _write(self, vals):
 
 ### Holiday-Aware Date Generation — NEW loans only
 
-Holidays affect **ONLY** initial schedule generation (before disbursement):
+Holidays affect **ONLY** initial schedule generation (before disbursement).
 
-1. System calculates installment date normally (e.g. every 20th of month)
-2. If date falls on Bulgarian public holiday or weekend → system **suggests** next business day
-3. Loan officer **reviews and confirms** (human must confirm — system never auto-applies)
-4. Officer may override if needed
-5. Date is **locked** after disbursement — immutable from that point
+**Master rule: ONE installment per month — never cross month boundary in either direction.**
+
+1. System calculates raw installment date (e.g. the 20th of each month)
+2. If date is non-working → apply `_adjust_due_date()` (see below) → stays in the same month
+3. System **suggests** the adjusted date to the loan officer
+4. Loan officer **reviews and confirms** — may override if needed
+5. Date **locked** after disbursement — immutable
+
+**NEVER retroactively adjust existing `emi_date` for holidays.**
+
+#### Direction rule
+
+| Condition | Direction | Example |
+|-----------|-----------|---------|
+| Date is in last 3 days of month | Move **BEFORE** (same month) | Dec 31 → Dec 30 |
+| Moving AFTER would cross into next month | Move **BEFORE** (same month) | Dec 31 Sat → Dec 30 |
+| All other cases | Move **AFTER** (same month) | Jan 1 → Jan 2+ |
+
+> **Jan 1 is NOT special.** It falls on day 1 of 31 days → 30 days to month-end → "move AFTER".
+> Jan installment stays in January. This preserves the "one installment per month" rule.
+
+#### Date adjustment examples
+
+| Original | Reason | Days to month-end | Direction | Adjusted |
+|----------|--------|-------------------|-----------|----------|
+| Jan 1 | Holiday | 30 | AFTER | Jan 2 (or next working day in Jan) |
+| Mar 3 Mon | Holiday | 28 | AFTER | Mar 4 Tue |
+| May 1 Fri | Holiday | 30 | AFTER | May 4 Mon (skip Sat/Sun) |
+| May 24 Sun | Weekend+holiday | 7 | AFTER | May 25 Mon |
+| Nov 30 Sat | Weekend | 0 | BEFORE | Nov 29 Fri |
+| Dec 30 holiday | Holiday | 1 | BEFORE | Dec 29 (or prev working day) |
+| Dec 31 Sat | Weekend | 0 | BEFORE | Dec 30 Fri |
+| Dec 29+30+31 all non-working | Multiple | 2→0 | BEFORE | Dec 28 Fri |
+
+#### Implementation
 
 ```python
-def _next_business_day(self, d):
-    """Suggest next business day if holiday/weekend. Pre-disbursement only."""
-    holidays = self._get_bg_holidays(d.year)
-    while d.weekday() >= 5 or d in holidays:
-        d += timedelta(days=1)
+import calendar
+from datetime import timedelta
+
+def _adjust_due_date(self, d, holidays):
+    """
+    Adjust installment due date for holidays and weekends.
+
+    Master rule: ONE installment per month — never cross month boundary.
+
+    Direction:
+    - Last 3 days of month OR moving AFTER would cross month end
+      → move BEFORE (previous business day, same month)
+    - All other cases
+      → move AFTER (next business day, same month)
+    """
+    if not self._is_non_working(d, holidays):
+        return d  # Already a business day — no adjustment
+
+    original = d
+    last_day = calendar.monthrange(d.year, d.month)[1]
+    days_to_month_end = last_day - d.day  # 0 = last day, 1 = second-to-last, etc.
+
+    if days_to_month_end <= 2:
+        # In last 3 days → move BEFORE
+        return self._prev_business_day(d, original, holidays)
+    else:
+        # Move AFTER — but stop if we'd cross into next month
+        candidate = d
+        while self._is_non_working(candidate, holidays):
+            candidate += timedelta(days=1)
+            if candidate.month != original.month:
+                # Would cross month boundary → fall back to BEFORE
+                return self._prev_business_day(d, original, holidays)
+        return candidate
+
+def _prev_business_day(self, d, original, holidays):
+    """Previous business day in same month as original."""
+    while self._is_non_working(d, holidays):
+        d -= timedelta(days=1)
+        if d.month != original.month:
+            raise UserError(
+                f"Не може да се намери работен ден в месец "
+                f"{original.strftime('%B %Y')}. "
+                f"Моля, задайте датата ръчно.")
     return d
 
+def _is_non_working(self, d, holidays):
+    return d.weekday() >= 5 or d in holidays
+
 def _get_bg_holidays(self, year):
-    """Query resource.calendar.leaves for company calendar."""
+    """Return set of holiday dates for the given year from resource.calendar.leaves."""
     leaves = self.env['resource.calendar.leaves'].search([
         ('calendar_id', '=', self.env.company.resource_calendar_id.id),
         ('date_from', '>=', f'{year}-01-01'),
@@ -376,8 +448,16 @@ def _get_bg_holidays(self, year):
     return {fields.Date.from_string(l.date_from) for l in leaves}
 ```
 
-**NEVER retroactively adjust existing `emi_date` for holidays.**
-Penalty calculation and interest accrual always use **calendar days** from contract date — holiday awareness is a scheduling courtesy, not an accounting rule.
+#### Officer confirmation message (UI)
+
+```
+Датата на вноска {original_date} е неработен ден.
+Предложена дата: {adjusted_date}.
+Потвърдете или въведете друга дата.
+```
+
+Officer can confirm the suggestion or enter any date manually.
+Date is locked after disbursement.
 
 ### Holiday Coverage — setup_generic.py
 
