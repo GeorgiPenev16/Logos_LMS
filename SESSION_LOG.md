@@ -2149,3 +2149,118 @@ BG-correct global 4-round FIFO sweep and correct accounting.
 - `CLAUDE.md`: GROUP E added to Completed Accounting Groups; version → 1.0.16
 - `PLAN.md`: GROUP E marked ✅ COMPLETE
 - `SESSION_LOG.md`: this entry
+
+---
+
+## Session: 2026-03-15 — GROUP F, GROUP G, setup_logos.py, TK Integrity Check
+
+### Overview
+Four topics addressed in this session:
+1. GROUP F — Reclassification & overdue status (built and committed)
+2. GROUP G — Pre-closure wizard + decrease-term wizard (built and committed)
+3. `scripts/setup_logos.py` — migrated from XML-RPC to JSON-RPC, env-var config
+4. TechKhedut integrity verification (formal check, documented)
+
+---
+
+### GROUP F — Reclassification & Overdue Status (v1.0.17, commit `19ed298`)
+
+**`models/loan_reclass_bg.py`** — two classes:
+
+**`CustomerLoanLineReclassBG(_inherit='customer.loan.lines')`:**
+- `days_overdue` Integer — stored computed, `@api.depends('emi_date')`, days since emi_date if unpaid
+- `overdue_reclass_move_id` Many2one(`account.move`) — guards against duplicate daily reclassification JE
+- `status` `selection_add=[('overdue','Overdue / Просрочено')]` with `ondelete={'overdue':'set default'}`
+- `_compute_status()` override: calls `super()` then promotes `status='unpaid'` past-due lines to `'overdue'`
+
+**`CustomerLoanReclassBG(_inherit='customer.loan')`:**
+- `lt_reclass_move_id` Many2one(`account.move`) — tracks current monthly LT/ST reclassification move
+- `_compute_lt_st_reclass_delta()`: `new_st_remaining` = principal for lines `emi_date ≤ today+12mo`; `orig_st_remaining` = principal for lines `emi_date ≤ disbursement_date+12mo`; delta = new − orig
+- `_cron_reclassify_overdue()`: daily — for each overdue line without `overdue_reclass_move_id`, posts DR 4112 / CR 4110
+- `_cron_reclassify_lt_st()`: monthly — reverses existing `lt_reclass_move_id` then reposts DR 4110 / CR 262 for the new delta amount
+
+**`data/cron_reclass_bg.xml`:** Two `ir.cron` records (no `numbercall` field — removed in Odoo 17+):
+- `cron_lms_overdue_reclass` — daily, priority 8
+- `cron_lms_lt_st_reclass` — monthly, priority 9
+
+#### Files modified
+- `models/__init__.py`: added `from . import loan_reclass_bg`
+- `__manifest__.py`: added `data/cron_reclass_bg.xml`; version → 1.0.17
+- `CLAUDE.md`: GROUP F added to Completed Accounting Groups
+- `PLAN.md`: GROUP F marked ✅ COMPLETE
+
+---
+
+### GROUP G — Pre-closure + Decrease Term (v1.0.18, commit `c76ac8f`)
+
+**`wizard/pre_closure_bg.py`** — `PreClosureBG(_inherit='customer.pre.closure.wizard')`:
+
+New fields: `closure_date` Date, `pre_closure_fee_pct` Float; computed Monetary display fields:
+`remaining_principal_bg`, `remaining_interest_bg`, `penalty_total_bg`, `pre_closure_fee_bg`, `total_due_bg`
+
+`action_pre_close_loan()` override:
+1. Reverse future GROUP C accruals: finds `accrual_move_id` on lines where `accrual_status='posted'` and `emi_date > closure_date`; posts reversal + sets `accrual_status='reversed'`
+2. Build settlement JE: DR 5031 (total) / CR per-line: 4112 (if `overdue_reclass_move_id`), 262 (if LT), 4110 (if ST current), 4960 (accrued interest), 7230 (penalty), 7240 (pre-closure fee)
+3. Unlink future unpaid lines
+4. Set `loan.status='pre_closure'`, `loan.loan_closure_date=closure_date`
+5. Graceful fallback to `super()` if BG accounts not configured
+
+**`wizard/loan_decrease_term_wizard.py`** — `LoanDecreaseTermWizard(_name='loan.decrease.term.wizard')`:
+
+Fields: `loan_id`, `currency_id`, `restructure_date`, `remaining_principal` (computed), `current_installment` (computed), `new_term` (computed via formula), `next_installment_date`
+
+`_compute_wizard_fields()`: N = `ceil(−ln(1 − monthly_rate×P/A) / ln(1+monthly_rate))` (spec §11C)
+
+`action_decrease_term()`:
+- Validates: no overdue unpaid installments
+- Unlinks future lines from `next_installment_date`
+- Generates N new amortisation lines with standard PMT schedule; last installment adjusted for rounding residual
+- Adds section header line for audit trail
+
+#### Files modified
+- `wizard/__init__.py`: added imports for `pre_closure_bg`, `loan_decrease_term_wizard`
+- `views/pre_closure_bg_views.xml`: new view — adds `closure_date` + `pre_closure_fee_pct`, replaces summary group
+- `views/loan_decrease_term_views.xml`: new view — wizard form + action + loan form header button
+- `security/ir.model.access.csv`: access rule for `loan.decrease.term.wizard`
+- `__manifest__.py`: added view files, version → 1.0.18
+- `PLAN.md`: GROUP G marked ✅ COMPLETE
+
+---
+
+### setup_logos.py — JSON-RPC migration (commit `1fef838`)
+
+**File:** `scripts/setup_logos.py` (first commit — previously untracked)
+
+Changes from prior draft:
+- Replaced `xmlrpc.client.ServerProxy` with `requests.Session` + JSON-RPC
+  - Auth: POST `/web/session/authenticate` → stores session cookie
+  - ORM calls: POST `/web/dataset/call_kw`
+- Hardcoded `ODOO_URL/ODOO_DB/ODOO_USER/ODOO_PASS` → `os.getenv()` with staging defaults
+- `call()` and `write_or_log()` simplified — no longer pass `models`/`uid` as args (module-level `_session`)
+- Content unchanged: `setup_currencies()` (EUR active, BGN inactive) + `setup_loan_types()` (3 Logos products)
+- `TEST_MODE=True` default + `--apply` flag pattern kept
+
+---
+
+### TechKhedut Integrity Check (2026-03-15)
+
+Formal verification that `tk_loan_management/` has not been modified.
+
+| Check | Result |
+|-------|--------|
+| `git diff HEAD -- tk_loan_management/` | **Empty** |
+| `git status tk_loan_management/` | `nothing to commit, working tree clean` |
+| `grep -r "VitoshaBG\|Logos" tk_loan_management/` | **Zero matches** |
+
+Phase 2 commit `4be8bfa` appears in `git log -- tk_loan_management/` because that is when
+all TK files were **first added to git** — all insertions, no edits.
+
+**Result: CLEAN ✅** — OPL-1 compliance intact. Documented in `INVESTIGATION.md` Section 17.
+
+---
+
+### Documentation updates (this session)
+- `INVESTIGATION.md`: Section 17 — TechKhedut Integrity Check added
+- `SESSION_LOG.md`: this entry
+- `PLAN.md`: Phase 0 ✅, Phase 1 ✅, GROUP F ✅, GROUP G ✅, setup_logos.py ✅; commit refs fixed; priority order updated
+- `STATUS_REPORT.md`: new file — full project status snapshot

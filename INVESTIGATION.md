@@ -677,3 +677,41 @@ Overpayment: loan.credit_balance += remaining
 
 - `ACCOUNTING_SPEC.md`: Section 7 fully rewritten with global sweep algorithm, code structure,
   example JEs, and wizard penalty options table
+
+---
+
+## Section 17: TechKhedut Integrity Check (2026-03-15)
+
+### Purpose
+Verify that `tk_loan_management/` (OPL-1, TechKhedut) has not been modified by VitoshaBG.
+Run before go-live as evidence of license compliance.
+
+### Checks performed
+
+| Check | Command | Result |
+|-------|---------|--------|
+| Diff against HEAD | `git diff HEAD -- tk_loan_management/` | **Empty** — no changes |
+| Commit log | `git log --oneline -- tk_loan_management/` | 2 commits (see below) |
+| Working tree | `git status tk_loan_management/` | `nothing to commit, working tree clean` |
+| Content scan | `grep -r "VitoshaBG\|tk_loan_management_bg\|Logos" tk_loan_management/ --include="*.py" --include="*.xml"` | **Zero matches** |
+
+### Git log explanation
+
+```
+092e0e1  techkhedut@gmail.com  [IMP] Loan Management       ← TechKhedut delivery
+4be8bfa  g.penev@gmail.com     Phase 2: Partner fixes…     ← our commit
+```
+
+The Phase 2 commit appears in `git log -- tk_loan_management/` because that is the commit
+where `tk_loan_management/` was **first added to git** (all `+` insertions, zero edits).
+Every file in that commit shows `Bin 0 -> N bytes` or `N +` lines — no deletions, no
+modifications. The `git diff HEAD -- tk_loan_management/` being empty confirms the files
+are unchanged from that point.
+
+### Result: CLEAN ✅
+
+- `git diff` → empty
+- `grep VitoshaBG/Logos` → zero matches
+- All TechKhedut files byte-for-byte identical to `092e0e1` delivery
+- OPL-1 license compliance: **intact**
+- Our code: 100% in `tk_loan_management_bg` via Odoo `_inherit`

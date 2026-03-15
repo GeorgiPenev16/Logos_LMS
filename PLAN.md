@@ -8,16 +8,16 @@
 - [x] tk_loan_management v1.0.8 delivered
 - [x] Code cloned to PC
 - [x] CLAUDE.md, PLAN.md, INVESTIGATION.md, SESSION_LOG.md created
-- [ ] Push all docs to GitHub
-- [ ] Install tk_loan_management on Odoo.sh
-- [ ] Create `tk_loan_management_bg` repo structure
+- [x] Push all docs to GitHub
+- [x] Install tk_loan_management on Odoo.sh
+- [x] Create `tk_loan_management_bg` repo structure
 
-## Phase 1: Module Foundation
-- [ ] Create `tk_loan_management_bg/` module structure
-- [ ] `__manifest__.py` with dependency on `tk_loan_management`
-- [ ] `__init__.py` files (models, views, reports, security, data)
-- [ ] `security/ir.model.access.csv` for new models
-- [ ] Basic `i18n/bg.po` skeleton
+## Phase 1: Module Foundation ✅ COMPLETE
+- [x] Create `tk_loan_management_bg/` module structure
+- [x] `__manifest__.py` with dependency on `tk_loan_management`
+- [x] `__init__.py` files (models, views, reports, security, data)
+- [x] `security/ir.model.access.csv` for new models
+- [x] Basic `i18n/bg.po` skeleton
 
 ## Phase 2: Partner/Contact Fixes ✅ COMPLETE (tested 2026-03-10)
 - [x] `models/partner_bg.py` — company vs individual field separation
@@ -87,7 +87,7 @@
 ---
 
 ### GROUP C — Interest Accrual Cron ✅ COMPLETE (2026-03-14, v1.0.14)
-> Commit: pending push — `models/loan_accrual_bg.py` + `data/cron_accrual_bg.xml`
+> Commit: `9852d79` — `models/loan_accrual_bg.py` + `data/cron_accrual_bg.xml`
 
 - [x] `CustomerLoanLineAccrualBG` inherits `customer.loan.lines`: adds `accrual_move_id` Many2one, `accrual_status` Selection (draft/posted/reversed)
 - [x] `CustomerLoanAccrualBG` inherits `customer.loan`: `_cron_post_interest_accrual()` — daily 06:00
@@ -102,7 +102,7 @@
 ---
 
 ### GROUP D — Penalty System (Cash Basis — NO daily GL) ✅ COMPLETE (2026-03-14, v1.0.15)
-> Commit: pending push — `models/loan_penalty_bg.py` + `data/cron_penalty_bg.xml`
+> Commit: `cb349d2` — `models/loan_penalty_bg.py` + `data/cron_penalty_bg.xml`
 
 - [x] Daily cron (informational, **zero journal entries**):
   - For each overdue installment where `today > penalty_start_date` and not `waive_penalty`:
@@ -122,7 +122,7 @@
 ---
 
 ### GROUP E — Payment Wizard Overhaul ✅ COMPLETE (2026-03-14, v1.0.16)
-> Commit: pending push — `wizard/loan_payment_bg.py` + `views/loan_payment_bg_views.xml`
+> Commits: `e27f45f` (initial), `51fa8ca` (fix Float→Monetary fields) — `wizard/loan_payment_bg.py` + `views/loan_payment_bg_views.xml`
 
 - [x] Unlock `date` field in wizard (view xpath removes `readonly="1"`)
 - [x] Fix FIFO order: **Penalty → Fee → Interest → Principal** (correct ЗПК Art. 35 order)
@@ -142,13 +142,13 @@
 
 ---
 
-### GROUP F — Reclassification & Overdue Status
-> Depends on GROUP B.
+### GROUP F — Reclassification & Overdue Status ✅ COMPLETE (2026-03-14, v1.0.17)
+> Commit: `19ed298` — `models/loan_reclass_bg.py` + `data/cron_reclass_bg.xml`
 
-- [ ] Monthly cron (1st of month, 07:00): per loan, compute new 12-month window → `DR 4110 / CR 262`; reverse next day
-- [ ] Daily cron (07:00): installments where `emi_date < today AND status != paid` → `DR 4112 / CR 4110` + `status = overdue`
-- [ ] Add `days_overdue` Integer computed on `customer.loan.lines`
-- [ ] Mark Overdue Installments daily cron: sets `status = 'overdue'`, updates `days_overdue`
+- [x] Monthly cron (1st of month, 07:00): per loan, compute `reclass_delta = new_st_remaining − orig_st_remaining`; reverse prior `lt_reclass_move_id` then post `DR 4110 / CR 262` delta; stored in `lt_reclass_move_id`
+- [x] Daily cron (07:00): installments where `emi_date < today AND status = 'overdue'` → `DR 4112 / CR 4110` (once per line, guarded by `overdue_reclass_move_id`)
+- [x] Add `days_overdue` Integer computed on `customer.loan.lines` (stored, `@api.depends('emi_date')`)
+- [x] `status = 'overdue'` added via `selection_add` in `_compute_status()` override — promotes `unpaid` past-due lines
 
 ---
 
@@ -231,10 +231,10 @@
 - [x] Logos company data entered manually in Odoo.sh staging via Settings → Company (2026-03-11)
       > **NOTE:** `setup_logos.py` must NOT overwrite company info — check before writing, skip if set
 - [ ] `scripts/setup_generic.py` — journals, document types, holidays, system params
-- [ ] `scripts/setup_logos.py` — loan types, interest rates, settings (company info: skip-if-set)
-- [ ] `l10n_bg` dependency evaluated and added if needed
+- [x] `scripts/setup_logos.py` — currencies (EUR/BGN) + 3 loan types; JSON-RPC; env-var config (`ODOO_URL`, `ODOO_DB`, `ODOO_USER`, `ODOO_PASS`); `TEST_MODE=True` by default (commit `1fef838`)
+- [x] `l10n_bg` dependency evaluated — **not added** (self-contained, not required)
 - [ ] `scripts/README.md` — usage instructions for all scripts
-- [ ] All scripts use XML-RPC, `TEST_MODE=True` by default
+- [x] All scripts use `TEST_MODE=True` by default with `--apply` flag
 
 ## Phase 7: Import Scripts
 - [ ] `scripts/import_contacts.py` — import borrowers/guarantors from Excel
@@ -314,13 +314,15 @@
 | ✅ 1 | **Phase 3b GROUP A** — config settings + chart of accounts + journals | Everything accounting |
 | ✅ 2 | **Phase 3b GROUP B** — disbursement overhaul (4110+262 split, fee invoice) | GROUP F |
 | ✅ 3 | **Phase 3b GROUP C** — interest accrual cron (4960/7210) | GROUP E |
-| 4 | **Phase 3b GROUP D** — penalty overhaul (4961/7230, grace days, dual approach) | GROUP E |
-| 5 | **Phase 6** — config scripts (`setup_generic.py`, `setup_logos.py`) | Phase 7 |
-| 6 | **Phase 7** — import scripts (`import_contacts.py`, `import_loans.py`) | Go-live |
-| 7 | **Phase 3b GROUP E** — payment wizard overhaul (FIFO fix, receipt, invoice) | Go-live |
-| 8 | **Phase 3b GROUP F** — reclassification + overdue status crons | Post go-live |
-| 9 | **Phase 3b GROUP G** — restructuring + pre-closure wizard | Post go-live |
-| 10 | **Phase 3b GROUP H** — provision for loan losses | Post go-live |
-| 11 | **Phase 8 AC-1** — AnaCredit fields on `customer.loan` + config | Post go-live |
-| 12 | **Phase 8 AC-2** — `CUCR_enhanced.csv` export wizard/script | Post go-live |
-| 13 | **Phase 8 AC-3** — workflow documentation + BNB submission validation | Post go-live |
+| ✅ 4 | **Phase 3b GROUP D** — penalty cash-basis (informational cron, no daily GL) | GROUP E |
+| ✅ 5 | **Phase 3b GROUP E** — payment wizard overhaul (FIFO fix, penalty options, BG accounts) | Go-live |
+| ✅ 6 | **Phase 3b GROUP F** — reclassification + overdue status crons | Post go-live |
+| ✅ 7 | **Phase 3b GROUP G** — restructuring + pre-closure wizard | Post go-live |
+| ✅ 8 | **Phase 6** — `setup_logos.py` (JSON-RPC, env vars, currencies + loan types) | Phase 7 |
+| 9 | **Phase 6** — `setup_generic.py` (journals, doc types, holidays, system params) | Phase 7 |
+| 10 | **Phase 7** — `import_contacts.py` (borrowers/guarantors from Excel) | Go-live |
+| 11 | **Phase 7** — `import_loans.py` (backdated loans + paid installments) | Go-live |
+| 12 | **Phase 3b GROUP H** — provision for loan losses | Post go-live |
+| 13 | **Phase 8 AC-1** — AnaCredit fields on `customer.loan` + config | Post go-live |
+| 14 | **Phase 8 AC-2** — `CUCR_enhanced.csv` export wizard/script | Post go-live |
+| 15 | **Phase 8 AC-3** — workflow documentation + BNB submission validation | Post go-live |
