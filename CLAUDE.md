@@ -376,7 +376,7 @@ Holidays affect **ONLY** initial schedule generation (before disbursement).
 
 | Original | Reason | Days to month-end | Direction | Adjusted |
 |----------|--------|-------------------|-----------|----------|
-| Jan 1 | Holiday | 30 | AFTER | Jan 2 (or next working day in Jan) |
+| Jan 1 | Holiday | 30 | AFTER | Jan 2 (or next working in Jan) |
 | Mar 3 Mon | Holiday | 28 | AFTER | Mar 4 Tue |
 | May 1 Fri | Holiday | 30 | AFTER | May 4 Mon (skip Sat/Sun) |
 | May 24 Sun | Weekend+holiday | 7 | AFTER | May 25 Mon |
@@ -384,6 +384,20 @@ Holidays affect **ONLY** initial schedule generation (before disbursement).
 | Dec 30 holiday | Holiday | 1 | BEFORE | Dec 29 (or prev working day) |
 | Dec 31 Sat | Weekend | 0 | BEFORE | Dec 30 Fri |
 | Dec 29+30+31 all non-working | Multiple | 2→0 | BEFORE | Dec 28 Fri |
+
+#### Multi-day holiday block at month-end — worked example
+
+**Scenario:** Apr 27–30 all non-working (holidays + weekends). Apr 24 Fri is last working day.
+April has 30 days.
+
+| Contractual date | days_to_EOM | First attempt | Outcome | Path taken |
+|-----------------|-------------|---------------|---------|------------|
+| Apr 27 | 3 (> 2) | AFTER | Apr 28→29→30→May 1 ❌ crosses month → **fall back BEFORE** | Apr 26(Sun)→25(Sat)→**Apr 24 Fri** ✅ |
+| Apr 28 | 2 (≤ 2) | BEFORE directly | Apr 27→26→25→**Apr 24 Fri** ✅ | BEFORE only |
+| Apr 29 | 1 (≤ 2) | BEFORE directly | Apr 28→27→26→25→**Apr 24 Fri** ✅ | BEFORE only |
+| Apr 30 | 0 (≤ 2) | BEFORE directly | Apr 29→28→27→26→25→**Apr 24 Fri** ✅ | BEFORE only |
+
+All four suggest **Apr 24** — the last business day of April. No conflict: each loan has ONE April installment. Apr 27 takes the longer path (tries AFTER, hits month boundary, falls back), while Apr 28–30 go directly BEFORE.
 
 #### Implementation
 
