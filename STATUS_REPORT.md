@@ -42,6 +42,14 @@ Version: tk_loan_management_bg v1.0.18
 | `scripts/import_contacts.py` | ⬜ not started | Borrowers/guarantors from Excel |
 | `import_loans.py` (root) | ⬜ draft exists | Loan migration — needs validation |
 
+### Business rules documented
+| Rule | Status | Where |
+|------|--------|-------|
+| Installment date immutability after disbursement | ✅ documented | CLAUDE.md, ACCOUNTING_SPEC.md Rule 15, INVESTIGATION.md §18.1 |
+| Holiday-aware schedule (suggest only, officer confirms) | ✅ documented | CLAUDE.md, ACCOUNTING_SPEC.md Rule 16, INVESTIGATION.md §18.2 |
+| Annual holiday coverage check cron | ✅ spec written | CLAUDE.md |
+| setup_generic.py — 10-year holiday data 2026–2035 | ⬜ implementation pending | PLAN.md Phase 6 |
+
 ### TechKhedut integrity
 ✅ VERIFIED CLEAN (2026-03-15) — zero modifications, OPL-1 compliance intact.
 See `INVESTIGATION.md` Section 17.

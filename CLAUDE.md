@@ -305,6 +305,91 @@ The generator script is **already operational in production**. Odoo integration 
 - `customer.loan.anacredit_jud_dues` — Monetary, judgment dues
 - `customer.loan.anacredit_tot_offbal` — Monetary, off-balance sheet amount
 
+## CRITICAL BUSINESS RULES
+
+### Installment Dates — IMMUTABLE after disbursement
+
+Once `customer.loan.status == 'in_progress'`:
+- `customer.loan.lines.emi_date` is **permanently readonly**
+- **No wizard, no admin, no cron, no script, no system upgrade** may change an existing `emi_date`
+- The date in the signed contract = the date in the database. Always.
+
+**Legal basis:** Loan contract obligations, AnaCredit DPD reporting, interest accrual trigger, penalty start calculation, journal entry dates.
+
+**Technical enforcement** — add `_write()` override to `CustomerLoanLineAccrualBG` (or a dedicated model mixin):
+
+```python
+def _write(self, vals):
+    if 'emi_date' in vals:
+        if not self.env.context.get('allow_annex_change'):
+            loans = self.mapped('customer_loan_id')
+            if any(l.status == 'in_progress' for l in loans):
+                raise UserError(
+                    "Датата на вноска не може да бъде променяна "
+                    "след активиране на кредита.")
+        else:
+            # allow_annex_change=True requires manager permission
+            if not self.env.user.has_group(
+                    'tk_loan_management.department_manager'):
+                raise UserError(
+                    "Само мениджър може да променя дата по анекс.")
+    return super()._write(vals)
+```
+
+**Exception flow (signed annex — анекс):**
+- Requires `context={'allow_annex_change': True}`
+- Requires `group_loan_manager` permission
+- Mandatory reason field + audit log entry
+- This is a manual, human-authorised operation — never automated
+
+**Exceptions that create NEW lines (old lines frozen):**
+- Restructure (`action_recalculate_installment()`) — unlinks future lines, creates new schedule
+- Decrease-term wizard — unlinks future lines, creates new schedule
+- Pre-closure — cancels future lines entirely
+
+### Holiday-Aware Date Generation — NEW loans only
+
+Holidays affect **ONLY** initial schedule generation (before disbursement):
+
+1. System calculates installment date normally (e.g. every 20th of month)
+2. If date falls on Bulgarian public holiday or weekend → system **suggests** next business day
+3. Loan officer **reviews and confirms** (human must confirm — system never auto-applies)
+4. Officer may override if needed
+5. Date is **locked** after disbursement — immutable from that point
+
+```python
+def _next_business_day(self, d):
+    """Suggest next business day if holiday/weekend. Pre-disbursement only."""
+    holidays = self._get_bg_holidays(d.year)
+    while d.weekday() >= 5 or d in holidays:
+        d += timedelta(days=1)
+    return d
+
+def _get_bg_holidays(self, year):
+    """Query resource.calendar.leaves for company calendar."""
+    leaves = self.env['resource.calendar.leaves'].search([
+        ('calendar_id', '=', self.env.company.resource_calendar_id.id),
+        ('date_from', '>=', f'{year}-01-01'),
+        ('date_from', '<=', f'{year}-12-31'),
+        ('time_type', '=', 'leave'),
+    ])
+    return {fields.Date.from_string(l.date_from) for l in leaves}
+```
+
+**NEVER retroactively adjust existing `emi_date` for holidays.**
+Penalty calculation and interest accrual always use **calendar days** from contract date — holiday awareness is a scheduling courtesy, not an accounting rule.
+
+### Holiday Coverage — setup_generic.py
+
+`setup_generic.py` populates `resource.calendar.leaves` for years 2026–2035:
+- **Fixed holidays** (10 days × 10 years): Jan 1, Mar 3, May 1, May 6, May 24, Sep 6, Sep 22, Dec 24, Dec 25, Dec 26
+- **Weekend compensation** (КТ чл.154 ал.2): auto-calculated per year
+- **Orthodox Easter** (4 days × 10 years): auto-calculated via algorithm
+- **Special one-off**: Jan 2 2026 — "Еднократен почивен — въвеждане EUR"
+
+Annual coverage check cron (`_cron_holiday_coverage_check`) runs December 1st each year.
+If max covered year − current year ≤ 2: sends notification to admin via `mail.message`.
+
 ## DEVELOPMENT RULES
 - Always use `TEST_MODE = True` by default in scripts
 - Field labels must be in Bulgarian
@@ -315,3 +400,4 @@ The generator script is **already operational in production**. Odoo integration 
 - **Before any accounting code: read `ACCOUNTING_SPEC.md` first**
 - **Never hardcode `penalty_rate_annual`, `penalty_divisor`, `penalty_grace_days`** — always read from `res.config.settings`
 - All JEs must carry: `partner_id`, `loan_id` ref, `ref` (human-readable), `journal_id`
+- **`emi_date` is immutable after disbursement** — never change in code without `allow_annex_change` context + manager group

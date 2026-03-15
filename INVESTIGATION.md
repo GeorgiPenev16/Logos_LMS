@@ -715,3 +715,62 @@ are unchanged from that point.
 - All TechKhedut files byte-for-byte identical to `092e0e1` delivery
 - OPL-1 license compliance: **intact**
 - Our code: 100% in `tk_loan_management_bg` via Odoo `_inherit`
+
+---
+
+## Section 18: Core Business Rules (2026-03-15)
+
+### 18.1 Installment Date Immutability
+
+**Rule:** `customer.loan.lines.emi_date` is permanently immutable once `customer.loan.status = 'in_progress'`.
+
+**Legal basis:**
+- Loan contract signed by client references specific installment dates
+- AnaCredit DPD (Days Past Due) is counted from the contract `emi_date` — any retroactive change would falsify regulatory reporting
+- Bulgarian consumer credit law (ЗПК) anchors interest and penalty calculations to the agreed repayment schedule
+
+**Operational basis:**
+- GROUP C interest accrual cron fires on exact `emi_date`
+- GROUP D penalty starts from `emi_date + grace_days`
+- GROUP F overdue reclassification triggers from `emi_date < today`
+- All JE `date` fields reference `emi_date`
+
+**Technical enforcement:**
+- `_write()` override on `customer.loan.lines` blocks `emi_date` changes when `loan.status = 'in_progress'`
+- Exception: `context={'allow_annex_change': True}` + `group_loan_manager` required (signed annex scenario)
+- Restructure/pre-closure wizards do **not** change `emi_date` — they unlink future lines and create new ones
+
+**What is NOT an exception:**
+- Holiday detection — never retroactively adjusts existing dates
+- Weekend detection — same
+- Any cron, wizard, or script — same
+
+### 18.2 Holiday-Aware Date Generation (new loans only)
+
+**Rule:** Holidays apply only at initial schedule generation (pre-disbursement). System **suggests** a business day adjustment; loan officer **confirms**. After disbursement: immutable.
+
+**Holiday data:** `resource.calendar.leaves`, populated by `setup_generic.py`.
+- Coverage: 2026–2035 (10 years)
+- Fixed Bulgarian public holidays: 10 days × 10 years
+- Orthodox Easter: auto-calculated
+- Weekend compensation: КТ чл.154 ал.2, auto-calculated per year
+- Special 2026: Jan 2 — "Еднократен почивен — въвеждане EUR"
+
+**Annual coverage check:** Cron runs December 1st. If `max_covered_year − current_year ≤ 2` → admin notification via `mail.message`.
+
+**Not affected by holidays:**
+- Any in-progress loan (immutable dates)
+- Penalty and interest calculations (always calendar days from contract date)
+- Any reclassification or accrual cron
+
+### 18.3 Summary table
+
+| Scenario | Holiday applies? | `emi_date` changeable? |
+|----------|-----------------|----------------------|
+| New loan, pre-disbursement, schedule generation | ✅ Yes — suggest only | ✅ Officer can edit |
+| Loan in `draft` / `confirm` before disburse | ✅ Yes — suggest only | ✅ Editable |
+| Loan `in_progress` — any cron | ❌ No | ❌ Immutable |
+| Loan `in_progress` — payment wizard | ❌ No | ❌ Immutable |
+| Loan `in_progress` — signed annex | ❌ No auto-adjust | ✅ Manager only, with audit log |
+| Restructure / decrease-term | ❌ No | Unlinks lines, creates NEW schedule |
+| Pre-closure | ❌ No | Cancels future lines |

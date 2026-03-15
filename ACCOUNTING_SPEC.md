@@ -641,14 +641,93 @@ provision_expense_account_id = fields.Many2one('account.account')  # 6290
 
 1. **Loan asset = full principal always.** Initial fees/taxes are separate income (7220/7250), never deducted from 4110/262.
 2. **Interest = accrual basis** (4960/7210 at due date). No invoice. Receipt only.
-3. **Penalty = dual approach**: Approach A (daily GL via cron, 4961/7230) + Approach B (fresh calc at payment, overrides A).
+3. **Penalty = cash basis** (informational daily cron, GL only at payment receipt — DR 5031/CR 7230). No 4961 GL entries.
 4. **Penalty start = configurable** (`penalty_grace_days`). Default 0. Never hardcode.
-5. **Penalty income = cash basis** at payment (7230). Approach A daily entries are reversed/reconciled at payment.
-6. **FIFO priority:** Penalty → Interest → Fee → Principal.
+5. **Penalty income = cash basis** at payment (7230). Daily `penalty_accrued_informational` is display-only, no JE.
+6. **FIFO priority:** Penalty → Fee → Interest → Principal (ЗПК Art. 35). Global sweep across all installments.
 7. **Invoice generation is optional** per `invoice_mode` and `invoice_initial_fees` config.
-8. **Reclassification** LT ↔ ST runs monthly + on overdue event.
+8. **Reclassification** LT ↔ ST runs monthly + daily overdue reclassification (4110→4112).
 9. **Penalty resets** after any payment (full or partial). Recalculate from new unpaid balance.
 10. **All JEs must carry:** `partner_id`, `loan_id`, `ref` (human-readable with loan name + date), `journal_id`.
+11. **Installment dates are immutable** after loan activation (`status = in_progress`). See Rule 15 below.
+12. **No automatic date adjustments** to existing loans. Holiday awareness applies only at schedule creation. See Rule 16 below.
+
+---
+
+## Rule 15: Installment Date Immutability
+
+**Core rule:** Once `customer.loan.status == 'in_progress'`, `customer.loan.lines.emi_date` is **permanently readonly** for all automated processes.
+
+**Why:** The installment date is the basis for:
+- Interest accrual trigger (GROUP C cron fires on `emi_date`)
+- Penalty start date (`emi_date + grace_days`)
+- AnaCredit DPD reporting (days since `emi_date`)
+- Journal entry dates on all posted moves
+- Client contract obligations (signed document)
+
+**The contract date = the system date. Always.**
+
+**No automatic change may come from:**
+- Holiday detection
+- Weekend detection
+- Any cron job (GROUP C, D, F, G)
+- Any wizard (payment, pre-closure, restructure)
+- Any script (import, setup)
+- System upgrade or module update
+
+**Technical enforcement:**
+
+```python
+def _write(self, vals):
+    if 'emi_date' in vals:
+        if not self.env.context.get('allow_annex_change'):
+            if any(l.customer_loan_id.status == 'in_progress'
+                   for l in self):
+                raise UserError(
+                    "Датата на вноска не може да бъде променяна "
+                    "след активиране на кредита.")
+        else:
+            if not self.env.user.has_group(
+                    'tk_loan_management.department_manager'):
+                raise UserError(
+                    "Само мениджър може да променя дата по анекс.")
+    return super()._write(vals)
+```
+
+**Only allowed exception — Signed Annex (анекс):**
+- Triggered with `context={'allow_annex_change': True}`
+- Requires `group_loan_manager` permission
+- Mandatory reason field
+- Audit log entry created
+
+**Restructure / pre-closure exception:**
+These do NOT change existing `emi_date`. They **unlink future lines entirely** and create a new schedule.
+Old lines are frozen at their original dates.
+
+---
+
+## Rule 16: Holiday-Aware Scheduling — New Loans Only
+
+Holidays affect **only** initial schedule generation (pre-disbursement, `status = draft`).
+
+**Correct flow:**
+1. System calculates installment date mathematically
+2. If date is public holiday or weekend → system **suggests** next business day
+3. Loan officer **reviews and confirms** (human decision, not automatic)
+4. Officer may override the suggestion if needed
+5. Date is locked after disbursement — immutable from that point
+
+**System may suggest, human must confirm. System never auto-applies.**
+
+**Not affected by holiday logic:**
+- Any existing in-progress loan (immutable)
+- Penalty calculation (always calendar days from contract `emi_date`)
+- Interest accrual cron (fires on exact `emi_date`, regardless of day of week)
+- Any reclassification cron
+
+**Holiday data source:** `resource.calendar.leaves` (populated by `setup_generic.py`).
+Coverage: 2026–2035. Fixed holidays + Orthodox Easter + weekend compensation (КТ чл.154 ал.2).
+Annual coverage check cron runs December 1st; notifies admin if coverage expires within 2 years.
 
 ---
 

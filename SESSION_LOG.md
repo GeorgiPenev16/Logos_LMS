@@ -2264,3 +2264,84 @@ all TK files were **first added to git** — all insertions, no edits.
 - `SESSION_LOG.md`: this entry
 - `PLAN.md`: Phase 0 ✅, Phase 1 ✅, GROUP F ✅, GROUP G ✅, setup_logos.py ✅; commit refs fixed; priority order updated
 - `STATUS_REPORT.md`: new file — full project status snapshot
+
+---
+
+## Session: 2026-03-15 (continued) — Business Rules: Date Immutability + Holiday Logic
+
+### Overview
+Defined and documented two critical business rules that govern installment date handling
+across the entire system. No code written — documentation and specification only.
+
+---
+
+### Rule 1: Installment Date Immutability
+
+**Decision:** `customer.loan.lines.emi_date` is permanently immutable once
+`customer.loan.status = 'in_progress'`.
+
+**Legal basis:**
+- Signed contract references specific dates
+- AnaCredit DPD reporting requires unchanged reference dates
+- ЗПК penalty/interest calculations anchor to agreed schedule
+
+**Technical enforcement specified:**
+```python
+def _write(self, vals):
+    if 'emi_date' in vals:
+        if not self.env.context.get('allow_annex_change'):
+            if any(l.customer_loan_id.status == 'in_progress' for l in self):
+                raise UserError("Датата на вноска не може да бъде променяна "
+                                "след активиране на кредита.")
+        else:
+            if not self.env.user.has_group('tk_loan_management.department_manager'):
+                raise UserError("Само мениджър може да променя дата по анекс.")
+    return super()._write(vals)
+```
+
+**Exception — signed annex:** `context={'allow_annex_change': True}` + manager group + audit log.
+**Exception — restructure/pre-closure:** Unlinks lines, creates NEW schedule. Original dates frozen.
+
+**What is NOT an exception:**
+- Holiday detection, weekend detection, any cron, any wizard, any script
+
+---
+
+### Rule 2: Holiday-Aware Date Generation (new loans only)
+
+**Decision:**
+1. System calculates installment date mathematically
+2. If date is holiday/weekend → system **suggests** next business day
+3. Loan officer **reviews and confirms** — human decision required
+4. Officer may override suggestion
+5. Date locked after disbursement
+
+**System suggests. Human confirms. System never auto-applies.**
+
+**Not affected by holiday logic:** existing in-progress loans, penalty/interest cron calculations.
+
+---
+
+### Rule 3: Holiday Coverage Specification (for setup_generic.py)
+
+Bulgarian public holidays 2026–2035 in `resource.calendar.leaves`:
+- 10 fixed national holidays per year (Jan 1, Mar 3, May 1, May 6, May 24, Sep 6, Sep 22, Dec 24, Dec 25, Dec 26)
+- Orthodox Easter (4 days × 10 years) — auto-calculated
+- Weekend compensation (КТ чл.154 ал.2) — auto-calculated per year
+- Special 2026: Jan 2 — "Еднократен почивен — въвеждане EUR"
+
+Annual check cron (`_cron_holiday_coverage_check`):
+- Runs December 1st each year
+- Finds latest date in `resource.calendar.leaves`
+- If `max_year − current_year ≤ 2` → sends `mail.message` to admin
+- Message links to `dv.parliament.bg` for government decrees
+
+---
+
+### Files updated (documentation only — no code)
+- `CLAUDE.md`: New section "CRITICAL BUSINESS RULES" (date immutability + holiday logic + coverage spec)
+- `ACCOUNTING_SPEC.md`: Rules 11–12 added to Section 15 summary; full Rule 15 and Rule 16 sections added
+- `INVESTIGATION.md`: Section 18 (Core Business Rules — 18.1 immutability, 18.2 holiday logic, 18.3 scenario table)
+- `PLAN.md`: Phase 6 `setup_generic.py` item expanded with holiday sub-tasks
+- `STATUS_REPORT.md`: Business rules table added to completed section
+- `SESSION_LOG.md`: this entry

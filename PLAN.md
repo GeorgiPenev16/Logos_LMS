@@ -230,7 +230,11 @@
 ## Phase 6: Configuration Scripts
 - [x] Logos company data entered manually in Odoo.sh staging via Settings → Company (2026-03-11)
       > **NOTE:** `setup_logos.py` must NOT overwrite company info — check before writing, skip if set
-- [ ] `scripts/setup_generic.py` — journals, document types, holidays, system params
+- [ ] `scripts/setup_generic.py` — journals, document types, system params + **Bulgarian holidays 2026–2035**:
+  - [x] Installment date immutability rule documented (CLAUDE.md, ACCOUNTING_SPEC.md Rules 15/16, INVESTIGATION.md Section 18)
+  - [x] Holiday-aware date generation for new loans (suggest only, officer confirms, immutable after disbursement)
+  - [ ] 10-year holiday coverage 2026–2035 in `resource.calendar.leaves` (fixed, Easter, weekend compensation, EUR special)
+  - [ ] Annual holiday coverage check cron (`_cron_holiday_coverage_check`) — Dec 1st, admin notification if ≤ 2 years remaining
 - [x] `scripts/setup_logos.py` — currencies (EUR/BGN) + 3 loan types; JSON-RPC; env-var config (`ODOO_URL`, `ODOO_DB`, `ODOO_USER`, `ODOO_PASS`); `TEST_MODE=True` by default (commit `1fef838`)
 - [x] `l10n_bg` dependency evaluated — **not added** (self-contained, not required)
 - [ ] `scripts/README.md` — usage instructions for all scripts
