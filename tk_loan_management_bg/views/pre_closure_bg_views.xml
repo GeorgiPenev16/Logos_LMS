@@ -19,7 +19,7 @@
                 </xpath>
 
                 <!-- Replace the existing Loan Details group with BG breakdown -->
-                <xpath expr="//group[@string='Loan Details']" position="replace">
+                <xpath expr="//group[.//field[@name='remaining_loan_principle_amount']]" position="replace">
                     <group string="Settlement Summary / Изчисление на сумата за закриване">
                         <group>
                             <field name="remaining_principal_bg"/>
@@ -34,7 +34,7 @@
                 </xpath>
 
                 <!-- Hide the base Pre-Closure Details group (uses wrong accounts) -->
-                <xpath expr="//group[@string='Pre-Closure Details']" position="attributes">
+                <xpath expr="//group[.//field[@name='is_pre_closure_charge']]" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
 
