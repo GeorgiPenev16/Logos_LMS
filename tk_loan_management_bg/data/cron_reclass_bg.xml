@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    GROUP F — Reclassification Crons
+
+    1. cron_lms_overdue_reclass   — daily 07:00: DR 4112 / CR 4110 for newly overdue lines
+    2. cron_lms_lt_st_reclass     — monthly 1st, 07:00: DR 4110 / CR 262 (LT→ST delta)
+
+    noupdate=0 so schedule can be adjusted without data reset.
+-->
+<odoo>
+    <data noupdate="0">
+
+        <!-- Daily: overdue reclassification 4110 → 4112 -->
+        <record id="cron_lms_overdue_reclass" model="ir.cron">
+            <field name="name">LMS: Overdue Reclassification / Преосчетоводяване просрочие (4110→4112)</field>
+            <field name="model_id" ref="tk_loan_management.model_customer_loan"/>
+            <field name="state" eval="'code'"/>
+            <field name="code">model._cron_reclassify_overdue()</field>
+            <field name="interval_number" eval="1"/>
+            <field name="interval_type">days</field>
+            <field name="active" eval="True"/>
+            <field name="priority" eval="8"/>
+        </record>
+
+        <!-- Monthly: LT/ST reclassification 262 → 4110 -->
+        <record id="cron_lms_lt_st_reclass" model="ir.cron">
+            <field name="name">LMS: LT/ST Reclassification / Преосчетоводяване ДС→КС (262→4110)</field>
+            <field name="model_id" ref="tk_loan_management.model_customer_loan"/>
+            <field name="state" eval="'code'"/>
+            <field name="code">model._cron_reclassify_lt_st()</field>
+            <field name="interval_number" eval="1"/>
+            <field name="interval_type">months</field>
+            <field name="active" eval="True"/>
+            <field name="priority" eval="9"/>
+        </record>
+
+    </data>
+</odoo>

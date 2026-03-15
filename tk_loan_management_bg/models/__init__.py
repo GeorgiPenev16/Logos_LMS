@@ -16,5 +16,7 @@ from . import loan_disburse_bg
 from . import loan_accrual_bg
 # GROUP D: Penalty system (cash-basis, informational only — zero GL)
 from . import loan_penalty_bg
+# GROUP F: Reclassification & overdue status
+from . import loan_reclass_bg
 # from . import loan_type_bg      # Фаза 4
 # from . import anacredit_fields  # Фаза 8

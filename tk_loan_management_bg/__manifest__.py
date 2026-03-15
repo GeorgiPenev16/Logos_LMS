@@ -13,7 +13,7 @@
         - Редактируема таблица на вноски
         - Полета за AnaCredit отчетност към БНБ
     """,
-    'version': '1.0.16',
+    'version': '1.0.17',
     'author': 'VitoshaBG EOOD',
     'company': 'VitoshaBG EOOD',
     'maintainer': 'VitoshaBG EOOD',
@@ -43,6 +43,9 @@
 
         # GROUP D: Penalty informational cron (cash-basis, zero GL)
         'data/cron_penalty_bg.xml',
+
+        # GROUP F: Reclassification crons (overdue 4110→4112, monthly 262→4110)
+        'data/cron_reclass_bg.xml',
 
         # Views — Фаза 2
         'views/partner_bg_views.xml',
