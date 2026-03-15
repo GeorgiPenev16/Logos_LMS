@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    GROUP G — Decrease-Term Restructuring Wizard
+    New wizard form + action + button on loan form.
+-->
+<odoo>
+    <data noupdate="0">
+
+        <!-- Wizard form view -->
+        <record id="loan_decrease_term_wizard_form_view" model="ir.ui.view">
+            <field name="name">loan.decrease.term.wizard.form.view</field>
+            <field name="model">loan.decrease.term.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Decrease Loan Term / Намаляване срока">
+                    <field name="loan_id" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+
+                    <group string="Parameters / Параметри">
+                        <group>
+                            <field name="restructure_date"/>
+                            <field name="remaining_principal" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="current_installment" readonly="1"/>
+                            <field name="new_term" readonly="1"/>
+                            <field name="next_installment_date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <footer>
+                        <button name="action_decrease_term"
+                                string="Confirm Restructure / Потвърди"
+                                type="object"
+                                class="oe_highlight"
+                                confirm="This will cancel all future installments and generate a new schedule. Are you sure?"/>
+                        <button special="cancel" string="Cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- Wizard action -->
+        <record id="loan_decrease_term_wizard_action" model="ir.actions.act_window">
+            <field name="name">Decrease Loan Term / Намаляване срока</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">loan.decrease.term.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <!-- Button on loan form — visible only when in_progress -->
+        <record id="customer_loan_form_decrease_term_button" model="ir.ui.view">
+            <field name="name">customer.loan.form.decrease.term.button</field>
+            <field name="model">customer.loan</field>
+            <field name="inherit_id" ref="tk_loan_management.customer_loan_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header" position="inside">
+                    <button name="%(loan_decrease_term_wizard_action)d"
+                            string="Decrease Term / Намаляване срока"
+                            type="action"
+                            invisible="status != 'in_progress'"
+                            class="btn-secondary"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</odoo>

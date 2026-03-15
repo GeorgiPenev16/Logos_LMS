@@ -7,3 +7,4 @@ access_loan_document_template_user,loan.document.template user,model_loan_docume
 access_loan_document_template_manager,loan.document.template manager,model_loan_document_template,tk_loan_management.department_manager,1,1,1,1
 access_loan_generated_document_user,loan.generated.document user,model_loan_generated_document,,1,1,1,1
 access_loan_document_generate_wizard,loan.document.generate.wizard user,model_loan_document_generate_wizard,,1,1,1,1
+access_loan_decrease_term_wizard,loan.decrease.term.wizard user,model_loan_decrease_term_wizard,,1,1,1,1

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    GROUP G — Pre-Closure Wizard BG Override
+    Adds closure_date, fee%, and BG-computed summary fields.
+-->
+<odoo>
+    <data noupdate="0">
+
+        <record id="customer_pre_closure_wizard_form_view_bg" model="ir.ui.view">
+            <field name="name">customer.pre.closure.wizard.form.view.bg</field>
+            <field name="model">customer.pre.closure.wizard</field>
+            <field name="inherit_id" ref="tk_loan_management.customer_pre_closure_wizard_form_view"/>
+            <field name="arch" type="xml">
+
+                <!-- Add closure_date and fee% before the existing fields -->
+                <xpath expr="//field[@name='loan_id']" position="after">
+                    <field name="closure_date" required="1"/>
+                    <field name="pre_closure_fee_pct"/>
+                </xpath>
+
+                <!-- Replace the existing Loan Details group with BG breakdown -->
+                <xpath expr="//group[@string='Loan Details']" position="replace">
+                    <group string="Settlement Summary / Изчисление на сумата за закриване">
+                        <group>
+                            <field name="remaining_principal_bg"/>
+                            <field name="remaining_interest_bg"/>
+                        </group>
+                        <group>
+                            <field name="penalty_total_bg"/>
+                            <field name="pre_closure_fee_bg"/>
+                            <field name="total_due_bg"/>
+                        </group>
+                    </group>
+                </xpath>
+
+                <!-- Hide the base Pre-Closure Details group (uses wrong accounts) -->
+                <xpath expr="//group[@string='Pre-Closure Details']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+            </field>
+        </record>
+
+    </data>
+</odoo>

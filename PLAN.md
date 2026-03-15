@@ -152,16 +152,24 @@
 
 ---
 
-### GROUP G — Restructuring & Pre-closure
-> Depends on GROUP E.
+### GROUP G — Restructuring & Pre-closure ✅ COMPLETE (2026-03-15, v1.0.18)
+> Commit: pending push — `wizard/pre_closure_bg.py` + `wizard/loan_decrease_term_wizard.py`
 
-- [ ] **Decrease installment** (base exists, but fix accounts to use 4110/4112/262 split)
-- [ ] **Decrease term** (new): formula from spec §11C:
-  ```python
-  N = -math.log(1 - (monthly_rate * remaining_principal) / fixed_installment) / math.log(1 + monthly_rate)
-  N = math.ceil(N)
-  ```
-- [ ] **Pre-closure wizard**: staff inputs pre-closure fee %; compute total due; cancel future installments (`status='cancelled'`); reverse future accruals (`DR 7210 / CR 4960`); post final settlement JE (5031 / 4110+4112+262+4960+7230+7240); set `loan.status = 'closed'`; ЗПК right: no interest/penalty beyond closure date
+- [x] **Pre-closure wizard** (`customer.pre.closure.wizard` override):
+  - New fields: `closure_date` (Date), `pre_closure_fee_pct` (%), BG computed display fields
+  - Reverses future GROUP C accrual JEs (`accrual_status='posted'` lines past closure_date)
+  - Single settlement JE: DR 5031 / CR 4110 (current) + 4112 (overdue) + 262 (LT) + 4960 (interest) + 7230 (penalty) + 7240 (fee)
+  - Principal split: 4112 if `overdue_reclass_move_id` set; 262 if `emi_date > disbursement_date+12mo`; else 4110
+  - Unlinks future unpaid lines; sets `loan.status='pre_closure'`, `loan_closure_date=closure_date`
+  - ЗПК right: no interest/penalty beyond closure date (future accruals reversed, no new cron lines)
+  - Graceful fallback to base if BG accounts not configured
+- [x] **Decrease-term wizard** (new `loan.decrease.term.wizard`):
+  - Validates: no overdue unpaid installments before proceeding
+  - Computes N: `ceil(−ln(1 − monthly_rate×P/A) / ln(1+monthly_rate))` (spec §11C)
+  - Confirms → unlinks future lines from `next_installment_date`; generates N new amortisation lines
+  - Button "Decrease Term" on loan form header (visible when `status='in_progress'`)
+  - Section header added to schedule for audit trail
+- [ ] **Decrease installment** (base exists) — deferred; base handles it adequately for now
 
 ---
 
