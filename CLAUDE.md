@@ -1,5 +1,32 @@
 # Claude Code Project Context
 
+## GIT BRANCHES
+Repository: `GeorgiPenev16/Logos_LMS`
+
+| Branch | Role | Who pushes |
+|--------|------|-----------|
+| `dev` | Active development | **Claude Code — ALWAYS push here** |
+| `staging` | Stable / tested | Merge from `dev` only (GitHub PR or Odoo.sh) |
+| `main` | Legacy | Ignore |
+| `production` | TechKhedut delivery | Ignore |
+
+**Default push command — always:**
+```
+git push origin dev
+```
+
+**NEVER push directly to `staging`.** Staging receives merges from dev only.
+
+**Odoo.sh branch mapping:**
+- `dev` → Development build (auto-deploys)
+- `staging` → Staging build (test data)
+- `production` → not used (confusing name — ignore)
+
+**Merge dev → staging:**
+Via GitHub Pull Request or via Odoo.sh interface — never via direct push.
+
+---
+
 ## PROJECT
 **VitoshaBG Loan Management Framework**
 - **Client:** Logos (loan company, Bulgaria)
