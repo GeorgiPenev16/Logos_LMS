@@ -22,8 +22,18 @@ git push origin dev
 - `staging` → Staging build (test data)
 - `production` → not used (confusing name — ignore)
 
-**Merge dev → staging:**
-Via GitHub Pull Request or via Odoo.sh interface — never via direct push.
+**Merge dev → staging — trigger phrase: "merge to staging"**
+Run exactly these commands in order:
+```bash
+git checkout staging
+git pull origin staging
+git merge dev
+git push origin staging
+git checkout dev
+```
+Then confirm:
+- Merge successful ✅
+- Back on dev branch ✅
 
 ---
 
